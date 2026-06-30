@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "questions": "Perguntas",
+    "concepts": "Conceitos",
+    "cases": "Casos",
+    "research": "Pesquisas",
+    "videos": "Vídeos",
+    "about": "Sobre",
+    "search": "Buscar"
+  },
+  "home": {
+    "badge": "Pesquisadora · Forbes Councils · TED",
+    "rotatingLabel": "Você já se perguntou…",
+    "rotatingQuestions": [
+      "Por que me sinto vazia apesar do sucesso?",
+      "Como parar de viver para agradar?",
+      "Por que pessoas competentes vivem exaustas?",
+      "Como lidar com um chefe que me diminui?",
+      "Por que algumas pessoas mudam quando você cresce?",
+      "Como recuperar a minha confiança?"
+    ],
+    "answerLabel": "Existe um nome para tudo isso",
+    "title": "Ser Poder",
+    "lead": "Um centro de conhecimento sobre a distância entre o sucesso externo e a coerência interna — e a linguagem para atravessá-la.",
+    "ctaPrimary": "Explorar as bibliotecas",
+    "ctaSecondary": "Conhecer Andrea",
+    "credentialsLabel": "Reconhecida por",
+    "credentials": [
+      "Forbes Councils",
+      "TED",
+      "ESPM",
+      "Natura &Co.",
+      "Harvard",
+      "NYU",
+      "Swiss Business School"
+    ],
+    "librariesTitle": "Quatro bibliotecas, um só conhecimento",
+    "librariesLead": "As pessoas chegam por perguntas. Aqui, cada pergunta encontra uma resposta — e uma linguagem própria para nomeá-la.",
+    "thesis": "O próximo grande salto da liderança não será tecnológico. Será neurológico.",
+    "thesisAuthor": "Andrea Eboli",
+    "newsletterBadge": "Newsletter semanal",
+    "newsletterTitle": "Notas sobre Poder",
+    "newsletterLead": "Observações sobre comportamento humano, identidade e poder consciente. Sem ruído.",
+    "newsletterCta": "Quero receber",
+    "newsletterPlaceholder": "seu@email.com",
+    "newsletterOk": "Pronto! Você está na lista.",
+    "newsletterError": "Algo deu errado. Tente de novo."
+  },
+  "libraries": {
+    "questions": {
+      "name": "Perguntas Humanas",
+      "badge": "O ativo principal",
+      "desc": "As perguntas reais que as pessoas fazem todos os dias — de identidade a liderança."
+    },
+    "concepts": {
+      "name": "Conceitos Ser Poder",
+      "badge": "O dicionário da tese",
+      "desc": "O dicionário da tese: definições claras de cada ideia da linguagem."
+    },
+    "cases": {
+      "name": "Casos e Personagens",
+      "badge": "Os padrões",
+      "desc": "Os padrões de comportamento que você reconhece — e como atravessá-los."
+    },
+    "research": {
+      "name": "Pesquisas e Artigos",
+      "badge": "A base científica",
+      "desc": "White papers, estudos e artigos. A base que sustenta a tese."
+    },
+    "videos": {
+      "name": "Vídeos e Podcasts",
+      "badge": "A tese em movimento",
+      "desc": "Episódios e entrevistas da Andrea — com resumo, aprendizados e transcrição."
+    }
+  },
+  "videoPage": {
+    "directAnswer": "Resposta direta",
+    "takeaways": "Principais aprendizados",
+    "chapters": "Capítulos",
+    "faq": "Perguntas frequentes",
+    "transcript": "Transcrição",
+    "watchOnYouTube": "Assistir no YouTube",
+    "copyLink": "Copiar link",
+    "copied": "Copiado!",
+    "readMore": "Ver pergunta completa"
+  },
+  "common": {
+    "home": "Início",
+    "directAnswer": "Resposta direta",
+    "relatedConcepts": "Conceitos relacionados",
+    "relatedQuestions": "Perguntas relacionadas",
+    "empty": "Conteúdo chegando em breve.",
+    "backToHome": "Voltar ao início"
+  },
+  "search": {
+    "title": "Busca",
+    "placeholder": "Busque por uma pergunta, conceito...",
+    "button": "Buscar",
+    "prompt": "Digite algo para buscar no hub.",
+    "noResults": "Nada encontrado para",
+    "resultsFor": "Resultados para"
+  },
+  "articleKinds": {
+    "article": "Artigo",
+    "whitepaper": "White paper",
+    "study": "Estudo"
+  },
+  "comingSoon": {
+    "title": "Em construção",
+    "body": "Esta biblioteca está sendo preparada. Em breve, repleta de conteúdo."
+  },
+  "footer": {
+    "tagline": "Referência em liderança, neurociência e poder consciente.",
+    "rights": "Todos os direitos reservados."
+  }
+}

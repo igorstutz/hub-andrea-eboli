@@ -1,1 +1,2 @@
 @AGENTS.md
+@.claude/MEMORIA-PROJETO.md

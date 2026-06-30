@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "questions": "Preguntas",
+    "concepts": "Conceptos",
+    "cases": "Casos",
+    "research": "Investigación",
+    "videos": "Vídeos",
+    "about": "Sobre",
+    "search": "Buscar"
+  },
+  "home": {
+    "badge": "Investigadora · Forbes Councils · TED",
+    "rotatingLabel": "¿Alguna vez te preguntaste…",
+    "rotatingQuestions": [
+      "¿Por qué me siento vacía a pesar del éxito?",
+      "¿Cómo dejar de vivir para agradar?",
+      "¿Por qué las personas capaces viven exhaustas?",
+      "¿Cómo lidiar con un jefe que me menosprecia?",
+      "¿Por qué algunas personas cambian cuando creces?",
+      "¿Cómo recuperar mi confianza?"
+    ],
+    "answerLabel": "Existe un nombre para todo esto",
+    "title": "Ser Poder",
+    "lead": "Un centro de conocimiento sobre la distancia entre el éxito externo y la coherencia interna — y el lenguaje para atravesarla.",
+    "ctaPrimary": "Explorar las bibliotecas",
+    "ctaSecondary": "Conocer a Andrea",
+    "credentialsLabel": "Reconocida por",
+    "credentials": [
+      "Forbes Councils",
+      "TED",
+      "ESPM",
+      "Natura &Co.",
+      "Harvard",
+      "NYU",
+      "Swiss Business School"
+    ],
+    "librariesTitle": "Cuatro bibliotecas, un solo conocimiento",
+    "librariesLead": "Las personas llegan por preguntas. Aquí, cada pregunta encuentra una respuesta — y un lenguaje propio para nombrarla.",
+    "thesis": "El próximo gran salto del liderazgo no será tecnológico. Será neurológico.",
+    "thesisAuthor": "Andrea Eboli",
+    "newsletterBadge": "Newsletter semanal",
+    "newsletterTitle": "Notas sobre el Poder",
+    "newsletterLead": "Observaciones sobre el comportamiento humano, la identidad y el poder consciente. Sin ruido.",
+    "newsletterCta": "Quiero recibir",
+    "newsletterPlaceholder": "tu@email.com",
+    "newsletterOk": "¡Listo! Estás en la lista.",
+    "newsletterError": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "libraries": {
+    "questions": {
+      "name": "Preguntas Humanas",
+      "badge": "El activo principal",
+      "desc": "Las preguntas reales que las personas hacen cada día — de la identidad al liderazgo."
+    },
+    "concepts": {
+      "name": "Conceptos Ser Poder",
+      "badge": "El diccionario de la tesis",
+      "desc": "El diccionario de la tesis: definiciones claras de cada idea del lenguaje."
+    },
+    "cases": {
+      "name": "Casos y Personajes",
+      "badge": "Los patrones",
+      "desc": "Los patrones de comportamiento que reconoces — y cómo atravesarlos."
+    },
+    "research": {
+      "name": "Investigación y Artículos",
+      "badge": "La base científica",
+      "desc": "White papers, estudios y artículos. La base que sostiene la tesis."
+    },
+    "videos": {
+      "name": "Vídeos y Podcasts",
+      "badge": "La tesis en movimiento",
+      "desc": "Episodios y entrevistas de Andrea — con resumen, aprendizajes y transcripción."
+    }
+  },
+  "videoPage": {
+    "directAnswer": "Respuesta directa",
+    "takeaways": "Aprendizajes clave",
+    "chapters": "Capítulos",
+    "faq": "Preguntas frecuentes",
+    "transcript": "Transcripción",
+    "watchOnYouTube": "Ver en YouTube",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "readMore": "Ver pregunta completa"
+  },
+  "common": {
+    "home": "Inicio",
+    "directAnswer": "Respuesta directa",
+    "relatedConcepts": "Conceptos relacionados",
+    "relatedQuestions": "Preguntas relacionadas",
+    "empty": "Contenido próximamente.",
+    "backToHome": "Volver al inicio"
+  },
+  "search": {
+    "title": "Búsqueda",
+    "placeholder": "Busca una pregunta, concepto...",
+    "button": "Buscar",
+    "prompt": "Escribe algo para buscar en el hub.",
+    "noResults": "Nada encontrado para",
+    "resultsFor": "Resultados para"
+  },
+  "articleKinds": {
+    "article": "Artículo",
+    "whitepaper": "White paper",
+    "study": "Estudio"
+  },
+  "comingSoon": {
+    "title": "En construcción",
+    "body": "Esta biblioteca se está preparando. Pronto, repleta de contenido."
+  },
+  "footer": {
+    "tagline": "Referencia en liderazgo, neurociencia y poder consciente.",
+    "rights": "Todos los derechos reservados."
+  }
+}

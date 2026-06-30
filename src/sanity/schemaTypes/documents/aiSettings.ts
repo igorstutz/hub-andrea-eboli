@@ -1,0 +1,107 @@
+import { defineType, defineField } from "sanity";
+
+// Singleton: configuração dos "agentes" de geração de conteúdo por IA.
+// Os campos abaixo alimentam o prompt usado em /api/ingest/youtube/generate.
+// Campos vazios caem no padrão seguro embutido no código (a geração nunca quebra).
+export const aiSettings = defineType({
+  name: "aiSettings",
+  title: "Agentes de IA",
+  type: "document",
+  groups: [
+    { name: "instructions", title: "Instruções", default: true },
+    { name: "advanced", title: "Avançado" },
+  ],
+  fields: [
+    defineField({
+      name: "voice",
+      title: "Voz e regras gerais",
+      description:
+        "A persona e o tom (como a Andrea escreve). Vale para TODOS os tipos. " +
+        "As regras técnicas (3 idiomas, formato, não inventar fatos) são fixas e " +
+        "aplicadas automaticamente — aqui é só a voz/diretrizes editoriais. " +
+        "Deixe vazio para usar o padrão.",
+      type: "text",
+      rows: 8,
+      group: "instructions",
+    }),
+    defineField({
+      name: "videoInstructions",
+      title: "Instruções — Vídeo / Resumo",
+      description:
+        "O que o resumo do vídeo deve conter e como (resposta direta, resumo, takeaways). Vazio = padrão.",
+      type: "text",
+      rows: 4,
+      group: "instructions",
+    }),
+    defineField({
+      name: "faqInstructions",
+      title: "Instruções — FAQ (perguntas)",
+      description: "Como formular as perguntas e respostas. Vazio = padrão.",
+      type: "text",
+      rows: 4,
+      group: "instructions",
+    }),
+    defineField({
+      name: "conceptInstructions",
+      title: "Instruções — Conceitos",
+      description: "Como definir os conceitos-chave. Vazio = padrão.",
+      type: "text",
+      rows: 4,
+      group: "instructions",
+    }),
+    defineField({
+      name: "articleInstructions",
+      title: "Instruções — Artigo / Pesquisa",
+      description: "Estrutura e abordagem do artigo editorial. Vazio = padrão.",
+      type: "text",
+      rows: 4,
+      group: "instructions",
+    }),
+    defineField({
+      name: "model",
+      title: "Modelo de IA",
+      description:
+        "Modelo usado na geração. Opus = melhor qualidade; Sonnet = equilíbrio; Haiku = mais rápido/barato.",
+      type: "string",
+      group: "advanced",
+      options: {
+        list: [
+          { title: "Claude Opus 4.8 (qualidade)", value: "claude-opus-4-8" },
+          { title: "Claude Sonnet 4.6 (equilíbrio)", value: "claude-sonnet-4-6" },
+          { title: "Claude Haiku 4.5 (rápido)", value: "claude-haiku-4-5" },
+        ],
+      },
+    }),
+    defineField({
+      name: "effort",
+      title: "Nível de esforço",
+      description:
+        "Quanto a IA 'pensa' antes de escrever. Maior = melhor qualidade, porém mais lento e caro.",
+      type: "string",
+      group: "advanced",
+      options: {
+        list: [
+          { title: "Baixo (rápido)", value: "low" },
+          { title: "Médio (padrão)", value: "medium" },
+          { title: "Alto (qualidade)", value: "high" },
+        ],
+        layout: "radio",
+      },
+    }),
+    defineField({
+      name: "defaultQuestionsCount",
+      title: "Quantidade padrão de perguntas (FAQ)",
+      type: "number",
+      group: "advanced",
+      validation: (Rule) => Rule.min(1).max(12),
+    }),
+    defineField({
+      name: "defaultConceptsCount",
+      title: "Quantidade padrão de conceitos",
+      type: "number",
+      group: "advanced",
+      validation: (Rule) => Rule.min(1).max(10),
+    }),
+  ],
+  preview: { prepare: () => ({ title: "Agentes de IA" }) },
+});

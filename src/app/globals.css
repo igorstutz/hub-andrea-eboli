@@ -1,26 +1,190 @@
 @import "tailwindcss";
 
+/* ----------------------------------------------------------------
+   Design system — identidade Andrea Eboli
+   Paleta e tipografia herdadas das propostas aprovadas.
+----------------------------------------------------------------- */
+@theme {
+  --color-green-deep: #1f3d2f;
+  --color-green-darker: #15291f;
+  --color-green-soft: #2c5040;
+  --color-wine: #7a2d31;
+  --color-wine-soft: #9a4045;
+  --color-cream: #f5efe0;
+  --color-cream-dark: #e8dfc9;
+  --color-bone: #faf5ea;
+  --color-ink: #2b1f1a;
+  --color-ink-soft: #5c4a42;
+  --color-muted: #8b6f65;
+  --color-gold: #b8965a;
+
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia,
+    serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Altura do header — o hero usa isto para encaixar exatamente abaixo dele */
+  --header-h: 4.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+/* ----------------------------------------------------------------
+   Movimento — gradientes, flutuação, marquee, reveal
+----------------------------------------------------------------- */
+
+/* Malha de gradiente animada (hero) */
+.gradient-mesh {
+  background-image:
+    radial-gradient(40% 50% at 18% 22%, rgba(184, 150, 90, 0.28), transparent 70%),
+    radial-gradient(38% 48% at 82% 28%, rgba(122, 45, 49, 0.34), transparent 70%),
+    radial-gradient(55% 60% at 60% 92%, rgba(44, 80, 64, 0.5), transparent 72%);
+  background-size: 160% 160%;
+  animation: mesh-move 20s ease-in-out infinite;
+}
+@keyframes mesh-move {
+  0%,
+  100% {
+    background-position: 0% 0%, 100% 0%, 50% 100%;
+  }
+  50% {
+    background-position: 25% 35%, 75% 15%, 40% 80%;
+  }
+}
+
+/* Blobs flutuantes desfocados */
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  pointer-events: none;
+}
+.animate-float {
+  animation: float 14s ease-in-out infinite;
+}
+.animate-float-2 {
+  animation: float 18s ease-in-out infinite reverse;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(24px, -34px) scale(1.1);
+  }
+}
+
+/* Marquee de credenciais */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 34s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Item que chega ao centro ganha destaque (classe alternada via JS) */
+.marquee-item.marquee-active .word {
+  background-color: var(--color-wine);
+  color: var(--color-cream);
+  transform: scale(1.06);
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Texto com gradiente dourado */
+.text-gradient-gold {
+  background: linear-gradient(100deg, #d8b878 0%, #b8965a 50%, #d8b878 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Ponto pulsante (badges) */
+.pulse-dot {
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(184, 150, 90, 0.5);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 6px rgba(184, 150, 90, 0);
+  }
+}
+
+/* Transição da pergunta rotativa */
+.q-rotate {
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
 }

@@ -1,0 +1,72 @@
+import type { Metadata } from "next";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import PageHeader from "@/components/PageHeader";
+import { sanityFetch } from "@/sanity/lib/fetch";
+import { conceptsListQuery } from "@/sanity/lib/queries";
+import { alternatesFor } from "@/lib/seo";
+
+type CItem = { title: string; slug: string; shortDefinition?: string };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "libraries" });
+  return {
+    title: t("concepts.name"),
+    description: t("concepts.desc"),
+    alternates: alternatesFor("/conceitos"),
+  };
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
+  const items = await sanityFetch<CItem[]>(conceptsListQuery, { locale });
+
+  return (
+    <>
+      <PageHeader
+        crumbs={[
+          { label: t("common.home"), href: "/" },
+          { label: t("libraries.concepts.name") },
+        ]}
+        title={t("libraries.concepts.name")}
+        lead={t("libraries.concepts.desc")}
+      />
+      <section className="bg-cream">
+        <div className="mx-auto max-w-5xl px-6 py-16">
+          {items.length === 0 ? (
+            <p className="text-ink-soft">{t("common.empty")}</p>
+          ) : (
+            <ul className="divide-y divide-ink/10 border-y border-ink/10">
+              {items.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/conceitos/${c.slug}`}
+                    className="group flex flex-col gap-1 py-6 transition-colors hover:bg-bone sm:flex-row sm:items-baseline sm:gap-6"
+                  >
+                    <h2 className="min-w-[14rem] font-serif text-2xl italic text-green-deep">
+                      {c.title}
+                    </h2>
+                    {c.shortDefinition && (
+                      <p className="text-ink-soft">{c.shortDefinition}</p>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    </>
+  );
+}

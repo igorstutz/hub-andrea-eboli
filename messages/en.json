@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "questions": "Questions",
+    "concepts": "Concepts",
+    "cases": "Cases",
+    "research": "Research",
+    "videos": "Videos",
+    "about": "About",
+    "search": "Search"
+  },
+  "home": {
+    "badge": "Researcher · Forbes Councils · TED",
+    "rotatingLabel": "Have you ever wondered…",
+    "rotatingQuestions": [
+      "Why do I feel empty despite success?",
+      "How do I stop living to please others?",
+      "Why do capable people live exhausted?",
+      "How do I deal with a boss who belittles me?",
+      "Why do some people change when you grow?",
+      "How do I rebuild my confidence?"
+    ],
+    "answerLabel": "There is a name for all of this",
+    "title": "Ser Poder",
+    "lead": "A knowledge hub on the distance between outer success and inner coherence — and the language to cross it.",
+    "ctaPrimary": "Explore the libraries",
+    "ctaSecondary": "Meet Andrea",
+    "credentialsLabel": "Recognized by",
+    "credentials": [
+      "Forbes Councils",
+      "TED",
+      "ESPM",
+      "Natura &Co.",
+      "Harvard",
+      "NYU",
+      "Swiss Business School"
+    ],
+    "librariesTitle": "Four libraries, one body of knowledge",
+    "librariesLead": "People arrive through questions. Here, each question meets an answer — and a language of its own to name it.",
+    "thesis": "The next great leap in leadership won't be technological. It will be neurological.",
+    "thesisAuthor": "Andrea Eboli",
+    "newsletterBadge": "Weekly newsletter",
+    "newsletterTitle": "Notes on Power",
+    "newsletterLead": "Observations on human behavior, identity and conscious power. No noise.",
+    "newsletterCta": "Subscribe",
+    "newsletterPlaceholder": "you@email.com",
+    "newsletterOk": "Done! You're on the list.",
+    "newsletterError": "Something went wrong. Try again."
+  },
+  "libraries": {
+    "questions": {
+      "name": "Human Questions",
+      "badge": "The core asset",
+      "desc": "The real questions people ask every day — from identity to leadership."
+    },
+    "concepts": {
+      "name": "Ser Poder Concepts",
+      "badge": "The thesis dictionary",
+      "desc": "The thesis dictionary: clear definitions of each idea in the language."
+    },
+    "cases": {
+      "name": "Cases & Characters",
+      "badge": "The patterns",
+      "desc": "The behavior patterns you recognize — and how to move through them."
+    },
+    "research": {
+      "name": "Research & Articles",
+      "badge": "The scientific base",
+      "desc": "White papers, studies and articles. The foundation behind the thesis."
+    },
+    "videos": {
+      "name": "Videos & Podcasts",
+      "badge": "The thesis in motion",
+      "desc": "Andrea's episodes and interviews — with summary, takeaways and transcript."
+    }
+  },
+  "videoPage": {
+    "directAnswer": "Direct answer",
+    "takeaways": "Key takeaways",
+    "chapters": "Chapters",
+    "faq": "Frequently asked questions",
+    "transcript": "Transcript",
+    "watchOnYouTube": "Watch on YouTube",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "readMore": "See full question"
+  },
+  "common": {
+    "home": "Home",
+    "directAnswer": "Direct answer",
+    "relatedConcepts": "Related concepts",
+    "relatedQuestions": "Related questions",
+    "empty": "Content coming soon.",
+    "backToHome": "Back to home"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search a question, concept...",
+    "button": "Search",
+    "prompt": "Type something to search the hub.",
+    "noResults": "Nothing found for",
+    "resultsFor": "Results for"
+  },
+  "articleKinds": {
+    "article": "Article",
+    "whitepaper": "White paper",
+    "study": "Study"
+  },
+  "comingSoon": {
+    "title": "Coming soon",
+    "body": "This library is being prepared. Soon, full of content."
+  },
+  "footer": {
+    "tagline": "A reference in leadership, neuroscience and conscious power.",
+    "rights": "All rights reserved."
+  }
+}
