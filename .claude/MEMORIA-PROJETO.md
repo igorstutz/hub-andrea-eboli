@@ -87,10 +87,31 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
   duração nos vídeos, linhas de gradiente gold→wine no hover dos cards, blobs
   flutuantes por seção.
 
+**Sessão 08/07/2026 (cont. 3) — DEPLOY no GitHub Pages (NO AR):**
+- **URL pública: https://igorstutz.github.io/hub-andrea-eboli** (repo
+  `igorstutz/hub-andrea-eboli`; o remote origin foi REPONTADO do antigo
+  `andrea-eboli-hub` para ele). Deploy via GitHub Actions
+  (`.github/workflows/deploy.yml`): push no master + agendamento diário 09h UTC
+  + manual (`gh workflow run` ou aba Actions) — necessário REPUBLICAR quando a
+  Andrea publicar conteúdo novo (site estático, conteúdo congelado no build).
+- Adaptações p/ estático: `STATIC_EXPORT=1` no next.config (output export,
+  basePath `/hub-andrea-eboli`, trailingSlash), `localePrefix: "always"`
+  (URLs /pt /en /es; raiz = redirect estático gerado no CI),
+  `generateStaticParams` nos 5 [slug], busca global client-side
+  (`GlobalSearchClient`, CDN do Sanity direto + CORS de igorstutz.github.io
+  adicionado), robots/sitemap `force-static`, SITE_URL via
+  `NEXT_PUBLIC_SITE_URL`. CI remove `src/app/api`, `src/app/(studio)` e
+  `src/proxy.ts` (não existem no estático). Vídeos: seção movida p/ cima na home.
+- ⚠️ No site publicado NÃO funcionam: Studio (usar local), importação de
+  YouTube (local), newsletter (definir `NEXT_PUBLIC_NEWSLETTER_ENDPOINT`
+  quando houver provedor). Home local: vitrine na apresentação p/ Andrea.
+
 **⏭️ PRÓXIMOS PASSOS:**
 - Andrea revisar as definições provisórias dos 5 conceitos no Studio.
-- Igor avaliar o visual novo (home, listagens, busca) e pedir refinos.
-- Página de vídeo mantém layout próprio com player; alinhar se quiser.
+- Após publicar conteúdo novo no Sanity: rodar o workflow "Deploy (GitHub
+  Pages)" (ou esperar o agendado diário) para o site público atualizar.
+- Futuro: domínio próprio (andreaeboli.com) → considerar voltar a hospedagem
+  com servidor (Vercel) para ISR/API; ou `npx sanity deploy` p/ Studio hospedado.
 - Lembrete: cache de leitura do site é ISR de 1h (`src/sanity/lib/fetch.ts`) —
   edições publicadas demoram até 1h em prod; considerar webhook de revalidação.
 
