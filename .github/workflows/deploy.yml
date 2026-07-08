@@ -47,6 +47,10 @@ jobs:
         env:
           STATIC_EXPORT: "1"
           NEXT_PUBLIC_SITE_URL: https://igorstutz.github.io/hub-andrea-eboli
+          # Identificadores PÚBLICOS do Sanity (dataset é público; não são segredos).
+          NEXT_PUBLIC_SANITY_PROJECT_ID: 52ssivbg
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
 
       - name: Redirecionamento da raiz + .nojekyll
         run: |
