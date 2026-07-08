@@ -3,7 +3,7 @@
     "questions": "Preguntas",
     "concepts": "Conceptos",
     "cases": "Casos",
-    "research": "Investigación",
+    "articles": "Artículos",
     "videos": "Vídeos",
     "about": "Sobre",
     "search": "Buscar"
@@ -44,7 +44,8 @@
     "newsletterCta": "Quiero recibir",
     "newsletterPlaceholder": "tu@email.com",
     "newsletterOk": "¡Listo! Estás en la lista.",
-    "newsletterError": "Algo salió mal. Inténtalo de nuevo."
+    "newsletterError": "Algo salió mal. Inténtalo de nuevo.",
+    "sectionCta": "Explorar la biblioteca"
   },
   "libraries": {
     "questions": {
@@ -62,8 +63,8 @@
       "badge": "Los patrones",
       "desc": "Los patrones de comportamiento que reconoces — y cómo atravesarlos."
     },
-    "research": {
-      "name": "Investigación y Artículos",
+    "articles": {
+      "name": "Artículos",
       "badge": "La base científica",
       "desc": "White papers, estudios y artículos. La base que sostiene la tesis."
     },
@@ -89,16 +90,27 @@
     "directAnswer": "Respuesta directa",
     "relatedConcepts": "Conceptos relacionados",
     "relatedQuestions": "Preguntas relacionadas",
+    "relatedCases": "Casos relacionados",
+    "relatedArticles": "Artículos relacionados",
+    "relatedVideos": "Vídeos relacionados",
     "empty": "Contenido próximamente.",
     "backToHome": "Volver al inicio"
   },
   "search": {
     "title": "Búsqueda",
+    "quickPlaceholder": "Buscar en esta biblioteca…",
     "placeholder": "Busca una pregunta, concepto...",
     "button": "Buscar",
     "prompt": "Escribe algo para buscar en el hub.",
     "noResults": "Nada encontrado para",
     "resultsFor": "Resultados para"
+  },
+  "articlePage": {
+    "readingTime": "{minutes} min de lectura",
+    "toc": "En este artículo",
+    "writtenBy": "Escrito por",
+    "downloadPdf": "Descargar el PDF",
+    "allArticles": "Ver todos los artículos"
   },
   "articleKinds": {
     "article": "Artículo",

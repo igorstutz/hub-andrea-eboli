@@ -6,7 +6,7 @@ const NAV = [
   { key: "questions", href: "/perguntas" },
   { key: "concepts", href: "/conceitos" },
   { key: "cases", href: "/casos" },
-  { key: "research", href: "/pesquisas" },
+  { key: "articles", href: "/artigos" },
   { key: "videos", href: "/videos" },
   { key: "about", href: "/sobre" },
 ] as const;

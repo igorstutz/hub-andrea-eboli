@@ -100,6 +100,8 @@ export const video = defineType({
       title: "Conceitos relacionados",
       type: "array",
       of: [{ type: "reference", to: [{ type: "concept" }] }],
+      description: "Todo conteúdo do hub deve estar ligado a pelo menos um conceito.",
+      validation: (r) => r.min(1).warning("Vincule este vídeo a pelo menos um conceito."),
     }),
     defineField({ name: "seo", title: "SEO", type: "seo" }),
   ],

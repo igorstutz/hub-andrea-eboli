@@ -26,8 +26,16 @@ export type AiSettings = {
   faqInstructions?: string;
   conceptInstructions?: string;
   articleInstructions?: string;
+  conceptLinkingInstructions?: string;
   model?: string;
   effort?: "low" | "medium" | "high";
+};
+
+// Conceito-pilar existente no hub, candidato a vínculo do conteúdo gerado.
+export type HubConcept = {
+  id: string; // _id do documento no Sanity
+  title: string;
+  definition?: string;
 };
 
 export type GenerationInput = {
@@ -44,23 +52,34 @@ export type GenerationInput = {
   settings?: AiSettings;
   // Direcionamentos pontuais para ESTA geração (campo da ferramenta no Studio).
   directions?: string;
+  // Conceitos-pilar do hub: quando presentes, cada item gerado recebe
+  // relatedConceptIds com os conceitos pertinentes.
+  hubConcepts?: HubConcept[];
 };
 
 type Loc = { pt: string; en: string; es: string };
 
 export type GeneratedContent = {
-  video?: { title: Loc; directAnswer: Loc; summary: Loc; keyTakeaways: Loc };
+  video?: {
+    title: Loc;
+    directAnswer: Loc;
+    summary: Loc;
+    keyTakeaways: Loc;
+    relatedConceptIds?: string[];
+  };
   questions?: Array<{
     title: Loc;
     experience: Loc;
     answer: Loc;
     body: Loc;
+    relatedConceptIds?: string[];
   }>;
-  article?: { title: Loc; excerpt: Loc; body: Loc };
+  article?: { title: Loc; excerpt: Loc; body: Loc; relatedConceptIds?: string[] };
   concepts?: Array<{
     title: Loc;
     shortDefinition: Loc;
     fullDefinition: Loc;
+    relatedConceptIds?: string[];
   }>;
 };
 
@@ -75,9 +94,22 @@ const locSchema = {
   required: ["pt", "en", "es"],
 } as const;
 
-function buildSchema(targets: Targets) {
+function buildSchema(targets: Targets, hubConcepts?: HubConcept[]) {
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
+
+  // Campo de vinculação aos conceitos-pilar: só existe quando o hub já tem
+  // conceitos. O enum restringe aos ids reais (a IA não consegue inventar).
+  const conceptIds = (hubConcepts ?? []).map((c) => c.id);
+  const linkField = conceptIds.length
+    ? {
+        relatedConceptIds: {
+          type: "array",
+          items: { type: "string", enum: conceptIds },
+        },
+      }
+    : {};
+  const linkRequired = conceptIds.length ? ["relatedConceptIds"] : [];
 
   if (targets.video) {
     properties.video = {
@@ -88,8 +120,9 @@ function buildSchema(targets: Targets) {
         directAnswer: locSchema,
         summary: locSchema,
         keyTakeaways: locSchema,
+        ...linkField,
       },
-      required: ["title", "directAnswer", "summary", "keyTakeaways"],
+      required: ["title", "directAnswer", "summary", "keyTakeaways", ...linkRequired],
     };
     required.push("video");
   }
@@ -105,8 +138,9 @@ function buildSchema(targets: Targets) {
           experience: locSchema,
           answer: locSchema,
           body: locSchema,
+          ...linkField,
         },
-        required: ["title", "experience", "answer", "body"],
+        required: ["title", "experience", "answer", "body", ...linkRequired],
       },
     };
     required.push("questions");
@@ -120,8 +154,9 @@ function buildSchema(targets: Targets) {
         title: locSchema,
         excerpt: locSchema,
         body: locSchema,
+        ...linkField,
       },
-      required: ["title", "excerpt", "body"],
+      required: ["title", "excerpt", "body", ...linkRequired],
     };
     required.push("article");
   }
@@ -136,8 +171,9 @@ function buildSchema(targets: Targets) {
           title: locSchema,
           shortDefinition: locSchema,
           fullDefinition: locSchema,
+          ...linkField,
         },
-        required: ["title", "shortDefinition", "fullDefinition"],
+        required: ["title", "shortDefinition", "fullDefinition", ...linkRequired],
       },
     };
     required.push("concepts");
@@ -181,6 +217,20 @@ const DEFAULT_INSTRUCTIONS = {
   concepts: 'cada conceito com "shortDefinition" (UMA frase clara e citável) e fullDefinition.',
   article: "um artigo editorial coeso baseado no vídeo.",
 } as const;
+
+// Instrução PADRÃO de vinculação aos conceitos-pilar (editável no painel).
+const DEFAULT_CONCEPT_LINKING = `Vincule cada item gerado a 1 a 3 conceitos do hub que tenham relação REAL e direta com o tema tratado. Não force vínculos: se nenhum conceito se aplicar de verdade, deixe a lista vazia.`;
+
+function hubConceptsBlock(input: GenerationInput): string {
+  const concepts = input.hubConcepts ?? [];
+  if (!concepts.length) return "";
+  const list = concepts
+    .map((c) => `- ${c.id} — "${c.title}"${c.definition ? `: ${c.definition}` : ""}`)
+    .join("\n");
+  const linking =
+    input.settings?.conceptLinkingInstructions?.trim() || DEFAULT_CONCEPT_LINKING;
+  return `\nCONCEITOS-PILAR DO HUB (candidatos ao campo "relatedConceptIds" de cada item; use exatamente os ids abaixo):\n${list}\n\nComo vincular: ${linking}\n`;
+}
 
 function buildUserPrompt(input: GenerationInput): string {
   const { meta, transcript, targets, counts, settings, directions } = input;
@@ -226,7 +276,7 @@ URL: ${meta.url}
 ${meta.description ? `Descrição:\n${meta.description}\n` : ""}
 Gere os seguintes tipos de conteúdo:
 ${wants.join("\n")}
-${directionsBlock}
+${hubConceptsBlock(input)}${directionsBlock}
 ${transcriptBlock}`;
 }
 
@@ -239,7 +289,7 @@ export async function generateContent(
   }
 
   const client = new Anthropic({ apiKey });
-  const schema = buildSchema(input.targets);
+  const schema = buildSchema(input.targets, input.hubConcepts);
 
   const model = input.settings?.model?.trim() || MODEL;
   const effort = input.settings?.effort || "medium";

@@ -188,3 +188,14 @@ h4 {
     opacity 0.45s ease,
     transform 0.45s ease;
 }
+
+/* Capitular editorial — primeira letra do artigo */
+.drop-cap > p:first-of-type::first-letter {
+  float: left;
+  padding-right: 0.14em;
+  font-family: var(--font-serif);
+  font-size: 3.4em;
+  font-weight: 500;
+  line-height: 0.82;
+  color: var(--color-green-deep);
+}

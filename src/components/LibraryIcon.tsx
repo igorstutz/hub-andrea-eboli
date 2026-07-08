@@ -26,8 +26,8 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8" />
     </>
   ),
-  // Pesquisas — frasco/erlenmeyer (base científica)
-  research: (
+  // Artigos — frasco/erlenmeyer (base científica)
+  articles: (
     <>
       <path d="M9 3h6" />
       <path d="M10 3v6.2L5.2 18A1.6 1.6 0 0 0 6.6 20.5h10.8A1.6 1.6 0 0 0 18.8 18L14 9.2V3" />

@@ -22,7 +22,81 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 24–25/06/2026 (mais recente) — Transcrição robusta + Agentes de IA configuráveis
+### 🗓️ Sessão 06/07/2026 (mais recente) — Conceitos-pilar + rename Pesquisas→Artigos
+**Tudo CONCLUÍDO e validado (`tsc`/`eslint` OK + testes manuais nas páginas):**
+1. **Conceitos reais substituíram os do seed** (script `update-concepts.mjs`, transação
+   única): Poder Consciente, Liderança, Posicionamento, Comportamento Humano,
+   Estrutura Consciente de Poder (ids `concept-<slug>`). Os 4 antigos (Ser Poder,
+   Ter Poder, Soberania, Sobrevivência…) foram apagados e as perguntas repontadas.
+   Definições são RASCUNHO meu ("Conteúdo provisório") — Andrea deve revisar; títulos
+   traduzidos em en/es (se algum for marca proprietária, reverter no Studio).
+2. **"Pesquisas" → "Artigos" em todo o sistema**: rota `/pesquisas` → `/artigos`,
+   nav/labels nos 3 idiomas, chave i18n `research` → `articles` (a chave `research`
+   ficou LIVRE para a futura seção de Pesquisas), sitemap, busca, Studio.
+3. **Conceito como pilar central do hub**: página `/conceitos/[slug]` agora lista,
+   por busca reversa (GROQ `references(^._id)`), TODAS as perguntas, casos, artigos
+   e vídeos ligados ao conceito (+ conceitos nas 2 direções). `caseStudy` e `article`
+   ganharam campo `relatedConcepts` no schema; páginas de caso/artigo mostram chips.
+   Todos os tipos têm warning no Studio se salvos sem ≥1 conceito. Conteúdo existente
+   vinculado via `link-concepts.mjs`.
+4. **Agente de IA vincula conceitos automaticamente**: o endpoint `generate` busca os
+   conceitos publicados, injeta no prompt e o JSON Schema restringe `relatedConceptIds`
+   por enum aos ids reais; docs gerados (pergunta/artigo/vídeo/conceito) saem com
+   `relatedConcepts` (refs fracas). Critério editável no painel "⚙️ Agentes de IA"
+   (campo novo `conceptLinkingInstructions`). Testado ponta a ponta com geração real.
+
+**Sessão 07/07/2026 — pendências resolvidas:**
+- **Slugs limpos IMPLEMENTADOS** (decisão do Igor): `generate/route.ts` consulta os
+  slugs existentes (`readTakenSlugs`) e só sufixa em colisão (`makeSlugFactory`);
+  fallback: se a consulta falhar, sufixa sempre. Slugs dos 2 vídeos publicados
+  limpos via `clean-video-slugs.mjs`. Testado ponta a ponta.
+- `/sobre` conferida (íntegra, conteúdo de 24/06) e não há mais rascunhos órfãos.
+
+**Sessão 07–08/07/2026 — Redesign das páginas de detalhe (CONCLUÍDO):**
+- Igor testou a importação de vídeo real pelo Studio: slugs limpos + conceitos
+  vinculados funcionando ("criou tudo certinho").
+- **Páginas de detalhe redesenhadas** (artigo, pergunta, conceito e caso), estilo
+  editorial: `DetailHeader` (breadcrumb, badge dourado, meta, título 6xl, lead
+  serifado com filete dourado, blobs sutis), grid `1fr_300px` com **sidebar fixa**
+  (AuthorCard, SideCard, ChipLinks, LinkList, CopyLinkButton, EndOrnament — tudo
+  em `src/components/`), capitular `.drop-cap` (globals.css), âncoras nos H2
+  (PortableTextBody) e, no artigo, sumário "Neste artigo" + tempo de leitura.
+  Novo namespace i18n `articlePage` nos 3 idiomas.
+
+**Sessão 08/07/2026 (cont.) — Home expandida + listagens:**
+- **Home com conteúdo real** (page.tsx virou async + `Promise.all` das 5 queries):
+  novas seções após "Bibliotecas" — Conceitos (seção escura c/ os 5 pilares),
+  Perguntas (6 cards), Casos (até 4), Tese (existente), Vídeos (3 c/ thumbnail
+  do YouTube + play), Artigos (3, lista editorial) — cada uma com CTA
+  "Explorar a biblioteca" (`home.sectionCta` nos 3 idiomas). Seções só aparecem
+  se houver conteúdo.
+- **PageHeader** (listagens + busca) unificado com o visual do DetailHeader
+  (blobs, título 6xl, lead serifado). Listagem de conceitos virou glossário
+  numerado (01, 02…) com seta no hover.
+
+**Sessão 08/07/2026 (cont. 2) — Busca nas bibliotecas + home com mais vida:**
+- **Busca instantânea** nas 5 listagens: componente client `LibrarySearch`
+  (`src/components/LibrarySearch.tsx`) filtra no navegador enquanto digita —
+  sem recarregar, ignora acentos/maiúsculas, exige todas as palavras (título +
+  texto + badge). Cards por variante dentro do próprio componente. Chave i18n
+  `search.quickPlaceholder`. A `/busca` global continua.
+- **Seções da home incrementadas** (pedido: "mais vida, cor, animação"):
+  badges com pulse-dot (eco do hero), CTAs em pill que preenchem no hover,
+  marcas d'água serifadas gigantes (aspas nos conceitos, "?" nas perguntas),
+  numeração dourada (conceitos e artigos), monograma nos casos, badge de
+  duração nos vídeos, linhas de gradiente gold→wine no hover dos cards, blobs
+  flutuantes por seção.
+
+**⏭️ PRÓXIMOS PASSOS:**
+- Andrea revisar as definições provisórias dos 5 conceitos no Studio.
+- Igor avaliar o visual novo (home, listagens, busca) e pedir refinos.
+- Página de vídeo mantém layout próprio com player; alinhar se quiser.
+- Lembrete: cache de leitura do site é ISR de 1h (`src/sanity/lib/fetch.ts`) —
+  edições publicadas demoram até 1h em prod; considerar webhook de revalidação.
+
+---
+
+### 🗓️ Sessão 24–25/06/2026 — Transcrição robusta + Agentes de IA configuráveis
 **Contexto:** a ferramenta "Importar do YouTube" estava dando "Sem transcrição"
 e o usuário (Igor) quis deixar a geração configurável pelo painel.
 

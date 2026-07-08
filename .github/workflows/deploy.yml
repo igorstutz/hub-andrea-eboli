@@ -1,0 +1,81 @@
+# Build estático do hub e publicação no GitHub Pages
+# (https://igorstutz.github.io/hub-andrea-eboli).
+#
+# O conteúdo vem do Sanity NO MOMENTO DO BUILD — por isso, além do push,
+# há um agendamento diário e o disparo manual (workflow_dispatch) para
+# republicar quando a Andrea publicar conteúdo novo no Studio.
+name: Deploy (GitHub Pages)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * *" # diariamente às 06h (BRT)
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      # Hospedagem estática não tem servidor: remove as rotas de API,
+      # o Studio embutido e o middleware de idioma (o site usa /pt, /en, /es
+      # com redirecionamento estático na raiz).
+      - name: Remover partes server-only
+        run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
+
+      - name: Build estático
+        run: npm run build
+        env:
+          STATIC_EXPORT: "1"
+          NEXT_PUBLIC_SITE_URL: https://igorstutz.github.io/hub-andrea-eboli
+
+      - name: Redirecionamento da raiz + .nojekyll
+        run: |
+          touch out/.nojekyll
+          cat > out/index.html <<'EOF'
+          <!doctype html>
+          <html lang="pt-BR">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=./pt/" />
+              <link rel="canonical" href="https://igorstutz.github.io/hub-andrea-eboli/pt/" />
+              <title>Andrea Eboli</title>
+            </head>
+            <body>
+              <p><a href="./pt/">Continuar para o site →</a></p>
+            </body>
+          </html>
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

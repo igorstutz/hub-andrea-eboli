@@ -6,6 +6,7 @@ import {
   type AiSettings,
   type Counts,
   type GeneratedContent,
+  type HubConcept,
   type Targets,
 } from "@/lib/ai/generate";
 import {
@@ -30,7 +31,7 @@ async function readAiSettings(): Promise<SettingsWithDefaults | null> {
     return await readClient.fetch<SettingsWithDefaults | null>(
       `*[_id == "aiSettings"][0]{
         voice, videoInstructions, faqInstructions, conceptInstructions,
-        articleInstructions, model, effort,
+        articleInstructions, conceptLinkingInstructions, model, effort,
         defaultQuestionsCount, defaultConceptsCount
       }`,
       {},
@@ -38,6 +39,24 @@ async function readAiSettings(): Promise<SettingsWithDefaults | null> {
     );
   } catch {
     return null; // sem configuração → usa padrões embutidos
+  }
+}
+
+// Conceitos-pilar PUBLICADOS do hub: candidatos ao vínculo automático
+// (relatedConcepts) de cada conteúdo gerado.
+async function readHubConcepts(): Promise<HubConcept[]> {
+  try {
+    return await readClient.fetch<HubConcept[]>(
+      `*[_type == "concept" && !(_id in path("drafts.**")) && defined(slug.current)] | order(title.pt asc){
+        "id": _id,
+        "title": title.pt,
+        "definition": shortDefinition.pt
+      }`,
+      {},
+      { cache: "no-store" },
+    );
+  } catch {
+    return []; // sem conceitos → gera sem vinculação
   }
 }
 
@@ -61,9 +80,35 @@ function shortId(): string {
   return randomUUID().replace(/-/g, "").slice(0, 5);
 }
 
-function makeSlug(ptTitle: string): { _type: "slug"; current: string } {
-  const base = slugify(ptTitle) || "video";
-  return { _type: "slug", current: `${base}-${shortId()}` };
+// Gerador de slugs LIMPOS: usa o título puro e só acrescenta sufixo aleatório
+// quando o slug já existe no Sanity (mesmo tipo) ou já foi usado neste lote.
+// `taken` null = não foi possível consultar os slugs existentes → sufixo sempre
+// (comportamento antigo, garante unicidade sem depender da consulta).
+type SlugFor = (ptTitle: string, type: string) => { _type: "slug"; current: string };
+
+function makeSlugFactory(taken: Set<string> | null): SlugFor {
+  return (ptTitle, type) => {
+    const base = slugify(ptTitle) || "video";
+    if (!taken) return { _type: "slug", current: `${base}-${shortId()}` };
+    const key = `${type}:${base}`;
+    const current = taken.has(key) ? `${base}-${shortId()}` : base;
+    taken.add(`${type}:${current}`);
+    return { _type: "slug", current };
+  };
+}
+
+// Slugs já usados no dataset (publicados), por tipo. null em caso de falha.
+async function readTakenSlugs(): Promise<Set<string> | null> {
+  try {
+    const rows = await readClient.fetch<Array<{ _type: string; slug: string }>>(
+      `*[_type in ["question", "concept", "article", "video"] && defined(slug.current)]{ _type, "slug": slug.current }`,
+      {},
+      { cache: "no-store" },
+    );
+    return new Set(rows.map((r) => `${r._type}:${r.slug}`));
+  } catch {
+    return null;
+  }
 }
 
 function locBlock(md: Loc): LocaleBlock {
@@ -99,6 +144,10 @@ type BuildCtx = {
   durationSeconds?: number;
   publishDate?: string;
   chapters?: Chapter[];
+  // Ids de conceitos-pilar válidos (protege contra ids fora da lista).
+  hubConceptIds?: Set<string>;
+  // Gerador de slugs (limpos, com sufixo só em colisão).
+  slugFor: SlugFor;
 };
 
 // Referência do Sanity para o id base (sem o prefixo drafts.).
@@ -121,8 +170,16 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
   let article: ResultDoc | null = null;
   let video: ResultDoc | null = null;
 
+  // Converte os ids escolhidos pela IA em referências, descartando qualquer id
+  // que não esteja na lista real de conceitos do hub.
+  const pillarRefs = (ids?: string[]) =>
+    (ids ?? [])
+      .filter((id) => ctx.hubConceptIds?.has(id))
+      .map((id) => ref(id));
+
   for (const q of gen.questions ?? []) {
     const id = `drafts.${randomUUID()}`;
+    const conceptRefs = pillarRefs(q.relatedConceptIds);
     questions.push({
       _id: id,
       _type: "question",
@@ -131,10 +188,11 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         _id: id,
         _type: "question",
         title: q.title,
-        slug: makeSlug(q.title.pt),
+        slug: ctx.slugFor(q.title.pt, "question"),
         experience: q.experience,
         answer: q.answer,
         body: locBlock(q.body),
+        ...(conceptRefs.length ? { relatedConcepts: conceptRefs } : {}),
         seo: seo(q.title, q.answer),
       },
     });
@@ -142,6 +200,7 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
 
   for (const c of gen.concepts ?? []) {
     const id = `drafts.${randomUUID()}`;
+    const conceptRefs = pillarRefs(c.relatedConceptIds);
     concepts.push({
       _id: id,
       _type: "concept",
@@ -150,9 +209,10 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         _id: id,
         _type: "concept",
         title: c.title,
-        slug: makeSlug(c.title.pt),
+        slug: ctx.slugFor(c.title.pt, "concept"),
         shortDefinition: c.shortDefinition,
         fullDefinition: locBlock(c.fullDefinition),
+        ...(conceptRefs.length ? { relatedConcepts: conceptRefs } : {}),
         seo: seo(c.title, c.shortDefinition),
       },
     });
@@ -160,6 +220,7 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
 
   if (gen.article) {
     const id = `drafts.${randomUUID()}`;
+    const conceptRefs = pillarRefs(gen.article.relatedConceptIds);
     article = {
       _id: id,
       _type: "article",
@@ -168,13 +229,14 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         _id: id,
         _type: "article",
         title: gen.article.title,
-        slug: makeSlug(gen.article.title.pt),
+        slug: ctx.slugFor(gen.article.title.pt, "article"),
         kind: "article",
         excerpt: gen.article.excerpt,
         body: locBlock(gen.article.body),
         publishedAt: ctx.publishDate
           ? new Date(ctx.publishDate).toISOString()
           : new Date().toISOString(),
+        ...(conceptRefs.length ? { relatedConcepts: conceptRefs } : {}),
         seo: seo(gen.article.title, gen.article.excerpt),
       },
     };
@@ -182,6 +244,14 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
 
   if (gen.video) {
     const id = `drafts.${randomUUID()}`;
+    // Conceitos do vídeo: os gerados no mesmo lote + os pilares escolhidos
+    // pela IA (sem duplicar referências).
+    const videoConceptRefs = [
+      ...concepts.map((c) => ref(c._id)),
+      ...pillarRefs(gen.video.relatedConceptIds),
+    ].filter(
+      (r, i, all) => all.findIndex((o) => o._ref === r._ref) === i,
+    );
     const transcriptBlocks = textToPortableText(ctx.transcript);
     const bucket = transcriptBucket(ctx.transcriptLang);
     const transcript: LocaleBlock = {
@@ -204,7 +274,7 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         _id: id,
         _type: "video",
         title: gen.video.title,
-        slug: makeSlug(gen.video.title.pt),
+        slug: ctx.slugFor(gen.video.title.pt, "video"),
         youtubeUrl: ctx.url,
         ...(ctx.publishDate
           ? { publishedAt: new Date(ctx.publishDate).toISOString() }
@@ -219,8 +289,8 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         ...(questions.length
           ? { relatedQuestions: questions.map((q) => ref(q._id)) }
           : {}),
-        ...(concepts.length
-          ? { relatedConcepts: concepts.map((c) => ref(c._id)) }
+        ...(videoConceptRefs.length
+          ? { relatedConcepts: videoConceptRefs }
           : {}),
         seo: seo(gen.video.title, gen.video.directAnswer),
       },
@@ -274,8 +344,13 @@ export async function POST(req: NextRequest) {
 
   const transcript = (payload.transcript ?? "").toString();
 
-  // Configuração do painel (singleton aiSettings). null → padrões embutidos.
-  const settings = await readAiSettings();
+  // Configuração do painel (singleton aiSettings) + conceitos-pilar do hub
+  // + slugs já usados (para gerar slugs limpos sem colisão).
+  const [settings, hubConcepts, takenSlugs] = await Promise.all([
+    readAiSettings(),
+    readHubConcepts(),
+    readTakenSlugs(),
+  ]);
   const counts: Counts = {
     questions:
       payload.counts?.questions ?? settings?.defaultQuestionsCount ?? 5,
@@ -290,6 +365,7 @@ export async function POST(req: NextRequest) {
       counts,
       settings: settings ?? undefined,
       directions: payload.directions,
+      hubConcepts,
     });
 
     const documents = buildDocuments(gen, {
@@ -299,6 +375,8 @@ export async function POST(req: NextRequest) {
       durationSeconds: payload.meta?.durationSeconds,
       publishDate: payload.publishDate,
       chapters: payload.chapters,
+      hubConceptIds: new Set(hubConcepts.map((c) => c.id)),
+      slugFor: makeSlugFactory(takenSlugs),
     });
 
     return Response.json({ documents });

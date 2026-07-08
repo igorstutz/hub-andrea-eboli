@@ -3,7 +3,7 @@
     "questions": "Perguntas",
     "concepts": "Conceitos",
     "cases": "Casos",
-    "research": "Pesquisas",
+    "articles": "Artigos",
     "videos": "Vídeos",
     "about": "Sobre",
     "search": "Buscar"
@@ -44,7 +44,8 @@
     "newsletterCta": "Quero receber",
     "newsletterPlaceholder": "seu@email.com",
     "newsletterOk": "Pronto! Você está na lista.",
-    "newsletterError": "Algo deu errado. Tente de novo."
+    "newsletterError": "Algo deu errado. Tente de novo.",
+    "sectionCta": "Explorar a biblioteca"
   },
   "libraries": {
     "questions": {
@@ -62,8 +63,8 @@
       "badge": "Os padrões",
       "desc": "Os padrões de comportamento que você reconhece — e como atravessá-los."
     },
-    "research": {
-      "name": "Pesquisas e Artigos",
+    "articles": {
+      "name": "Artigos",
       "badge": "A base científica",
       "desc": "White papers, estudos e artigos. A base que sustenta a tese."
     },
@@ -89,11 +90,15 @@
     "directAnswer": "Resposta direta",
     "relatedConcepts": "Conceitos relacionados",
     "relatedQuestions": "Perguntas relacionadas",
+    "relatedCases": "Casos relacionados",
+    "relatedArticles": "Artigos relacionados",
+    "relatedVideos": "Vídeos relacionados",
     "empty": "Conteúdo chegando em breve.",
     "backToHome": "Voltar ao início"
   },
   "search": {
     "title": "Busca",
+    "quickPlaceholder": "Pesquisar nesta biblioteca…",
     "placeholder": "Busque por uma pergunta, conceito...",
     "button": "Buscar",
     "prompt": "Digite algo para buscar no hub.",
@@ -104,6 +109,13 @@
     "article": "Artigo",
     "whitepaper": "White paper",
     "study": "Estudo"
+  },
+  "articlePage": {
+    "readingTime": "{minutes} min de leitura",
+    "toc": "Neste artigo",
+    "writtenBy": "Escrito por",
+    "downloadPdf": "Baixar o PDF",
+    "allArticles": "Ver todos os artigos"
   },
   "comingSoon": {
     "title": "Em construção",

@@ -42,7 +42,13 @@ export const conceptBySlugQuery = groq`
   "slug": slug.current,
   "shortDefinition": coalesce(shortDefinition[$locale], shortDefinition.pt),
   "fullDefinition": coalesce(fullDefinition[$locale], fullDefinition.pt),
-  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current }
+  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  // O conceito é o pilar: tudo no hub que referencia este conceito, por tipo.
+  "referencedByConcepts": *[_type == "concept" && references(^._id) && defined(slug.current)]{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedQuestions": *[_type == "question" && references(^._id) && defined(slug.current)] | order(_createdAt desc){ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedCases": *[_type == "caseStudy" && references(^._id) && defined(slug.current)] | order(_createdAt desc){ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedArticles": *[_type == "article" && references(^._id) && defined(slug.current)] | order(coalesce(publishedAt, _createdAt) desc){ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedVideos": *[_type == "video" && references(^._id) && defined(slug.current)] | order(coalesce(publishedAt, _createdAt) desc){ "title": coalesce(title[$locale], title.pt), "slug": slug.current }
 }`;
 
 // ---------- Sobre (singleton) ----------
@@ -70,12 +76,13 @@ export const caseBySlugQuery = groq`
   "slug": slug.current,
   "description": coalesce(description[$locale], description.pt),
   "pattern": coalesce(pattern[$locale], pattern.pt),
+  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "relatedQuestions": relatedQuestions[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "metaTitle": coalesce(seo.metaTitle[$locale], seo.metaTitle.pt),
   "metaDescription": coalesce(seo.metaDescription[$locale], seo.metaDescription.pt)
 }`;
 
-// ---------- Pesquisas / Artigos ----------
+// ---------- Artigos ----------
 export const articlesListQuery = groq`
 *[_type == "article" && defined(slug.current)] | order(coalesce(publishedAt, _createdAt) desc){
   "title": coalesce(title[$locale], title.pt),
@@ -94,6 +101,7 @@ export const articleBySlugQuery = groq`
   "body": coalesce(body[$locale], body.pt),
   "publishedAt": publishedAt,
   "pdfUrl": pdf.asset->url,
+  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "metaTitle": coalesce(seo.metaTitle[$locale], seo.metaTitle.pt),
   "metaDescription": coalesce(seo.metaDescription[$locale], seo.metaDescription.pt)
 }`;

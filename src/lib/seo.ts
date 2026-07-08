@@ -1,6 +1,9 @@
 import { routing } from "@/i18n/routing";
 
-export const SITE_URL = "https://andreaeboli.com";
+// URL pública do site. No deploy do GitHub Pages vem do ambiente
+// (inclui o caminho do repositório, ex.: https://igorstutz.github.io/hub-andrea-eboli).
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://andreaeboli.com";
 
 // Mapeia o locale interno para o código hreflang correto.
 const HREFLANG: Record<string, string> = {
@@ -9,13 +12,11 @@ const HREFLANG: Record<string, string> = {
   es: "es",
 };
 
-// URL absoluta de um caminho num dado idioma (PT na raiz, demais com prefixo).
+// URL absoluta de um caminho num dado idioma (prefixo sempre: /pt, /en, /es).
 export function localizedUrl(locale: string, path: string): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
   const suffix = clean === "/" ? "" : clean;
-  return locale === routing.defaultLocale
-    ? `${SITE_URL}${suffix}`
-    : `${SITE_URL}/${locale}${suffix}`;
+  return `${SITE_URL}/${locale}${suffix}`;
 }
 
 // Objeto de idiomas (hreflang) derivado dos locales configurados.

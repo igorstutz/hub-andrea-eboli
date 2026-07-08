@@ -23,7 +23,7 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("question").title("Perguntas"),
       S.documentTypeListItem("concept").title("Conceitos"),
       S.documentTypeListItem("caseStudy").title("Casos e Personagens"),
-      S.documentTypeListItem("article").title("Pesquisas e Artigos"),
+      S.documentTypeListItem("article").title("Artigos"),
       S.documentTypeListItem("video").title("Vídeos"),
       S.divider(),
       S.documentTypeListItem("topic").title("Temas"),

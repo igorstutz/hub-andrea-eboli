@@ -2,16 +2,28 @@ import {
   PortableText,
   type PortableTextComponents,
 } from "@portabletext/react";
+import { slugify } from "@/lib/portableText";
 
 type PTValue = React.ComponentProps<typeof PortableText>["value"];
+
+// Texto puro de um bloco (para gerar a âncora do heading).
+const blockText = (value?: unknown) => {
+  const children = (value as { children?: Array<{ text?: string }> })?.children;
+  return (children ?? []).map((c) => c.text ?? "").join("");
+};
 
 const components: PortableTextComponents = {
   block: {
     normal: ({ children }) => (
       <p className="mb-4 leading-relaxed text-ink-soft">{children}</p>
     ),
-    h2: ({ children }) => (
-      <h2 className="mb-3 mt-10 text-3xl text-green-deep">{children}</h2>
+    h2: ({ children, value }) => (
+      <h2
+        id={slugify(blockText(value)) || undefined}
+        className="mb-3 mt-10 scroll-mt-24 text-3xl text-green-deep"
+      >
+        {children}
+      </h2>
     ),
     h3: ({ children }) => (
       <h3 className="mb-2 mt-8 text-2xl text-green-deep">{children}</h3>

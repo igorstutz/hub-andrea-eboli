@@ -3,7 +3,7 @@
     "questions": "Questions",
     "concepts": "Concepts",
     "cases": "Cases",
-    "research": "Research",
+    "articles": "Articles",
     "videos": "Videos",
     "about": "About",
     "search": "Search"
@@ -44,7 +44,8 @@
     "newsletterCta": "Subscribe",
     "newsletterPlaceholder": "you@email.com",
     "newsletterOk": "Done! You're on the list.",
-    "newsletterError": "Something went wrong. Try again."
+    "newsletterError": "Something went wrong. Try again.",
+    "sectionCta": "Explore the library"
   },
   "libraries": {
     "questions": {
@@ -62,8 +63,8 @@
       "badge": "The patterns",
       "desc": "The behavior patterns you recognize — and how to move through them."
     },
-    "research": {
-      "name": "Research & Articles",
+    "articles": {
+      "name": "Articles",
       "badge": "The scientific base",
       "desc": "White papers, studies and articles. The foundation behind the thesis."
     },
@@ -89,16 +90,27 @@
     "directAnswer": "Direct answer",
     "relatedConcepts": "Related concepts",
     "relatedQuestions": "Related questions",
+    "relatedCases": "Related cases",
+    "relatedArticles": "Related articles",
+    "relatedVideos": "Related videos",
     "empty": "Content coming soon.",
     "backToHome": "Back to home"
   },
   "search": {
     "title": "Search",
+    "quickPlaceholder": "Search this library…",
     "placeholder": "Search a question, concept...",
     "button": "Search",
     "prompt": "Type something to search the hub.",
     "noResults": "Nothing found for",
     "resultsFor": "Results for"
+  },
+  "articlePage": {
+    "readingTime": "{minutes} min read",
+    "toc": "In this article",
+    "writtenBy": "Written by",
+    "downloadPdf": "Download the PDF",
+    "allArticles": "See all articles"
   },
   "articleKinds": {
     "article": "Article",

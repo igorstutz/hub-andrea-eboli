@@ -6,6 +6,7 @@ import PortableTextBody from "@/components/PortableTextBody";
 import VideoEmbed from "@/components/VideoEmbed";
 import JsonLd from "@/components/JsonLd";
 import { sanityFetch } from "@/sanity/lib/fetch";
+import { client } from "@/sanity/lib/client";
 import { videoBySlugQuery } from "@/sanity/lib/queries";
 import {
   parseYouTubeId,
@@ -19,6 +20,14 @@ type Chapter = { startTime: number; title: string };
 type RefItem = { title: string; slug: string };
 type RelatedQuestion = RefItem & { answer?: string };
 type RelatedConcept = RefItem & { shortDefinition?: string };
+
+// Export estático: pré-gera todos os vídeos publicados.
+export async function generateStaticParams() {
+  const slugs = await client.fetch<string[]>(
+    `*[_type == "video" && defined(slug.current)].slug.current`,
+  );
+  return slugs.map((slug) => ({ slug }));
+}
 
 type VideoDetail = {
   title: string;

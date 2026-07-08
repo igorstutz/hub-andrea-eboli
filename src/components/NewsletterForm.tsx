@@ -14,7 +14,11 @@ export default function NewsletterForm() {
     e.preventDefault();
     setStatus("loading");
     try {
-      const res = await fetch("/api/newsletter", {
+      // No site estático (GitHub Pages) não há /api — defina
+      // NEXT_PUBLIC_NEWSLETTER_ENDPOINT (webhook do provedor) para ativar.
+      const endpoint =
+        process.env.NEXT_PUBLIC_NEWSLETTER_ENDPOINT || "/api/newsletter";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email }),

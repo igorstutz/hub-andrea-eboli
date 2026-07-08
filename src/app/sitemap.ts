@@ -4,11 +4,14 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { sitemapQuery } from "@/sanity/lib/queries";
 import { localizedUrl, languageAlternates } from "@/lib/seo";
 
+// Necessário para o export estático (GitHub Pages).
+export const dynamic = "force-static";
+
 const TYPE_TO_PATH: Record<string, string> = {
   question: "/perguntas",
   concept: "/conceitos",
   caseStudy: "/casos",
-  article: "/pesquisas",
+  article: "/artigos",
   video: "/videos",
 };
 
@@ -17,7 +20,7 @@ const STATIC_PATHS = [
   "/perguntas",
   "/conceitos",
   "/casos",
-  "/pesquisas",
+  "/artigos",
   "/videos",
   "/sobre",
 ];

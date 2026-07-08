@@ -58,6 +58,17 @@ export const aiSettings = defineType({
       group: "instructions",
     }),
     defineField({
+      name: "conceptLinkingInstructions",
+      title: "Instruções — Vinculação aos conceitos do hub",
+      description:
+        "Critério para a IA escolher a quais conceitos-pilar do hub (Poder Consciente, " +
+        "Liderança, Posicionamento…) cada conteúdo gerado deve ser vinculado. " +
+        'Vazio = padrão ("1 a 3 conceitos com relação real e direta; não force vínculos").',
+      type: "text",
+      rows: 4,
+      group: "instructions",
+    }),
+    defineField({
       name: "model",
       title: "Modelo de IA",
       description:
