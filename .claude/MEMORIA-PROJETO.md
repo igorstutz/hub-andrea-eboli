@@ -22,6 +22,34 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
+### 📌 RESUMO EXECUTIVO (08/07/2026 — fim do dia)
+**O sistema está PUBLICADO.** URL de **homologação** (para validação da Andrea
+e do Igor antes do domínio próprio): **https://igorstutz.github.io/hub-andrea-eboli**
+- Repositório: `github.com/igorstutz/hub-andrea-eboli` (branch `master`;
+  push = deploy automático via GitHub Actions).
+- Site estático (conteúdo do Sanity congelado no build). Atualiza sozinho 1×/dia
+  (workflow agendado) ou na hora rodando o workflow "Deploy (GitHub Pages)".
+- Trabalho de edição continua LOCAL: `npm run dev` → Studio em `/studio`
+  (importação de YouTube, agentes de IA etc. só funcionam local).
+- A apresentação para a Andrea foi feita em 08/07 (localhost + URL pública).
+
+**⏭️ PRÓXIMOS PASSOS (retomar aqui em 09/07/2026):**
+1. **Conteúdo real:** o site público ainda tem conteúdo de EXEMPLO — a Andrea
+   precisa revisar as definições dos 5 conceitos (marcadas "Conteúdo provisório")
+   e substituir perguntas/casos/artigo do seed pelo Studio.
+2. **Republicação automática** (melhor custo-benefício): webhook do Sanity →
+   `workflow_dispatch` do GitHub Actions, para o site atualizar a cada Publicar.
+   Igor sinalizou interesse; implementar na próxima sessão.
+3. **Traduções dos nomes dos conceitos** em en/es: conferir se algum é termo de
+   marca que deve ficar em português em todos os idiomas (ajuste no Studio).
+4. **Newsletter:** aguardando escolha do provedor → definir
+   `NEXT_PUBLIC_NEWSLETTER_ENDPOINT` no workflow e republicar.
+5. **Mais adiante:** domínio próprio (andreaeboli.com) — decidir GitHub Pages
+   (CNAME) vs. hospedagem com servidor (ISR + newsletter nativa); mover o
+   projeto para fora do OneDrive (risco EBUSY).
+
+---
+
 ### 🗓️ Sessão 06/07/2026 (mais recente) — Conceitos-pilar + rename Pesquisas→Artigos
 **Tudo CONCLUÍDO e validado (`tsc`/`eslint` OK + testes manuais nas páginas):**
 1. **Conceitos reais substituíram os do seed** (script `update-concepts.mjs`, transação
