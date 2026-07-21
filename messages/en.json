@@ -5,8 +5,17 @@
     "cases": "Cases",
     "articles": "Articles",
     "videos": "Videos",
-    "about": "About",
+    "about": "About Andrea Eboli",
+    "serPoder": "About Ser Poder",
+    "articlesQuestions": "Articles & Questions",
+    "videosPodcast": "Videos & Podcast",
+    "media": "In the Media",
+    "book": "Book",
+    "contact": "Contact",
     "search": "Search"
+  },
+  "banner": {
+    "kicker": "Perception · Choice · Presence"
   },
   "home": {
     "badge": "Researcher · Forbes Councils · TED",
@@ -120,6 +129,67 @@
   "comingSoon": {
     "title": "Coming soon",
     "body": "This library is being prepared. Soon, full of content."
+  },
+  "aboutPage": {
+    "role": "Researcher · Author · Professor",
+    "headline": "Founder of the Academia do Poder — investigating the new relationships between power, identity and leadership in contemporary life.",
+    "p1": "Andrea Eboli is a researcher, author, professor and founder of the Academia do Poder. She investigates the new relationships between power, identity and leadership in contemporary life.",
+    "p2": "Her investigation begins with two central questions: why do people who have power seem to lose it when they leave roles, titles or positions? And why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
+    "p3": "With international master's and doctoral training, an academic career and more than two decades of executive experience, Andrea proposes a new reading of contemporary power and conscious leadership.",
+    "p4": "Creator of the Conscious Structure of Power — ECP, her original method, she turns this investigation into a practical path for people and leaders to cross the distance between having power and feeling truly potent in it.",
+    "quote": "The world has changed. So have the relationships of power. And the way we occupy, sustain and live power must change with it.",
+    "credentialsLabel": "Recognition",
+    "methodCta": "Explore the Ser Poder thesis",
+    "contactCta": "Get in touch"
+  },
+  "serPoderPage": {
+    "badge": "The thesis",
+    "headline": "The distance between having power and feeling truly potent in it.",
+    "introTitle": "What Ser Poder is",
+    "introBody": "Ser Poder is a new reading of contemporary power and conscious leadership. It begins with a simple, uncomfortable realization: having power and feeling powerful are not the same thing. Roles, titles and recognition do not guarantee a sense of potency — and it is in that distance that most people get lost.",
+    "questionsTitle": "Two questions drive this investigation",
+    "q1": "Why do people who have power seem to lose it when they leave roles, titles or positions?",
+    "q2": "Why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
+    "ecpBadge": "ECP · original method",
+    "ecpTitle": "The Conscious Structure of Power",
+    "ecpBody": "The ECP is Andrea Eboli's original method — a practical path to cross that distance. Instead of treating power as a role or a performance, it works power as a conscious structure: something you occupy, sustain and live from the inside out. It is the axis that connects every concept in this hub.",
+    "conceptsTitle": "The pillar concepts",
+    "conceptsLead": "The vocabulary of the thesis — each idea with a name of its own.",
+    "ctaTitle": "Where the thesis becomes practice",
+    "ctaBody": "Human questions, articles and cases that name what you live.",
+    "cta": "Explore Articles & Questions"
+  },
+  "articlesQuestionsPage": {
+    "badge": "Articles & Questions",
+    "headline": "The real questions people ask — and the foundation behind the answers.",
+    "questionsTitle": "Human Questions",
+    "articlesTitle": "Articles",
+    "questionsCta": "See all questions",
+    "articlesCta": "See all articles"
+  },
+  "mediaPage": {
+    "badge": "In the Media",
+    "headline": "Andrea Eboli in the press, on stages and in conversations that widen the thesis.",
+    "recognitionTitle": "Recognized by",
+    "recognitionLead": "Institutions and outlets where Andrea writes, teaches and is a reference.",
+    "pressTitle": "Appearances and publications",
+    "empty": "New press materials are coming soon."
+  },
+  "bookPage": {
+    "badge": "Book",
+    "status": "In preparation",
+    "headline": "Andrea Eboli's book is on its way.",
+    "body": "A work on conscious power, identity and contemporary leadership — the Ser Poder thesis in book form. Leave your email and be the first to know at launch."
+  },
+  "contactPage": {
+    "badge": "Contact",
+    "headline": "Let's talk.",
+    "lead": "For talks, mentoring, press and partnerships.",
+    "emailLabel": "Email",
+    "email": "contato@andreaeboli.com",
+    "emailCta": "Send email",
+    "socialLabel": "Social",
+    "newsletterTitle": "Or get the Notes on Power"
   },
   "footer": {
     "tagline": "A reference in leadership, neuroscience and conscious power.",

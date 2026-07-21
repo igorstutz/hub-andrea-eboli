@@ -17,8 +17,8 @@ export default function PageHeader({
 }) {
   return (
     <section className="relative overflow-hidden border-b border-ink/10 bg-bone">
-      <div className="blob absolute -right-28 -top-28 h-80 w-80 bg-gold/15" />
-      <div className="blob absolute -bottom-40 -left-24 h-72 w-72 bg-green-deep/8" />
+      <div className="blob absolute -right-28 -top-28 h-80 w-80 bg-wine/12" />
+      <div className="blob absolute -bottom-40 -left-24 h-72 w-72 bg-green-deep/10" />
 
       <div className="relative mx-auto max-w-5xl px-6 py-16">
         <nav className="mb-8 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted">
@@ -37,7 +37,7 @@ export default function PageHeader({
         </nav>
 
         {badge && (
-          <span className="mb-5 inline-block rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-gold">
+          <span className="mb-5 inline-block rounded-full border border-wine/30 bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-wine">
             {badge}
           </span>
         )}
@@ -47,7 +47,7 @@ export default function PageHeader({
         </h1>
 
         {lead && (
-          <p className="mt-6 max-w-2xl border-l-2 border-gold pl-5 font-serif text-xl italic leading-relaxed text-ink-soft md:text-2xl">
+          <p className="mt-6 max-w-2xl border-l-2 border-wine pl-5 font-serif text-xl italic leading-relaxed text-ink-soft md:text-2xl">
             {lead}
           </p>
         )}

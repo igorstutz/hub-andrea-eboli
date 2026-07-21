@@ -58,7 +58,7 @@ export default function Marquee({ items }: { items: string[] }) {
             <span className="word rounded-full px-4 py-1 font-serif text-2xl italic text-green-deep/55 transition-all duration-300">
               {item}
             </span>
-            <span className="h-1 w-1 rounded-full bg-gold/60" aria-hidden />
+            <span className="h-1 w-1 rounded-full bg-wine/45" aria-hidden />
           </span>
         ))}
       </div>

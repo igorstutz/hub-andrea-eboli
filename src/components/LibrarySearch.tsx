@@ -68,7 +68,7 @@ function ConceptRow({ item, index }: { item: LibraryItem; index: number }) {
       href={`/conceitos/${item.slug}`}
       className="group flex items-baseline gap-5 py-8 transition-colors hover:bg-bone sm:gap-8"
     >
-      <span className="font-serif text-2xl italic leading-none text-gold/70 transition-colors group-hover:text-gold">
+      <span className="font-serif text-2xl italic leading-none text-wine/50 transition-colors group-hover:text-wine">
         {String(index + 1).padStart(2, "0")}
       </span>
       <span className="min-w-0 flex-1">
@@ -95,7 +95,7 @@ function CaseCard({ item }: { item: LibraryItem }) {
       href={`/casos/${item.slug}`}
       className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-white p-7 transition-all hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(31,61,47,0.4)]"
     >
-      <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold to-wine transition-transform duration-500 group-hover:scale-x-100" />
+      <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
       <h2 className="font-serif text-2xl italic text-green-deep">{item.title}</h2>
       {item.text && (
         <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{item.text}</p>
@@ -113,7 +113,7 @@ function ArticleRow({ item }: { item: LibraryItem }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
           {item.badge && (
-            <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-gold">
+            <span className="rounded-full border border-wine/30 bg-wine/5 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-wine">
               {item.badge}
             </span>
           )}

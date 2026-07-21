@@ -25,7 +25,7 @@ export default function RotatingQuestions() {
 
   return (
     <span
-      className={`q-rotate block font-serif italic text-gold ${
+      className={`q-rotate block font-serif italic text-cream ${
         show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       }`}
     >

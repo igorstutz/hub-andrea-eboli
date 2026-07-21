@@ -22,35 +22,76 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 📌 RESUMO EXECUTIVO (08/07/2026 — fim do dia)
-**O sistema está PUBLICADO.** URL de **homologação** (para validação da Andrea
-e do Igor antes do domínio próprio): **https://igorstutz.github.io/hub-andrea-eboli**
-- Repositório: `github.com/igorstutz/hub-andrea-eboli` (branch `master`;
-  push = deploy automático via GitHub Actions).
-- Site estático (conteúdo do Sanity congelado no build). Atualiza sozinho 1×/dia
-  (workflow agendado) ou na hora rodando o workflow "Deploy (GitHub Pages)".
-- Trabalho de edição continua LOCAL: `npm run dev` → Studio em `/studio`
-  (importação de YouTube, agentes de IA etc. só funcionam local).
-- A apresentação para a Andrea foi feita em 08/07 (localhost + URL pública).
+### 📌 RESUMO EXECUTIVO (20–21/07/2026 — redesign de marca + publicado)
+**O sistema está PUBLICADO** (homologação): **https://igorstutz.github.io/hub-andrea-eboli**
+- Repositório `github.com/igorstutz/hub-andrea-eboli` (branch `master`;
+  push = deploy automático via GitHub Actions). Republicar = rodar o workflow
+  "Deploy (GitHub Pages)" ou esperar o agendado diário (site estático).
+- Edição continua LOCAL: `npm run dev` → Studio em `/studio` (YouTube/IA só local).
+- **Grande redesign (20–21/07)** alinhando o hub à **MARCA REAL** da Andrea
+  (feed @souandreaeboli), a partir de documentos que ela enviou. Detalhes na
+  sessão abaixo.
 
-**⏭️ PRÓXIMOS PASSOS (retomar aqui em 09/07/2026):**
-1. **Conteúdo real:** o site público ainda tem conteúdo de EXEMPLO — a Andrea
-   precisa revisar as definições dos 5 conceitos (marcadas "Conteúdo provisório")
-   e substituir perguntas/casos/artigo do seed pelo Studio.
-2. **Republicação automática** (melhor custo-benefício): webhook do Sanity →
-   `workflow_dispatch` do GitHub Actions, para o site atualizar a cada Publicar.
-   Igor sinalizou interesse; implementar na próxima sessão.
-3. **Traduções dos nomes dos conceitos** em en/es: conferir se algum é termo de
-   marca que deve ficar em português em todos os idiomas (ajuste no Studio).
-4. **Newsletter:** aguardando escolha do provedor → definir
-   `NEXT_PUBLIC_NEWSLETTER_ENDPOINT` no workflow e republicar.
-5. **Mais adiante:** domínio próprio (andreaeboli.com) — decidir GitHub Pages
-   (CNAME) vs. hospedagem com servidor (ISR + newsletter nativa); mover o
-   projeto para fora do OneDrive (risco EBUSY).
+**⏭️ PRÓXIMOS PASSOS (retomar aqui):**
+1. **Fotos da Andrea (bloqueio visual):** dropar `public/brand/andrea-avatar.jpg`
+   (bolinha, ver `Header.tsx`) e `public/brand/andrea-banner.jpg` (banner, ver
+   `BannerPhoto.tsx`) e trocar a constante `null` pelo caminho. Sem elas, aparece
+   um placeholder com o monograma "AE".
+2. **E-mail de contato:** provisório `contato@andreaeboli.com`
+   (`messages/*.json` → `contactPage.email`). Trocar pelo real.
+3. **Conteúdo real:** Andrea revisar as definições dos 5 conceitos + substituir
+   perguntas/casos/artigo do seed pelo Studio. Páginas "Na mídia" e "Livro" têm
+   placeholders (a lista de imprensa e o livro entram quando houver material).
+4. **Republicação automática:** webhook do Sanity → `workflow_dispatch` (Igor tem
+   interesse).
+5. **Newsletter:** definir `NEXT_PUBLIC_NEWSLETTER_ENDPOINT` quando houver provedor.
+6. **Mais adiante:** domínio próprio (andreaeboli.com); mover o projeto para fora
+   do OneDrive (risco EBUSY).
 
 ---
 
-### 🗓️ Sessão 06/07/2026 (mais recente) — Conceitos-pilar + rename Pesquisas→Artigos
+### 🗓️ Sessão 20–21/07/2026 (mais recente) — Redesign alinhado à marca real
+Igor trouxe documentos da Andrea (bio reformulada, referências de sites e um print
+do feed @souandreaeboli com cores e linguagem). Pedido: reformar o hub para a
+identidade real dela, "com máximo de perfeição". **Tudo CONCLUÍDO (`tsc`/`eslint`/
+build estático de produção OK — 128 páginas nos 3 idiomas) e PUBLICADO.**
+
+1. **Paleta EXATA da marca** (amostrei os pixels do feed), em `globals.css`:
+   vinho `#41181E`, verde `#14312C`, creme `#EFE6DF` (o token `cream` ficou 1 tom
+   mais fechado, `#ece2d3`, coadjuvante). **Ouro removido de todo o sistema**
+   (eram 50 usos em 14 arquivos) → **verde virou a 2ª cor protagonista**. O token
+   `--color-gold` sobrou como alias DEPRECADO do vinho (não é mais renderizado).
+2. **Tipografia:** título trocado de Cormorant (leve) para **Fraunces** variável
+   (`layout.tsx`) — resolve o "está muito leve, precisa ter mais poder".
+3. **Barra (`Header.tsx`)** reescrita como client: bolinha (foto/monograma) + nome
+   maior, item ativo sublinhado, **drawer no mobile**. Novo menu: Sobre Ser Poder ·
+   Sobre Andrea Eboli · Artigos e Perguntas · Vídeos e Podcast · Na mídia · Livro ·
+   Contato.
+4. **Banner:** `HomeBanner` (hero — "SER PODER" + perguntas rodando + foto integrada
+   estilo Esther Perel; kicker "Percepção · Escolha · Presença"; **sem "reconhecida
+   por"**) e `PageBanner` (faixa verde em TODAS as abas, ideia do Simon Sinek). Foto
+   via `BannerPhoto` (placeholder "AE" até dropar a real — ver próximos passos).
+5. **Rotas novas:** `/ser-poder` (a tese: o que é + 2 perguntas-motor + **ECP como
+   eixo** + conceitos-pilar), `/sobre` refeita (bio reformulada, layout Adam Grant),
+   `/artigos-e-perguntas` (combinada), `/na-midia` (recebeu o "reconhecida por" +
+   credenciais), `/livro`, `/contato`. `/videos` virou "Vídeos e Podcast". Casos
+   saiu do menu de topo mas continua existindo (`/casos`).
+6. **i18n:** namespaces novos `banner`, `aboutPage`, `serPoderPage`,
+   `articlesQuestionsPage`, `mediaPage`, `bookPage`, `contactPage` nos 3 idiomas.
+   Bio e textos das páginas ficam nos `messages/*.json` (renderizam no estático,
+   **não** dependem do Studio).
+7. **Decisões que tomei como especialista (Igor valida):** a ECP deixou de ser
+   "mais um conceito" e virou o EIXO; "Ser Poder"/"Academia do Poder" mantidos em
+   PT nos 3 idiomas; Footer e sitemap atualizados; NewsletterForm ganhou variante
+   `tone="light"`.
+
+Componentes NOVOS: `HomeBanner`, `PageBanner`, `BannerPhoto`. Alterados (de-gold +
+recolor): Header, Footer, RotatingQuestions, NewsletterForm, PageHeader,
+DetailHeader, EndOrnament, LinkList, Marquee, PortableTextBody, LibrarySearch, home.
+
+---
+
+### 🗓️ Sessão 06/07/2026 — Conceitos-pilar + rename Pesquisas→Artigos
 **Tudo CONCLUÍDO e validado (`tsc`/`eslint` OK + testes manuais nas páginas):**
 1. **Conceitos reais substituíram os do seed** (script `update-concepts.mjs`, transação
    única): Poder Consciente, Liderança, Posicionamento, Comportamento Humano,

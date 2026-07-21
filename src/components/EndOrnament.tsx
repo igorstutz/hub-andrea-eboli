@@ -11,12 +11,12 @@ export default function EndOrnament({
   return (
     <>
       <div
-        className="mt-14 flex items-center justify-center gap-4 text-gold"
+        className="mt-14 flex items-center justify-center gap-4 text-wine/70"
         aria-hidden
       >
-        <span className="h-px w-16 bg-gold/40" />
+        <span className="h-px w-16 bg-wine/30" />
         <span className="font-serif text-lg">◆</span>
-        <span className="h-px w-16 bg-gold/40" />
+        <span className="h-px w-16 bg-wine/30" />
       </div>
       <div className="mt-10 text-center">
         <Link

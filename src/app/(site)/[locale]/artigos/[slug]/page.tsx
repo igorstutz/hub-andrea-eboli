@@ -153,7 +153,7 @@ export default async function Page({
                     <li key={h.id}>
                       <a
                         href={`#${h.id}`}
-                        className="block border-l-2 border-transparent pl-3 leading-snug text-ink-soft transition-colors hover:border-gold hover:text-green-deep"
+                        className="block border-l-2 border-transparent pl-3 leading-snug text-ink-soft transition-colors hover:border-wine hover:text-green-deep"
                       >
                         {h.text}
                       </a>

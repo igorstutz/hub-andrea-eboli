@@ -2,30 +2,42 @@
 
 /* ----------------------------------------------------------------
    Design system — identidade Andrea Eboli
-   Paleta e tipografia herdadas das propostas aprovadas.
+   Paleta EXATA da marca (amostrada do feed @souandreaeboli):
+   vinho #41181E · verde #14312C · creme #EFE6DF.
+   Três cores em diálogo — sem ouro. O creme é coadjuvante (um tom
+   mais fechado que o original); vinho e verde são protagonistas.
 ----------------------------------------------------------------- */
 @theme {
-  --color-green-deep: #1f3d2f;
-  --color-green-darker: #15291f;
-  --color-green-soft: #2c5040;
-  --color-wine: #7a2d31;
-  --color-wine-soft: #9a4045;
-  --color-cream: #f5efe0;
-  --color-cream-dark: #e8dfc9;
-  --color-bone: #faf5ea;
-  --color-ink: #2b1f1a;
-  --color-ink-soft: #5c4a42;
-  --color-muted: #8b6f65;
-  --color-gold: #b8965a;
+  /* Verde (protagonista) */
+  --color-green-deep: #14312c;
+  --color-green-darker: #0e231e;
+  --color-green-soft: #2c5a49;
+
+  /* Vinho (protagonista) */
+  --color-wine: #41181e;
+  --color-wine-soft: #6b2a32;
+
+  /* Creme / areia (coadjuvante, um tom mais escuro) */
+  --color-cream: #ece2d3;
+  --color-cream-dark: #ddceb8;
+  --color-bone: #f4eee0;
+
+  /* Tinta / neutros */
+  --color-ink: #241a16;
+  --color-ink-soft: #574840;
+  --color-muted: #8b756a;
+
+  /* DEPRECADO — a marca não usa ouro. Mantido como alias do vinho
+     apenas para não quebrar classes remanescentes; deve ser purgado. */
+  --color-gold: #6b2a32;
 
   --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia,
-    serif;
+  --font-serif: var(--font-fraunces), "Fraunces", ui-serif, Georgia, serif;
 }
 
 :root {
-  /* Altura do header — o hero usa isto para encaixar exatamente abaixo dele */
-  --header-h: 4.5rem;
+  /* Altura do header — o banner usa isto para encaixar abaixo dele */
+  --header-h: 5rem;
 }
 
 html {
@@ -38,30 +50,91 @@ body {
   font-family: var(--font-sans);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* Títulos em Fraunces — peso alto para dar autoridade (o pedido:
+   "mais poder"). opsz alto = mais contraste/expressão no display. */
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-serif);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  font-optical-sizing: auto;
+}
+
+/* Seleção de texto na cor da marca */
+::selection {
+  background: var(--color-wine);
+  color: var(--color-cream);
+}
+
+/* Foco acessível, on-brand */
+:focus-visible {
+  outline: 2px solid var(--color-wine);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------------
+   Tipografia utilitária
+----------------------------------------------------------------- */
+
+/* Sobrescrito ("eyebrow"/kicker) — PERCEPÇÃO · ESCOLHA · PRESENÇA */
+.kicker {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+/* Assinatura da marca no topo/rodapé */
+.wordmark {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* ----------------------------------------------------------------
+   Foto editorial (uso "não orgânico", estilo Esther Perel):
+   moldura em arco + leve tratamento de cor da marca.
+----------------------------------------------------------------- */
+.photo-arch {
+  border-top-left-radius: 999px;
+  border-top-right-radius: 999px;
+  overflow: hidden;
+}
+.photo-duotone {
+  position: relative;
+}
+.photo-duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(20, 49, 44, 0.28) 100%
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 /* ----------------------------------------------------------------
    Movimento — gradientes, flutuação, marquee, reveal
 ----------------------------------------------------------------- */
 
-/* Malha de gradiente animada (hero) */
+/* Malha de gradiente animada (banner) — só vinho + verde */
 .gradient-mesh {
   background-image:
-    radial-gradient(40% 50% at 18% 22%, rgba(184, 150, 90, 0.28), transparent 70%),
-    radial-gradient(38% 48% at 82% 28%, rgba(122, 45, 49, 0.34), transparent 70%),
-    radial-gradient(55% 60% at 60% 92%, rgba(44, 80, 64, 0.5), transparent 72%);
+    radial-gradient(42% 52% at 16% 20%, rgba(107, 42, 50, 0.4), transparent 70%),
+    radial-gradient(40% 50% at 84% 26%, rgba(65, 24, 30, 0.5), transparent 70%),
+    radial-gradient(58% 62% at 60% 96%, rgba(44, 90, 73, 0.45), transparent 72%);
   background-size: 160% 160%;
-  animation: mesh-move 20s ease-in-out infinite;
+  animation: mesh-move 22s ease-in-out infinite;
 }
 @keyframes mesh-move {
   0%,
@@ -77,7 +150,7 @@ h4 {
 .blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
+  filter: blur(72px);
   pointer-events: none;
 }
 .animate-float {
@@ -151,22 +224,7 @@ h4 {
   transform: none;
 }
 
-/* Texto com gradiente dourado */
-.text-gradient-gold {
-  background: linear-gradient(100deg, #d8b878 0%, #b8965a 50%, #d8b878 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 6s linear infinite;
-}
-@keyframes shimmer {
-  to {
-    background-position: 200% center;
-  }
-}
-
-/* Ponto pulsante (badges) */
+/* Ponto pulsante (badges) — eco do banner, na cor vinho */
 .pulse-dot {
   animation: pulse-dot 2.4s ease-in-out infinite;
 }
@@ -174,11 +232,11 @@ h4 {
   0%,
   100% {
     opacity: 1;
-    box-shadow: 0 0 0 0 rgba(184, 150, 90, 0.5);
+    box-shadow: 0 0 0 0 rgba(107, 42, 50, 0.5);
   }
   50% {
-    opacity: 0.6;
-    box-shadow: 0 0 0 6px rgba(184, 150, 90, 0);
+    opacity: 0.55;
+    box-shadow: 0 0 0 6px rgba(107, 42, 50, 0);
   }
 }
 
@@ -194,8 +252,23 @@ h4 {
   float: left;
   padding-right: 0.14em;
   font-family: var(--font-serif);
-  font-size: 3.4em;
-  font-weight: 500;
-  line-height: 0.82;
-  color: var(--color-green-deep);
+  font-size: 3.6em;
+  font-weight: 600;
+  line-height: 0.8;
+  color: var(--color-wine);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-mesh,
+  .animate-float,
+  .animate-float-2,
+  .marquee-track,
+  .pulse-dot {
+    animation: none !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

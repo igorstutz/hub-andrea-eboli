@@ -1,8 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
-import RotatingQuestions from "@/components/RotatingQuestions";
-import Marquee from "@/components/Marquee";
+import HomeBanner from "@/components/HomeBanner";
 import LibraryIcon from "@/components/LibraryIcon";
 import NewsletterForm from "@/components/NewsletterForm";
 import { sanityFetch } from "@/sanity/lib/fetch";
@@ -29,7 +28,7 @@ type AItem = { title: string; slug: string; kind?: string; excerpt?: string; pub
 type VItem = { title: string; slug: string; summary?: string; youtubeUrl?: string; durationSeconds?: number };
 
 // Cabeçalho padrão das seções de conteúdo da home: badge com ponto pulsante
-// (eco do hero), título, lead e CTA em pill que preenche no hover.
+// (eco do banner), título, lead e CTA em pill que preenche no hover.
 function SectionHeading({
   badge,
   title,
@@ -52,12 +51,12 @@ function SectionHeading({
           <span
             className={`mb-4 inline-flex items-center gap-2.5 rounded-full border px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] ${
               dark
-                ? "border-gold/30 bg-gold/10 text-gold"
+                ? "border-cream/25 bg-cream/10 text-cream/90"
                 : "border-wine/20 bg-wine/5 text-wine"
             }`}
           >
             <span
-              className={`pulse-dot h-1.5 w-1.5 rounded-full ${dark ? "bg-gold" : "bg-wine"}`}
+              className={`pulse-dot h-1.5 w-1.5 rounded-full ${dark ? "bg-cream/80" : "bg-wine"}`}
             />
             {badge}
           </span>
@@ -73,7 +72,7 @@ function SectionHeading({
         href={href}
         className={`group inline-flex shrink-0 items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-all duration-300 hover:gap-3 ${
           dark
-            ? "border-gold/40 text-gold hover:bg-gold hover:text-green-darker"
+            ? "border-cream/40 text-cream hover:bg-cream hover:text-green-deep"
             : "border-wine/30 text-wine hover:bg-wine hover:text-cream"
         }`}
       >
@@ -94,7 +93,6 @@ export default async function HomePage({
   const t = await getTranslations("home");
   const tl = await getTranslations("libraries");
   const tk = await getTranslations("articleKinds");
-  const credentials = t.raw("credentials") as string[];
 
   // Conteúdo real das bibliotecas (datasets pequenos; fatiamos aqui).
   const [questions, concepts, cases, articles, videos] = await Promise.all([
@@ -107,76 +105,8 @@ export default async function HomePage({
 
   return (
     <>
-      {/* ============ HERO ============ */}
-      <section className="relative flex h-[calc(100svh_-_var(--header-h))] max-h-[64rem] min-h-[40rem] items-center overflow-hidden bg-green-deep text-cream">
-        {/* malha de gradiente animada */}
-        <div className="gradient-mesh pointer-events-none absolute inset-0" />
-        {/* blobs flutuantes */}
-        <div className="blob animate-float absolute -left-24 top-10 h-80 w-80 bg-gold/20" />
-        <div className="blob animate-float-2 absolute -right-20 bottom-0 h-96 w-96 bg-wine/30" />
-
-        <div className="container relative z-10 mx-auto max-w-6xl px-6 py-6">
-          <Reveal>
-            <span className="inline-flex items-center gap-2.5 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-gold" />
-              {t("badge")}
-            </span>
-          </Reveal>
-
-          <Reveal delay={120} className="mt-6 max-w-3xl">
-            <p className="mb-3 text-sm uppercase tracking-[0.2em] text-cream/45">
-              {t("rotatingLabel")}
-            </p>
-            <div className="flex h-24 items-center overflow-hidden text-2xl leading-tight md:h-32 md:text-5xl">
-              <RotatingQuestions />
-            </div>
-          </Reveal>
-
-          <Reveal delay={240} className="mt-8">
-            <div className="flex items-center gap-4">
-              <span className="h-px w-12 bg-gold/50" />
-              <span className="text-xs uppercase tracking-[0.2em] text-cream/45">
-                {t("answerLabel")}
-              </span>
-            </div>
-            <h1 className="mt-4 text-6xl font-semibold italic md:text-8xl">
-              <span className="text-gradient-gold">{t("title")}</span>
-            </h1>
-          </Reveal>
-
-          <Reveal delay={360} className="mt-6 max-w-xl">
-            <p className="text-lg font-light text-cream/80">{t("lead")}</p>
-          </Reveal>
-
-          <Reveal delay={480} className="mt-8">
-            <div className="flex flex-wrap items-center gap-4">
-              <a
-                href="#bibliotecas"
-                className="group inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-green-darker transition-all hover:gap-3 hover:bg-[#cBA86b]"
-              >
-                {t("ctaPrimary")}
-                <span className="transition-transform group-hover:translate-x-0.5">
-                  →
-                </span>
-              </a>
-              <Link
-                href="/sobre"
-                className="rounded-full border border-cream/25 px-7 py-3.5 text-sm font-medium text-cream transition-colors hover:bg-cream/10"
-              >
-                {t("ctaSecondary")}
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ============ CREDENCIAIS (marquee) ============ */}
-      <section className="border-y border-ink/10 bg-bone py-10">
-        <p className="mb-6 text-center text-xs uppercase tracking-[0.22em] text-muted">
-          {t("credentialsLabel")}
-        </p>
-        <Marquee items={credentials} />
-      </section>
+      {/* ============ BANNER ============ */}
+      <HomeBanner />
 
       {/* ============ BIBLIOTECAS ============ */}
       <section id="bibliotecas" className="bg-cream">
@@ -195,20 +125,18 @@ export default async function HomePage({
               <Reveal key={key} delay={i * 110}>
                 <Link
                   href={href}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(31,61,47,0.45)]"
+                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-bone p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(20,49,44,0.45)]"
                 >
-                  {/* brilho de gradiente no hover */}
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-gold/10 blur-2xl" />
+                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-wine/10 blur-2xl" />
                   </div>
-                  {/* linha superior dourada */}
-                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
 
                   <div className="relative flex items-start justify-between">
                     <span className="flex h-14 w-14 items-center justify-center rounded-full border border-green-deep/20 bg-green-deep/5 text-green-deep transition-all duration-500 group-hover:border-transparent group-hover:bg-wine group-hover:text-cream">
                       <LibraryIcon name={key} className="h-6 w-6" />
                     </span>
-                    <span className="font-serif text-4xl italic leading-none text-gold/80 transition-colors duration-500 group-hover:text-green-deep">
+                    <span className="font-serif text-4xl italic leading-none text-wine/35 transition-colors duration-500 group-hover:text-wine">
                       {num}
                     </span>
                   </div>
@@ -247,7 +175,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ============ VÍDEOS ============ */}
+      {/* ============ VÍDEOS E PODCAST ============ */}
       {videos.length > 0 && (
         <section className="relative overflow-hidden bg-bone">
           <div className="blob animate-float-2 absolute -left-20 top-16 h-72 w-72 bg-green-deep/8" />
@@ -268,7 +196,7 @@ export default async function HomePage({
                   <Reveal key={v.slug} delay={i * 90}>
                     <Link
                       href={`/videos/${v.slug}`}
-                      className="group block h-full overflow-hidden rounded-xl border border-ink/10 bg-white transition-all hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(31,61,47,0.4)]"
+                      className="group block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone transition-all hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
                     >
                       <div className="relative overflow-hidden">
                         {id ? (
@@ -281,7 +209,6 @@ export default async function HomePage({
                         ) : (
                           <div className="aspect-video w-full bg-green-deep/10" />
                         )}
-                        {/* play */}
                         <span className="absolute inset-0 flex items-center justify-center">
                           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-darker/70 text-cream backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-wine">
                             <svg
@@ -319,12 +246,11 @@ export default async function HomePage({
         </section>
       )}
 
-      {/* ============ CONCEITOS (pilares) ============ */}
+      {/* ============ CONCEITOS (pilares — vivem em Ser Poder) ============ */}
       {concepts.length > 0 && (
         <section className="relative overflow-hidden bg-green-deep text-cream">
-          <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-30" />
-          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-gold/10" />
-          {/* marca d'água editorial */}
+          <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-40" />
+          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-wine/25" />
           <span
             aria-hidden
             className="pointer-events-none absolute -top-16 right-6 select-none font-serif text-[16rem] italic leading-none text-cream/5"
@@ -337,7 +263,7 @@ export default async function HomePage({
                 badge={tl("concepts.badge")}
                 title={tl("concepts.name")}
                 lead={tl("concepts.desc")}
-                href="/conceitos"
+                href="/ser-poder"
                 cta={t("sectionCta")}
                 dark
               />
@@ -347,16 +273,16 @@ export default async function HomePage({
                 <Reveal key={c.slug} delay={i * 90}>
                   <Link
                     href={`/conceitos/${c.slug}`}
-                    className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-cream/10 bg-cream/5 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:bg-cream/10"
+                    className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-cream/10 bg-cream/5 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-cream/40 hover:bg-cream/10"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-cream/60 to-wine transition-transform duration-500 group-hover:scale-x-100" />
                     <span
-                      className="absolute right-5 top-4 font-serif text-3xl italic leading-none text-gold/25 transition-colors duration-300 group-hover:text-gold/60"
+                      className="absolute right-5 top-4 font-serif text-3xl italic leading-none text-cream/20 transition-colors duration-300 group-hover:text-cream/50"
                       aria-hidden
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="pr-10 font-serif text-2xl italic text-gold">
+                    <h3 className="pr-10 font-serif text-2xl text-cream">
                       {c.title}
                     </h3>
                     {c.shortDefinition && (
@@ -364,8 +290,8 @@ export default async function HomePage({
                         {c.shortDefinition}
                       </p>
                     )}
-                    <span className="mt-5 flex items-center gap-2 text-gold">
-                      <span className="h-px w-6 bg-gold/50 transition-all duration-500 group-hover:w-10" />
+                    <span className="mt-5 flex items-center gap-2 text-cream">
+                      <span className="h-px w-6 bg-cream/50 transition-all duration-500 group-hover:w-10" />
                       <span className="-translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">
                         →
                       </span>
@@ -383,18 +309,18 @@ export default async function HomePage({
         <section className="relative overflow-hidden bg-bone">
           <span
             aria-hidden
-            className="pointer-events-none absolute -right-8 -top-20 select-none font-serif text-[22rem] italic leading-none text-wine/[0.045]"
+            className="pointer-events-none absolute -right-8 -top-20 select-none font-serif text-[22rem] italic leading-none text-wine/[0.05]"
           >
             ?
           </span>
-          <div className="blob animate-float-2 absolute -left-24 bottom-0 h-72 w-72 bg-gold/10" />
+          <div className="blob animate-float-2 absolute -left-24 bottom-0 h-72 w-72 bg-green-deep/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
                 badge={tl("questions.badge")}
                 title={tl("questions.name")}
                 lead={tl("questions.desc")}
-                href="/perguntas"
+                href="/artigos-e-perguntas"
                 cta={t("sectionCta")}
               />
             </Reveal>
@@ -403,9 +329,9 @@ export default async function HomePage({
                 <Reveal key={q.slug} delay={i * 70}>
                   <Link
                     href={`/perguntas/${q.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(31,61,47,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-cream p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
                     <span
                       aria-hidden
                       className="absolute -right-1 -top-3 select-none font-serif text-6xl italic text-wine/5 transition-colors duration-300 group-hover:text-wine/15"
@@ -452,9 +378,9 @@ export default async function HomePage({
                 <Reveal key={c.slug} delay={i * 90}>
                   <Link
                     href={`/casos/${c.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(31,61,47,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
                     <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                       <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-wine/10 blur-2xl" />
                     </div>
@@ -479,16 +405,16 @@ export default async function HomePage({
 
       {/* ============ TESE ============ */}
       <section className="relative overflow-hidden bg-green-darker text-cream">
-        <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-40" />
+        <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
           <Reveal>
-            <span className="font-serif text-7xl leading-none text-gold/30">
+            <span className="font-serif text-7xl leading-none text-cream/25">
               “
             </span>
             <blockquote className="-mt-6 font-serif text-3xl italic leading-snug md:text-5xl">
               {t("thesis")}
             </blockquote>
-            <cite className="mt-8 block text-sm uppercase not-italic tracking-[0.2em] text-gold">
+            <cite className="mt-8 block text-sm uppercase not-italic tracking-[0.2em] text-cream/70">
               {t("thesisAuthor")}
             </cite>
           </Reveal>
@@ -498,14 +424,14 @@ export default async function HomePage({
       {/* ============ ARTIGOS ============ */}
       {articles.length > 0 && (
         <section className="relative overflow-hidden bg-cream">
-          <div className="blob animate-float absolute -right-24 bottom-0 h-72 w-72 bg-gold/10" />
+          <div className="blob animate-float absolute -right-24 bottom-0 h-72 w-72 bg-wine/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
                 badge={tl("articles.badge")}
                 title={tl("articles.name")}
                 lead={tl("articles.desc")}
-                href="/artigos"
+                href="/artigos-e-perguntas"
                 cta={t("sectionCta")}
               />
             </Reveal>
@@ -517,7 +443,7 @@ export default async function HomePage({
                     className="group flex items-center gap-6 py-7 transition-colors hover:bg-bone sm:gap-8"
                   >
                     <span
-                      className="hidden shrink-0 font-serif text-3xl italic leading-none text-gold/50 transition-colors duration-300 group-hover:text-gold sm:block"
+                      className="hidden shrink-0 font-serif text-3xl italic leading-none text-wine/40 transition-colors duration-300 group-hover:text-wine sm:block"
                       aria-hidden
                     >
                       {String(i + 1).padStart(2, "0")}
@@ -525,7 +451,7 @@ export default async function HomePage({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
                         {a.kind && (
-                          <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-gold">
+                          <span className="rounded-full border border-wine/30 bg-wine/5 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-wine">
                             {tk(a.kind)}
                           </span>
                         )}
@@ -562,7 +488,7 @@ export default async function HomePage({
 
       {/* ============ NEWSLETTER ============ */}
       <section className="relative overflow-hidden bg-wine text-cream">
-        <div className="blob animate-float-2 absolute -left-16 -top-16 h-72 w-72 bg-gold/15" />
+        <div className="blob animate-float-2 absolute -left-16 -top-16 h-72 w-72 bg-cream/15" />
         <div className="relative mx-auto max-w-3xl px-6 py-24 text-center">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-cream/25 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">

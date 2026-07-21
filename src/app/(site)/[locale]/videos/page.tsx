@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import PageHeader from "@/components/PageHeader";
+import PageBanner from "@/components/PageBanner";
 import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { videosListQuery } from "@/sanity/lib/queries";
@@ -40,12 +40,13 @@ export default async function Page({
 
   return (
     <>
-      <PageHeader
+      <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.videos.name") },
+          { label: t("nav.videosPodcast") },
         ]}
-        title={t("libraries.videos.name")}
+        kicker={t("banner.kicker")}
+        title={t("nav.videosPodcast")}
         lead={t("libraries.videos.desc")}
       />
       <section className="bg-cream">

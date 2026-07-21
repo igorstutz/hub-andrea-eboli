@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -8,17 +8,18 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "../../globals.css";
 
-const cormorant = Cormorant_Garamond({
+// Fraunces — serifada variável, de alto contraste e com pesos fortes:
+// dá a "autoridade" que a Andrea pediu (a Cormorant anterior era leve demais).
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-fraunces",
   display: "swap",
 });
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -56,7 +57,7 @@ export default async function SiteLayout({
   return (
     <html
       lang={locale}
-      className={`${cormorant.variable} ${inter.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <NextIntlClientProvider messages={messages}>

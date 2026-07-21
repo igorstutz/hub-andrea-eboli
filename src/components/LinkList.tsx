@@ -16,7 +16,7 @@ export default function LinkList({
         <li key={r.slug}>
           <Link
             href={`${basePath}/${r.slug}`}
-            className="block border-l-2 border-transparent pl-3 leading-snug text-ink-soft transition-colors hover:border-gold hover:text-green-deep"
+            className="block border-l-2 border-transparent pl-3 leading-snug text-ink-soft transition-colors hover:border-wine hover:text-green-deep"
           >
             {r.title}
           </Link>

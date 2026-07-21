@@ -107,7 +107,7 @@ export default async function Page({
             {q.answer && (
               <div
                 id="resposta-direta"
-                className="mb-10 rounded-r-lg border-l-2 border-gold bg-bone/60 px-6 py-5"
+                className="mb-10 rounded-r-lg border-l-2 border-wine bg-bone/60 px-6 py-5"
               >
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-green-soft">
                   {t("common.directAnswer")}

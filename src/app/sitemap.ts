@@ -17,12 +17,17 @@ const TYPE_TO_PATH: Record<string, string> = {
 
 const STATIC_PATHS = [
   "/",
+  "/ser-poder",
+  "/sobre",
+  "/artigos-e-perguntas",
+  "/videos",
+  "/na-midia",
+  "/livro",
+  "/contato",
   "/perguntas",
   "/conceitos",
   "/casos",
   "/artigos",
-  "/videos",
-  "/sobre",
 ];
 
 type Doc = { _type: string; slug: string; _updatedAt: string };
