@@ -14,12 +14,14 @@ export const aiSettings = defineType({
   fields: [
     defineField({
       name: "voice",
-      title: "Voz e regras gerais",
+      title: "Ajustes de voz",
       description:
-        "A persona e o tom (como a Andrea escreve). Vale para TODOS os tipos. " +
-        "As regras técnicas (3 idiomas, formato, não inventar fatos) são fixas e " +
-        "aplicadas automaticamente — aqui é só a voz/diretrizes editoriais. " +
-        "Deixe vazio para usar o padrão.",
+        "Ajustes de voz e tom, ANEXADOS à voz base da Andrea (que já vem embutida " +
+        "e sempre ativa — a tese, o registro, o léxico próprio). Use só para afinar: " +
+        "ex. 'seja um pouco mais direta', 'evite a palavra X', 'prefira exemplos do " +
+        "mundo corporativo'. Não precisa reescrever a persona do zero; o que escrever " +
+        "aqui prevalece em caso de conflito. As regras técnicas (3 idiomas, formato, " +
+        "não inventar fatos) são fixas. Deixe vazio para usar apenas a voz base.",
       type: "text",
       rows: 8,
       group: "instructions",
