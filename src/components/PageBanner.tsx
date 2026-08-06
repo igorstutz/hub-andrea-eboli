@@ -1,27 +1,31 @@
+import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 
 type Crumb = { label: string; href?: string };
 
-// Banner das páginas internas (abas de topo) — versão compacta do banner da
-// home, para dar a mesma presença de marca em todas as abas (ideia do site do
-// Simon Sinek). Fundo verde, malha sutil, marca d'água "SER PODER".
+// HERO ÚNICO de todas as páginas internas — listagens, abas de topo e páginas de
+// detalhe (artigo, pergunta, conceito, caso, vídeo). Só a home tem hero próprio
+// (HomeBanner). Fundo vinho da marca, malha monocromática, marca d'água "Poder".
 export default function PageBanner({
   crumbs,
   kicker,
   title,
   lead,
   badge,
+  meta,
 }: {
   crumbs: Crumb[];
   kicker?: string;
   title: string;
   lead?: string;
   badge?: string;
+  /** Metadados da página de detalhe (data, tempo de leitura, duração…). */
+  meta?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-green-deep text-cream">
-      <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-60" />
-      <div className="blob absolute -right-24 -top-24 h-80 w-80 bg-wine/25" />
+    <section className="relative overflow-hidden bg-wine text-cream">
+      <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-60" />
+      <div className="blob absolute -right-24 -top-24 h-80 w-80 bg-wine-soft/40" />
       <span
         aria-hidden
         className="pointer-events-none absolute -bottom-10 right-4 select-none font-serif text-[8rem] font-semibold uppercase leading-none tracking-tight text-cream/[0.04] md:text-[12rem]"
@@ -48,8 +52,8 @@ export default function PageBanner({
           ))}
         </nav>
 
-        {(badge || kicker) && (
-          <div className="mb-5 flex flex-wrap items-center gap-3">
+        {(badge || kicker || meta) && (
+          <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-cream/60">
             {badge && (
               <span className="inline-flex items-center gap-2 rounded-full border border-cream/25 bg-cream/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-cream/90">
                 <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-cream/80" />
@@ -57,6 +61,7 @@ export default function PageBanner({
               </span>
             )}
             {kicker && <span className="kicker text-cream/50">{kicker}</span>}
+            {meta}
           </div>
         )}
 

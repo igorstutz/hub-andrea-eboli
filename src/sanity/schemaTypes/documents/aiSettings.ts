@@ -1,8 +1,12 @@
 import { defineType, defineField } from "sanity";
 
 // Singleton: configuração dos "agentes" de geração de conteúdo por IA.
-// Os campos abaixo alimentam o prompt usado em /api/ingest/youtube/generate.
-// Campos vazios caem no padrão seguro embutido no código (a geração nunca quebra).
+// Os campos abaixo alimentam o prompt usado em /api/ingest/generate (ingestão de
+// links do YouTube, Forbes e LinkedIn). Campos vazios caem no padrão seguro
+// embutido no código (a geração nunca quebra).
+//
+// Conceitos NÃO são gerados por link (entram à mão no Studio) — por isso não há
+// mais instruções nem quantidade padrão de conceitos aqui.
 export const aiSettings = defineType({
   name: "aiSettings",
   title: "Agentes de IA",
@@ -39,14 +43,6 @@ export const aiSettings = defineType({
       name: "faqInstructions",
       title: "Instruções — FAQ (perguntas)",
       description: "Como formular as perguntas e respostas. Vazio = padrão.",
-      type: "text",
-      rows: 4,
-      group: "instructions",
-    }),
-    defineField({
-      name: "conceptInstructions",
-      title: "Instruções — Conceitos",
-      description: "Como definir os conceitos-chave. Vazio = padrão.",
       type: "text",
       rows: 4,
       group: "instructions",
@@ -107,13 +103,6 @@ export const aiSettings = defineType({
       type: "number",
       group: "advanced",
       validation: (Rule) => Rule.min(1).max(12),
-    }),
-    defineField({
-      name: "defaultConceptsCount",
-      title: "Quantidade padrão de conceitos",
-      type: "number",
-      group: "advanced",
-      validation: (Rule) => Rule.min(1).max(10),
     }),
   ],
   preview: { prepare: () => ({ title: "Agentes de IA" }) },

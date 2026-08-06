@@ -62,6 +62,17 @@ export const aboutQuery = groq`
   "sameAs": *[_type == "siteSettings"][0].socialLinks[].url
 }`;
 
+// Só a galeria da página Sobre — os textos dela vivem nos messages/*.json.
+// Entradas sem imagem são descartadas (slot vazio no Studio não quebra o build).
+export const aboutGalleryQuery = groq`
+*[_type == "aboutPage"][0].gallery[defined(asset)]{
+  "key": _key,
+  "alt": coalesce(alt[$locale], alt.pt),
+  "caption": coalesce(caption[$locale], caption.pt),
+  "image": { "_type": "image", asset, hotspot, crop },
+  "lqip": asset->metadata.lqip
+}`;
+
 // ---------- Casos ----------
 export const casesListQuery = groq`
 *[_type == "caseStudy" && defined(slug.current)] | order(_createdAt desc){
@@ -88,6 +99,7 @@ export const articlesListQuery = groq`
   "title": coalesce(title[$locale], title.pt),
   "slug": slug.current,
   "kind": kind,
+  "source": source,
   "excerpt": coalesce(excerpt[$locale], excerpt.pt),
   "publishedAt": publishedAt
 }`;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import PageBanner from "@/components/PageBanner";
 import PortableTextBody from "@/components/PortableTextBody";
 import VideoEmbed from "@/components/VideoEmbed";
 import JsonLd from "@/components/JsonLd";
@@ -161,45 +162,27 @@ export default async function Page({
     <>
       <JsonLd data={jsonLd} />
 
-      {/* Cabeçalho */}
-      <section className="border-b border-ink/10 bg-bone">
-        <div className="mx-auto max-w-6xl px-6 py-12">
-          <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted">
-            <Link href="/" className="transition-colors hover:text-wine">
-              {t("common.home")}
-            </Link>
-            <span className="text-ink/30">/</span>
-            <Link href="/videos" className="transition-colors hover:text-wine">
-              {t("libraries.videos.name")}
-            </Link>
-            <span className="text-ink/30">/</span>
-            <span className="text-ink-soft">{v.title}</span>
-          </nav>
-
-          {v.topic && (
-            <Link
-              href={`/perguntas`}
-              className="mb-4 inline-block rounded-full bg-green-deep/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-green-soft"
-            >
-              {v.topic.title}
-            </Link>
-          )}
-
-          <h1 className="text-4xl text-green-deep md:text-5xl">{v.title}</h1>
-
-          {(dateLabel || durationLabel) && (
-            <p className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
+      <PageBanner
+        crumbs={[
+          { label: t("common.home"), href: "/" },
+          { label: t("libraries.videos.name"), href: "/videos" },
+          { label: v.title },
+        ]}
+        badge={v.topic?.title}
+        meta={
+          dateLabel || durationLabel ? (
+            <>
               {dateLabel && <span>{dateLabel}</span>}
-              {dateLabel && durationLabel && <span className="text-ink/30">·</span>}
+              {dateLabel && durationLabel && (
+                <span className="text-cream/30">·</span>
+              )}
               {durationLabel && <span>{durationLabel}</span>}
-            </p>
-          )}
-
-          {v.summary && (
-            <p className="mt-4 max-w-2xl text-lg text-ink-soft">{v.summary}</p>
-          )}
-        </div>
-      </section>
+            </>
+          ) : undefined
+        }
+        title={v.title}
+        lead={v.summary}
+      />
 
       {/* Split: player fixo + conteúdo */}
       <section className="bg-cream">

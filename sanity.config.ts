@@ -1,11 +1,11 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
-import { PlayIcon } from "@sanity/icons";
+import { LinkIcon } from "@sanity/icons";
 import { apiVersion, dataset, projectId } from "./src/sanity/env";
 import { schema } from "./src/sanity/schemaTypes";
 import { structure } from "./src/sanity/structure";
-import YouTubeIngestTool from "./src/sanity/tools/YouTubeIngestTool";
+import IngestTool from "./src/sanity/tools/IngestTool";
 
 export default defineConfig({
   basePath: "/studio",
@@ -18,10 +18,10 @@ export default defineConfig({
   ],
   tools: (prev) => [
     {
-      name: "youtube-ingest",
-      title: "Importar do YouTube",
-      icon: PlayIcon,
-      component: YouTubeIngestTool,
+      name: "link-ingest",
+      title: "Importar de link",
+      icon: LinkIcon,
+      component: IngestTool,
     },
     ...prev,
   ],

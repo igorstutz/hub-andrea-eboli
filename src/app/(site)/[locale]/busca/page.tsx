@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import PageHeader from "@/components/PageHeader";
+import PageBanner from "@/components/PageBanner";
 import GlobalSearchClient from "@/components/GlobalSearchClient";
 import { alternatesFor } from "@/lib/seo";
 
@@ -29,7 +29,7 @@ export default async function Page({
 
   return (
     <>
-      <PageHeader
+      <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
           { label: t("search.title") },

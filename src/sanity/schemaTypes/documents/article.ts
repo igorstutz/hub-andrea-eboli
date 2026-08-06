@@ -33,6 +33,31 @@ export const article = defineType({
       },
       initialValue: "article",
     }),
+    defineField({
+      name: "source",
+      title: "Fonte",
+      description:
+        "De onde veio o material que originou este artigo. Vira o filtro (como " +
+        "categoria) na biblioteca de artigos do site. Preenchido automaticamente " +
+        "quando o artigo é criado pela ferramenta “Importar de link”.",
+      type: "string",
+      options: {
+        list: [
+          { title: "YouTube", value: "youtube" },
+          { title: "Forbes", value: "forbes" },
+          { title: "LinkedIn", value: "linkedin" },
+          { title: "Original (escrito aqui)", value: "original" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "original",
+    }),
+    defineField({
+      name: "sourceUrl",
+      title: "Link da fonte",
+      description: "Endereço do vídeo/artigo original, quando houver.",
+      type: "url",
+    }),
     defineField({ name: "excerpt", title: "Resumo", type: "localeText" }),
     defineField({ name: "body", title: "Corpo", type: "localeBlock" }),
     defineField({

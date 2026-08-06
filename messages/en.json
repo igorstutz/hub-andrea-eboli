@@ -126,6 +126,14 @@
     "whitepaper": "White paper",
     "study": "Study"
   },
+  "articleSources": {
+    "label": "Source",
+    "all": "All",
+    "youtube": "YouTube",
+    "forbes": "Forbes",
+    "linkedin": "LinkedIn",
+    "original": "Originals"
+  },
   "comingSoon": {
     "title": "Coming soon",
     "body": "This library is being prepared. Soon, full of content."
@@ -140,7 +148,10 @@
     "quote": "The world has changed. So have the relationships of power. And the way we occupy, sustain and live power must change with it.",
     "credentialsLabel": "Recognition",
     "methodCta": "Explore the Ser Poder thesis",
-    "contactCta": "Get in touch"
+    "contactCta": "Get in touch",
+    "galleryLabel": "Gallery",
+    "galleryTitle": "Andrea in pictures",
+    "gallerySoon": "Gallery coming soon."
   },
   "serPoderPage": {
     "badge": "The thesis",
@@ -165,7 +176,8 @@
     "questionsTitle": "Human Questions",
     "articlesTitle": "Articles",
     "questionsCta": "See all questions",
-    "articlesCta": "See all articles"
+    "articlesCta": "See all articles",
+    "orderLabel": "Show first"
   },
   "mediaPage": {
     "badge": "In the Media",
@@ -190,6 +202,10 @@
     "emailCta": "Send email",
     "socialLabel": "Social",
     "newsletterTitle": "Or get the Notes on Power"
+  },
+  "social": {
+    "follow": "Follow",
+    "label": "Andrea Eboli on {network}"
   },
   "footer": {
     "tagline": "A reference in leadership, neuroscience and conscious power.",

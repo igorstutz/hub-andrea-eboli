@@ -14,7 +14,12 @@ export type LibraryItem = {
   meta?: string; // data formatada (artigo)
   text?: string; // resposta / definição / descrição / resumo
   image?: string; // thumbnail (vídeo)
+  tag?: string; // rótulo da fonte (artigo) — aparece como chip discreto
+  filter?: string; // valor usado pelos botões de filtro (ex.: "linkedin")
 };
+
+/** Filtro por "categoria" (hoje: a fonte do artigo). */
+export type LibraryFilter = { value: string; label: string };
 
 export type LibraryVariant =
   | "questions"
@@ -31,7 +36,9 @@ const normalize = (s: string) =>
 
 function matches(item: LibraryItem, query: string): boolean {
   const haystack = normalize(
-    [item.title, item.text, item.badge, item.meta].filter(Boolean).join(" "),
+    [item.title, item.text, item.badge, item.meta, item.tag]
+      .filter(Boolean)
+      .join(" "),
   );
   return normalize(query)
     .split(/\s+/)
@@ -52,7 +59,7 @@ function QuestionCard({ item }: { item: LibraryItem }) {
           {item.badge}
         </span>
       )}
-      <h2 className="mt-1 font-serif text-xl leading-snug text-green-deep">
+      <h2 className="mt-1 font-serif text-xl leading-snug text-wine transition-colors group-hover:text-wine-soft">
         {item.title}
       </h2>
       {item.text && (
@@ -117,9 +124,14 @@ function ArticleRow({ item }: { item: LibraryItem }) {
               {item.badge}
             </span>
           )}
+          {item.tag && (
+            <span className="rounded-full border border-green-deep/25 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-green-soft">
+              {item.tag}
+            </span>
+          )}
           {item.meta && <span>{item.meta}</span>}
         </div>
-        <h2 className="mt-2 font-serif text-2xl leading-snug text-green-deep transition-colors group-hover:text-wine">
+        <h2 className="mt-2 font-serif text-2xl leading-snug text-wine transition-colors group-hover:text-wine-soft">
           {item.title}
         </h2>
         {item.text && (
@@ -180,20 +192,64 @@ export default function LibrarySearch({
   variant,
   placeholder,
   noResultsLabel,
+  filters,
+  filtersLabel,
+  allLabel,
 }: {
   items: LibraryItem[];
   variant: LibraryVariant;
   placeholder: string;
   noResultsLabel: string; // ex.: 'Nada encontrado para'
+  // Filtro por categoria (hoje: fonte do artigo). Sem `filters`, nada aparece.
+  filters?: LibraryFilter[];
+  filtersLabel?: string; // ex.: 'Fonte'
+  allLabel?: string; // ex.: 'Todas'
 }) {
   const [query, setQuery] = useState("");
-  const filtered = useMemo(
-    () => (query.trim() ? items.filter((i) => matches(i, query)) : items),
-    [items, query],
-  );
+  const [active, setActive] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    const base = active ? items.filter((i) => i.filter === active) : items;
+    return query.trim() ? base.filter((i) => matches(i, query)) : base;
+  }, [items, query, active]);
+
+  const chip = (on: boolean) =>
+    `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+      on
+        ? "bg-wine text-cream"
+        : "border border-ink/15 bg-white text-ink-soft hover:border-wine/40 hover:text-wine"
+    }`;
 
   return (
     <div>
+      {/* Filtro por categoria */}
+      {filters && filters.length > 1 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {filtersLabel && (
+            <span className="kicker mr-1 text-muted">{filtersLabel}</span>
+          )}
+          <button
+            type="button"
+            onClick={() => setActive(null)}
+            aria-pressed={active === null}
+            className={chip(active === null)}
+          >
+            {allLabel ?? "—"}
+          </button>
+          {filters.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setActive((cur) => (cur === f.value ? null : f.value))}
+              aria-pressed={active === f.value}
+              className={chip(active === f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Barra de pesquisa */}
       <div className="relative mb-10 max-w-xl">
         <svg

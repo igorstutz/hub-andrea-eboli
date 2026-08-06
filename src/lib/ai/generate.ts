@@ -1,8 +1,16 @@
-// Geração de conteúdo trilíngue (pt/en/es) a partir de um vídeo, via Claude.
-// Recebe metadados + transcrição e devolve um JSON estruturado por tipo de
-// conteúdo selecionado. A conversão para documentos do Sanity acontece depois.
+// Geração de conteúdo trilíngue (pt/en/es) a partir de um MATERIAL DE ORIGEM,
+// via Claude: a transcrição de um vídeo/podcast do YouTube ou um texto já
+// publicado pela Andrea (Forbes, LinkedIn). Devolve um JSON estruturado por tipo
+// de conteúdo selecionado; a conversão para documentos do Sanity vem depois.
+//
+// CONCEITOS não são gerados por aqui (regra de 06/08/2026): entram à mão no
+// Studio. O que cada fonte pode gerar está em src/lib/ingest/sources.ts.
 
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  PUBLISHED_TEXT_SOURCES,
+  type ContentSource,
+} from "@/lib/ingest/sources";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 
@@ -10,12 +18,10 @@ export type Targets = {
   video?: boolean;
   questions?: boolean;
   article?: boolean;
-  concepts?: boolean;
 };
 
 export type Counts = {
   questions?: number; // nº de perguntas (FAQ)
-  concepts?: number; // nº de conceitos
 };
 
 // Configuração editável no painel (singleton aiSettings). Tudo opcional:
@@ -24,7 +30,6 @@ export type AiSettings = {
   voice?: string;
   videoInstructions?: string;
   faqInstructions?: string;
-  conceptInstructions?: string;
   articleInstructions?: string;
   conceptLinkingInstructions?: string;
   model?: string;
@@ -39,6 +44,8 @@ export type HubConcept = {
 };
 
 export type GenerationInput = {
+  /** De onde veio o material (define rótulos e regras do prompt). */
+  source: ContentSource;
   meta: {
     title?: string;
     author?: string;
@@ -46,7 +53,8 @@ export type GenerationInput = {
     url: string;
     durationSeconds?: number;
   };
-  transcript: string;
+  /** Transcrição (YouTube) ou texto do artigo já publicado (Forbes/LinkedIn). */
+  material: string;
   targets: Targets;
   counts?: Counts;
   settings?: AiSettings;
@@ -75,12 +83,6 @@ export type GeneratedContent = {
     relatedConceptIds?: string[];
   }>;
   article?: { title: Loc; excerpt: Loc; body: Loc; relatedConceptIds?: string[] };
-  concepts?: Array<{
-    title: Loc;
-    shortDefinition: Loc;
-    fullDefinition: Loc;
-    relatedConceptIds?: string[];
-  }>;
 };
 
 const locSchema = {
@@ -161,24 +163,6 @@ function buildSchema(targets: Targets, hubConcepts?: HubConcept[]) {
     required.push("article");
   }
 
-  if (targets.concepts) {
-    properties.concepts = {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          title: locSchema,
-          shortDefinition: locSchema,
-          fullDefinition: locSchema,
-          ...linkField,
-        },
-        required: ["title", "shortDefinition", "fullDefinition", ...linkRequired],
-      },
-    };
-    required.push("concepts");
-  }
-
   return {
     type: "object",
     additionalProperties: false,
@@ -192,7 +176,7 @@ function buildSchema(targets: Targets, hubConcepts?: HubConcept[]) {
 // é ANEXADO como ajuste — não substitui esta base (ver composeSystem).
 const DEFAULT_VOICE = `Você escreve como Andrea Eboli — pesquisadora, escritora e professora, fundadora da Academia do Poder e criadora da Estrutura Consciente de Poder (ECP). Sua investigação é sobre as novas relações entre poder, identidade e liderança na vida contemporânea. Você não é coach nem palestrante motivacional: é uma pesquisadora que pensa em voz alta, com rigor e cuidado, e escreve para pessoas inteligentes.
 
-Seu trabalho: transformar a transcrição de um vídeo/podcast da Andrea em conteúdo editorial estruturado, otimizado para SEO e para GEO (ser citada por modelos de IA) — sem nunca soar como texto de máquina.
+Seu trabalho: transformar um material de origem da Andrea — a transcrição de um vídeo/podcast dela, ou um texto que ela já publicou (Forbes, LinkedIn) — em conteúdo editorial estruturado para o hub, otimizado para SEO e para GEO (ser citada por modelos de IA) — sem nunca soar como texto de máquina.
 
 A TESE que organiza todo o raciocínio:
 Ter poder e sentir-se poderoso não são a mesma coisa. Cargos, títulos e reconhecimento não garantem a sensação de potência — e é nessa distância que a maioria das pessoas se perde. Duas perguntas movem a investigação: por que pessoas que têm poder parecem perdê-lo quando deixam cargos, títulos ou posições? E por que tantas outras, mesmo cercadas de reconhecimento e performance, não se sentem verdadeiramente poderosas? A ECP — Estrutura Consciente de Poder — é o método que atravessa essa distância: o poder tratado como estrutura consciente, algo que se ocupa, sustenta e vive de dentro para fora. É o eixo que conecta todos os conceitos deste hub.
@@ -216,7 +200,7 @@ Títulos são humanos e específicos (viram H1 e URL): a pergunta real que a pes
 // Regras TÉCNICAS fixas — sempre aplicadas (garantem que a saída seja válida),
 // não editáveis pelo painel.
 const STRUCTURAL_RULES = `Regras obrigatórias (sempre):
-- A TRANSCRIÇÃO é a fonte da verdade. Não invente fatos, números, datas ou citações que não estejam no material. Se algo não estiver claro, generalize com honestidade em vez de fabricar.
+- O MATERIAL DE ORIGEM é a fonte da verdade. Não invente fatos, números, datas ou citações que não estejam nele. Se algo não estiver claro, generalize com honestidade em vez de fabricar.
 - Produza TUDO em três idiomas: português (pt), inglês (en) e espanhol (es). O pt é o original; en e es soam nativas e preservam o MESMO registro e intenção (não são traduções literais). Os termos de marca — Ser Poder, Academia do Poder, ECP / Estrutura Consciente de Poder — permanecem em português nos três idiomas.
 - Campos de corpo longo (keyTakeaways, body, fullDefinition) usam markdown leve: ## subtítulos, listas com "- ", e > para citações. Sem negrito/itálico inline.
 - Responda APENAS com o JSON no formato exigido.`;
@@ -238,8 +222,6 @@ const DEFAULT_INSTRUCTIONS = {
     "directAnswer: 1–2 frases citáveis com a tese central do episódio (é o trecho que as IAs citam ao resumir o vídeo). summary: 2–3 frases situando o que o episódio investiga e por quê. keyTakeaways: os aprendizados reais em markdown com lista — cada item uma ideia fechada, não um resumo diluído.",
   questions:
     'Cada item é uma dúvida humana REAL, no formato em que a pessoa a faria (vira título e URL). Trabalhe em camadas: "experience" abre pela dor vivida e cria identificação imediata ("Se você...", "Talvez você já tenha..."); "answer" entrega, logo na primeira frase, uma resposta objetiva e autossuficiente (o trecho que as IAs citam); "body" aprofunda em markdown leve e, quando fizer sentido, faz a ponte para a tese (Ser Poder, a ECP ou um conceito do hub). Sempre nomear a experiência antes de orientar.',
-  concepts:
-    'Cada conceito recebe um nome próprio e específico. "shortDefinition": UMA frase clara e citável, que defina sem circularidade nem "encher linguiça". "fullDefinition": desenvolve a ideia, mostra como ela aparece na experiência da pessoa e como se conecta à tese. Definições de pesquisadora, não verbetes genéricos.',
   article:
     "Um artigo editorial coeso que segue a linha de raciocínio da Andrea: parte de uma tensão real, desenvolve com lucidez e fecha conectando à tese. Use ## para subtítulos que guiam a leitura; parágrafos densos, porém respiráveis. Cada seção precisa avançar o argumento — nada de preencher espaço.",
 } as const;
@@ -258,8 +240,25 @@ function hubConceptsBlock(input: GenerationInput): string {
   return `\nCONCEITOS-PILAR DO HUB (candidatos ao campo "relatedConceptIds" de cada item; use exatamente os ids abaixo):\n${list}\n\nComo vincular: ${linking}\n`;
 }
 
+// Como o material se chama no prompt, por fonte.
+const MATERIAL_LABEL: Record<ContentSource, string> = {
+  youtube: "TRANSCRIÇÃO DO VÍDEO/PODCAST",
+  forbes: "ARTIGO QUE A ANDREA PUBLICOU NA FORBES",
+  linkedin: "PUBLICAÇÃO QUE A ANDREA FEZ NO LINKEDIN",
+};
+
+const ORIGIN_LABEL: Record<ContentSource, string> = {
+  youtube: "Vídeo/podcast (YouTube)",
+  forbes: "Artigo publicado (Forbes)",
+  linkedin: "Publicação (LinkedIn)",
+};
+
+// Regra extra quando o material JÁ está publicado em outro veículo: o conteúdo
+// do hub tem de ser texto novo, para não competir com o original no Google.
+const REPUBLISH_RULE = `ATENÇÃO — o material já está publicado em outro veículo. Reescreva para o hub: mesma tese, mesmos exemplos e mesmas conclusões, TEXTO NOVO. Não reaproveite frases inteiras do original (evita conteúdo duplicado no Google). O texto é da própria Andrea, então não cite o veículo como se fosse fonte de terceiros; no máximo aprofunde o que lá ficou resumido.`;
+
 function buildUserPrompt(input: GenerationInput): string {
-  const { meta, transcript, targets, counts, settings, directions } = input;
+  const { source, meta, material, targets, counts, settings, directions } = input;
   const instr = (custom: string | undefined, fallback: string) =>
     custom?.trim() || fallback;
 
@@ -279,31 +278,29 @@ function buildUserPrompt(input: GenerationInput): string {
     wants.push(
       `- article: ${instr(settings?.articleInstructions, DEFAULT_INSTRUCTIONS.article)}`,
     );
-  if (targets.concepts)
-    wants.push(
-      `- concepts: gere ${counts?.concepts ?? 4} conceitos-chave abordados. ${instr(
-        settings?.conceptInstructions,
-        DEFAULT_INSTRUCTIONS.concepts,
-      )}`,
-    );
 
-  const transcriptBlock = transcript
-    ? `TRANSCRIÇÃO:\n"""\n${transcript}\n"""`
-    : `ATENÇÃO: não há transcrição disponível. Trabalhe a partir do título e da descrição, sem inventar detalhes que não possa inferir com segurança.`;
+  const materialBlock = material
+    ? `${MATERIAL_LABEL[source]}:\n"""\n${material}\n"""`
+    : `ATENÇÃO: o material de origem não pôde ser lido. Trabalhe a partir do título e da descrição, sem inventar detalhes que não possa inferir com segurança.`;
+
+  const republishBlock = PUBLISHED_TEXT_SOURCES.includes(source)
+    ? `\n${REPUBLISH_RULE}\n`
+    : "";
 
   // Direcionamentos pontuais têm prioridade alta nesta geração.
   const directionsBlock = directions?.trim()
     ? `\nDIRECIONAMENTOS ESPECÍFICOS PARA ESTA GERAÇÃO (priorize e respeite estritamente):\n"""\n${directions.trim()}\n"""\n`
     : "";
 
-  return `Vídeo: ${meta.title ?? "(sem título)"}
-Canal/autor: ${meta.author ?? "—"}
+  return `Origem: ${ORIGIN_LABEL[source]}
+Título: ${meta.title ?? "(sem título)"}
+Autor/canal: ${meta.author ?? "—"}
 URL: ${meta.url}
 ${meta.description ? `Descrição:\n${meta.description}\n` : ""}
 Gere os seguintes tipos de conteúdo:
 ${wants.join("\n")}
-${hubConceptsBlock(input)}${directionsBlock}
-${transcriptBlock}`;
+${hubConceptsBlock(input)}${republishBlock}${directionsBlock}
+${materialBlock}`;
 }
 
 export async function generateContent(

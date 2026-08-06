@@ -3,8 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import PageBanner from "@/components/PageBanner";
 import NewsletterForm from "@/components/NewsletterForm";
 import { alternatesFor } from "@/lib/seo";
-
-const INSTAGRAM = "https://www.instagram.com/souandreaeboli";
+import { INSTAGRAM_URL } from "@/lib/social";
 
 export async function generateMetadata({
   params,
@@ -59,7 +58,7 @@ export default async function Page({
             <ul className="mt-4 space-y-3">
               <li>
                 <a
-                  href={INSTAGRAM}
+                  href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 text-ink-soft transition-colors hover:text-wine"

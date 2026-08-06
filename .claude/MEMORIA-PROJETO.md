@@ -33,10 +33,14 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
   sessão abaixo.
 
 **⏭️ PRÓXIMOS PASSOS (retomar aqui):**
-1. **Fotos da Andrea (bloqueio visual):** dropar `public/brand/andrea-avatar.jpg`
-   (bolinha, ver `Header.tsx`) e `public/brand/andrea-banner.jpg` (banner, ver
-   `BannerPhoto.tsx`) e trocar a constante `null` pelo caminho. Sem elas, aparece
-   um placeholder com o monograma "AE".
+1. **Fotos/marca — RESOLVIDO em parte (01–06/08):** a foto do banner já entrou
+   (`public/brand/andrea-banner.webp`, usada por `BannerPhoto` no hero da home E
+   na sidebar do `/sobre`) e a assinatura virou logo real
+   (`public/brand/logo-andrea-eboli.webp` + variante creme, ver `Header.tsx`).
+   **Falta só** a bolinha do header (`AVATAR_SRC = null` em `Header.tsx`) — sem
+   ela o header mostra apenas a assinatura. ⚠️ `public/brand/` e essas mudanças
+   estavam ainda NÃO COMMITADAS → o site publicado continua com o placeholder
+   "AE"; precisa commit + republicar.
 2. **E-mail de contato:** provisório `contato@andreaeboli.com`
    (`messages/*.json` → `contactPage.email`). Trocar pelo real.
 3. **Conteúdo real:** Andrea revisar as definições dos 5 conceitos + substituir
@@ -50,7 +54,112 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ---
 
-### 🗓️ Sessão 20–21/07/2026 (mais recente) — Redesign alinhado à marca real
+### 🗓️ Sessão 06/08/2026 (mais recente) — Redes no rodapé + HERO ÚNICO em vinho
+Pedidos do Igor (lista de ajustes visuais; item 7 + dois seguintes). Tudo
+CONCLUÍDO e validado (`tsc`/`eslint` limpos + páginas conferidas no dev com
+screenshot headless do Chrome).
+
+1. **Ícones das redes no rodapé** (item 7). Fonte única em `src/lib/social.ts`
+   (`SOCIAL_LINKS`, `INSTAGRAM_URL`, `SOCIAL_SAME_AS`): Instagram, LinkedIn,
+   YouTube, Spotify e WhatsApp (`5511971963867`). O link do Spotify foi salvo
+   **sem** os parâmetros de rastreio (`si`/`nd`/`dlsi`).
+   - `src/components/SocialIcon.tsx` — ícones desenhados em **traço**, na mesma
+     linguagem do `LibraryIcon` (grade 24×24, stroke 1.6). Sem dependência nova.
+   - `src/components/SocialLinks.tsx` — fileira de pastilhas de 40px que se
+     invertem no hover (creme cheio + glifo vinho). Namespace i18n novo `social`
+     (`follow`, `label` com `{network}`) nos 3 idiomas.
+   - No rodapé o link de texto "@souandreaeboli" foi SUBSTITUÍDO pela fileira
+     (o @ ficou no `title` do ícone). `/sobre` agora usa `SOCIAL_SAME_AS` no
+     JSON-LD (antes só Instagram).
+   - ⚠️ O Igor mandou o LinkedIn duas vezes; a 2ª vaga ficou livre (se quiser
+     Facebook/TikTok, é só acrescentar em `social.ts` + um ícone).
+2. **HERO ÚNICO em todas as páginas, em VINHO** (pedido: "todos os heros, exceto
+   a home, devem seguir o estilo do hero do /sobre, trocando o verde por vinho").
+   `PageBanner` virou o hero de TODAS as páginas internas: fundo `bg-wine`,
+   malha `gradient-mesh-wine` (a mesma da home), blob `wine-soft/40`, marca
+   d'água "Poder", breadcrumb, badge com pulse-dot, título 6xl e lead serifado.
+   Ganhou prop `meta` (data/tempo de leitura/duração das páginas de detalhe).
+   - **`PageHeader.tsx` e `DetailHeader.tsx` foram APAGADOS** — as 5 listagens
+     (artigos, perguntas, conceitos, casos, busca), as 4 páginas de detalhe e o
+     cabeçalho inline de `/videos/[slug]` agora usam `PageBanner`. Só a home
+     mantém hero próprio (`HomeBanner`).
+   - Efeito colateral bom: os heros claros (`bg-bone`) sumiram — o site inteiro
+     abre em vinho, como a home.
+3. **Foto na "portinha" do `/sobre`** — já estava resolvida pelo mesmo
+   `BannerPhoto` do hero da home (verificado no HTML e em screenshot). O que o
+   Igor viu com o monograma "AE" era página velha/site publicado (ver item 1
+   dos próximos passos: falta commitar `public/brand/`).
+4. **`/sobre`: frase de fecho em VINHO** (era verde) e **seção nova "Galeria"**
+   no fim da página:
+   - Campo novo no Studio: **Sobre Andrea → "Galeria de fotos"** (`gallery` em
+     `aboutPage.ts`) — array de imagens com hotspot + `alt` e `caption`
+     localizados (`localeString`), editor em grade. As fotos são recortadas em
+     3:4 (grid de 2/3 colunas, `urlFor(...).width(900).height(1200).fit("crop")`,
+     blur do `lqip` e zoom suave no hover).
+   - Query nova `aboutGalleryQuery` (`queries.ts`) — descarta slot sem imagem
+     (`gallery[defined(asset)]`); `image.ts` passou a exportar o tipo
+     `ImageSource`. **`/sobre` agora lê do Sanity** (antes era 100% i18n) →
+     depois que a Andrea subir fotos é preciso **republicar** para aparecerem no
+     site estático.
+   - Sem fotos, a seção mostra **6 placeholders** nas cores da marca (blocos
+     vinho/verde/areia com monograma "AE") + a nota "Galeria em preparação."
+     (chaves `aboutPage.galleryLabel/galleryTitle/gallerySoon` nos 3 idiomas).
+   - Validado: query rodada de verdade no dataset, `urlFor` conferido com
+     hotspot, e o layout COM fotos visto em rota temporária (já removida).
+5. **`/artigos-e-perguntas`:**
+   - **Títulos clicáveis em VINHO** — mexi no `LibrarySearch` (`QuestionCard` e
+     `ArticleRow`), então vale também para as listagens `/perguntas` e
+     `/artigos` (é o mesmo componente). Conceitos, casos e vídeos seguem com
+     título verde (não foram pedidos).
+   - **Toggle "Ver primeiro"** (`src/components/SectionOrderToggle.tsx`, client):
+     duas pastilhas [Perguntas Humanas | Artigos] logo abaixo do hero. Os DOIS
+     blocos continuam na página — o escolhido vai para o topo (reordenação com
+     `key` estável, então a ordem do DOM acompanha a visual e o texto já digitado
+     na busca sobrevive). Fundo segue a posição: o de cima creme, o de baixo
+     areia. Chave i18n nova `articlesQuestionsPage.orderLabel`.
+     ⚠️ **É TEMPORÁRIO** — quando os artigos ganharem página própria, apagar o
+     componente + a chave e voltar às duas `<section>` fixas.
+     Testado com clique real (CDP): a ordem troca nos dois sentidos.
+6. **`/na-midia`: seção "Reconhecida por" REMOVIDA** (a lista de credenciais
+   continua na sidebar do `/sobre`). As chaves `mediaPage.recognitionTitle` e
+   `recognitionLead` ficaram nos `messages/*.json` sem uso, caso ela volte.
+7. **INGESTÃO REESTRUTURADA — 3 fontes, cada uma com seus tipos** (ver a seção
+   "Funcionalidade: Ingestão de LINKS" mais abaixo, reescrita):
+   - `src/lib/ingest/sources.ts` (novo) = a matriz **fonte × tipo**: YouTube
+     (vídeo+perguntas+artigo), Forbes e LinkedIn (perguntas+artigo). **Conceitos
+     saíram da IA** — todo o caminho de geração de conceito foi REMOVIDO do
+     `generate.ts`, da rota, da ferramenta e do painel (`conceptInstructions` e
+     `defaultConceptsCount` deixaram de existir no `aiSettings`).
+   - Ferramenta renomeada: `YouTubeIngestTool.tsx` → **`IngestTool.tsx`**, título
+     "Importar de link" (ícone `LinkIcon`, `name: "link-ingest"`). Detecta a fonte
+     pelo domínio, mostra só os alvos permitidos e, nas fontes de texto, exibe o
+     texto extraído num **campo editável** (mínimo 400 caracteres para gerar).
+   - Rotas: `api/ingest/youtube/generate` → **`api/ingest/generate`** (comum às 3
+     fontes, valida a matriz no servidor); nova `api/ingest/web/inspect` com
+     `src/lib/webArticle.ts` (fetch + extração à mão, zero dependência nova).
+     No `generate.ts` o campo `transcript` virou **`material`** e o prompt ganhou
+     `source`.
+   - **Testado de verdade:** Forbes extrai OK (`status: ok`); **LinkedIn bloqueia
+     robô (HTTP 999)** → sempre vai depender de colar o texto; geração real
+     Forbes→(pergunta+artigo) devolveu doc trilíngue com `source: "forbes"`,
+     `sourceUrl`, slug limpo, 3 conceitos-pilar vinculados e o alvo "vídeo"
+     descartado pela guarda.
+8. **Filtro por fonte na biblioteca de artigos** (pedido: "filtrar como se fossem
+   categorias"): campos novos `source` + `sourceUrl` no schema `article`
+   (`initialValue: "original"`), `source` na `articlesListQuery`, e o
+   `LibrarySearch` ganhou `filters`/`filtersLabel`/`allLabel` + `tag`/`filter` por
+   item — pastilhas "Todas · YouTube · Forbes · LinkedIn · Originais" que combinam
+   com a busca por texto. Aparece em `/artigos` E no bloco de artigos de
+   `/artigos-e-perguntas`; só mostra as fontes que existem, e nada aparece se
+   houver só uma. Rótulos em `articleSources.*` (3 idiomas);
+   `src/lib/articleSources.ts` normaliza artigo sem fonte como "original".
+   ⏭️ **Pendência:** os 3 artigos antigos estão sem `source`. Rodar
+   `npx sanity exec set-article-sources.mjs --with-user-token` (script já pronto na
+   raiz) ou marcar à mão no Studio — sem isso eles ficam todos em "Originais".
+
+---
+
+### 🗓️ Sessão 20–21/07/2026 — Redesign alinhado à marca real
 Igor trouxe documentos da Andrea (bio reformulada, referências de sites e um print
 do feed @souandreaeboli com cores e linguagem). Pedido: reformar o hub para a
 identidade real dela, "com máximo de perfeição". **Tudo CONCLUÍDO (`tsc`/`eslint`/
@@ -253,29 +362,48 @@ a Andrea edita/substitui tudo pelo Studio. Rodar de novo é seguro (idempotente)
 - Substituir o conteúdo de exemplo pelo conteúdo real da Andrea.
 - (Opcional) Revisar/avançar o front-end das páginas que consomem esse conteúdo.
 
-## Funcionalidade: Ingestão de vídeos do YouTube → conteúdo (IA)
-Ferramenta no Studio (**"Importar do YouTube"**, ícone ▶) que, a partir de uma URL,
-extrai metadados + transcrição e gera **rascunhos trilíngues** (pt/en/es) via Claude.
-Fluxo em 2 etapas: colar link → "Buscar" (preview) → escolher o que gerar
-(FAQ / Conceitos / Artigo / Resumo+vídeo, em qualquer combinação) → "Gerar rascunhos".
+## Funcionalidade: Ingestão de LINKS → conteúdo (IA)
+> ⚠️ Reestruturada em 06/08/2026: era só YouTube, agora são **3 fontes**, e
+> **cada fonte gera os seus tipos** (ver a sessão de 06/08 acima).
+
+Ferramenta no Studio (**"Importar de link"**, ícone de corrente) que, a partir de
+uma URL, extrai o material e gera **rascunhos trilíngues** (pt/en/es) via Claude.
+Fluxo em 2 etapas: colar link → "Buscar" (preview) → escolher o que gerar →
+"Gerar rascunhos".
+
+| Fonte | Material | Gera |
+|---|---|---|
+| YouTube | transcrição (yt-dlp / Whisper) | vídeo+resumo, perguntas, artigo |
+| Forbes | texto da página (extração automática funciona) | perguntas, artigo |
+| LinkedIn | texto **colado à mão** (LinkedIn bloqueia robô — HTTP 999) | perguntas, artigo |
+
+**Conceitos NÃO são gerados por link** em nenhuma fonte — entram à mão no Studio.
+A matriz fonte × tipo mora em `src/lib/ingest/sources.ts` (usada pela ferramenta e
+conferida de novo no servidor).
 
 **Arquitetura / decisões:**
 - Gravação dos rascunhos é feita **client-side pela sessão autenticada do Studio**
   (`useClient().createOrReplace`), com `_id` `drafts.*`. **NÃO** usa
   `SANITY_WRITE_TOKEN` (resolve de vez o problema histórico do token sem permissão).
-- Backend só faz o que exige segredo: `src/app/api/ingest/youtube/inspect` (extração)
-  e `.../generate` (chama o Claude e devolve documentos prontos do Sanity).
+- Backend: `src/app/api/ingest/youtube/inspect` (metadados + transcrição),
+  `src/app/api/ingest/web/inspect` (Forbes/LinkedIn — `src/lib/webArticle.ts`,
+  extração à mão, sem dependência nova) e `src/app/api/ingest/generate` (comum às
+  3 fontes; chama o Claude e devolve documentos prontos do Sanity).
 - Modelo: `claude-opus-4-8` (configurável via `ANTHROPIC_MODEL` **ou pelo painel**),
   saída estruturada (JSON Schema) + streaming. SDK: `@anthropic-ai/sdk`.
 - **Agentes de IA configuráveis pelo painel** (singleton `aiSettings`, item
   "⚙️ Agentes de IA" no Studio): voz/persona geral + instruções por tipo
-  (vídeo/FAQ/conceitos/artigo) + modelo + esforço + quantidades padrão. O endpoint
+  (vídeo/FAQ/artigo — as de conceito saíram) + modelo + esforço + quantidade
+  padrão de perguntas. O endpoint
   `generate` lê esse singleton (cliente sem CDN, `cache: no-store`) e compõe o prompt;
   campos vazios caem em padrões embutidos (`DEFAULT_VOICE`/`STRUCTURAL_RULES`/
   `DEFAULT_INSTRUCTIONS` em `src/lib/ai/generate.ts`). As regras técnicas (3 idiomas,
   JSON, não inventar) são FIXAS e não editáveis. Vale após **Publicar** no Studio.
-- **Direcionamentos pontuais:** campo livre na ferramenta "Importar do YouTube"
+- **Direcionamentos pontuais:** campo livre na ferramenta "Importar de link"
   (`directions`) injetado com prioridade alta no prompt só daquela geração.
+- **Fonte já publicada (Forbes/LinkedIn):** o prompt exige TEXTO NOVO (mesma tese
+  e exemplos, sem reaproveitar frases) para o hub não competir com o original no
+  Google — ver `REPUBLISH_RULE` em `src/lib/ai/generate.ts`.
 - Transcrição (`src/lib/transcribe.ts`) — **2 camadas** (a raspagem direta de
   legendas morreu: o YouTube passou a exigir PoToken e o `timedtext` devolve vazio):
   1. **yt-dlp** (legendas manuais/automáticas) — grátis, sem chave, método padrão.

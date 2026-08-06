@@ -15,6 +15,12 @@ import {
   textToPortableText,
   type PortableBlock,
 } from "@/lib/portableText";
+import {
+  detectSource,
+  sourceAllows,
+  type ContentSource,
+  type IngestTarget,
+} from "@/lib/ingest/sources";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
 
 // Cliente de leitura SEM CDN: garante que mudanças no painel "Agentes de IA"
@@ -23,16 +29,15 @@ const readClient = createClient({ projectId, dataset, apiVersion, useCdn: false 
 
 type SettingsWithDefaults = AiSettings & {
   defaultQuestionsCount?: number;
-  defaultConceptsCount?: number;
 };
 
 async function readAiSettings(): Promise<SettingsWithDefaults | null> {
   try {
     return await readClient.fetch<SettingsWithDefaults | null>(
       `*[_id == "aiSettings"][0]{
-        voice, videoInstructions, faqInstructions, conceptInstructions,
+        voice, videoInstructions, faqInstructions,
         articleInstructions, conceptLinkingInstructions, model, effort,
-        defaultQuestionsCount, defaultConceptsCount
+        defaultQuestionsCount
       }`,
       {},
       { cache: "no-store" },
@@ -60,9 +65,14 @@ async function readHubConcepts(): Promise<HubConcept[]> {
   }
 }
 
-// Etapa 2 da ingestão: gera o conteúdo com o Claude e monta documentos do Sanity
-// prontos para serem criados como RASCUNHO. A gravação em si acontece no Studio,
-// pela sessão autenticada da própria editora (não usamos token de escrita aqui).
+// Etapa 2 da ingestão (comum a TODAS as fontes — YouTube, Forbes, LinkedIn):
+// gera o conteúdo com o Claude e monta documentos do Sanity prontos para serem
+// criados como RASCUNHO. A gravação em si acontece no Studio, pela sessão
+// autenticada da própria editora (não usamos token de escrita aqui).
+//
+// O que cada fonte pode gerar está em src/lib/ingest/sources.ts e é conferido
+// aqui também (o cliente esconde as opções; o servidor não confia nele).
+// CONCEITOS não são gerados por link em nenhuma fonte.
 //
 // Proteção opcional: se INGEST_API_SECRET estiver definido no servidor, exige o
 // header `x-ingest-secret`. Como o Studio é um bundle de navegador, esse segredo
@@ -138,8 +148,10 @@ function transcriptBucket(lang?: string): "pt" | "en" | "es" {
 type Chapter = { startTime: number; title: string };
 
 type BuildCtx = {
+  source: ContentSource;
   url: string;
-  transcript: string;
+  /** Transcrição (YouTube) ou texto do artigo de origem (Forbes/LinkedIn). */
+  material: string;
   transcriptLang?: string;
   durationSeconds?: number;
   publishDate?: string;
@@ -166,7 +178,6 @@ function ref(id: string) {
 
 function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
   const questions: ResultDoc[] = [];
-  const concepts: ResultDoc[] = [];
   let article: ResultDoc | null = null;
   let video: ResultDoc | null = null;
 
@@ -198,26 +209,6 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
     });
   }
 
-  for (const c of gen.concepts ?? []) {
-    const id = `drafts.${randomUUID()}`;
-    const conceptRefs = pillarRefs(c.relatedConceptIds);
-    concepts.push({
-      _id: id,
-      _type: "concept",
-      label: c.title.pt,
-      doc: {
-        _id: id,
-        _type: "concept",
-        title: c.title,
-        slug: ctx.slugFor(c.title.pt, "concept"),
-        shortDefinition: c.shortDefinition,
-        fullDefinition: locBlock(c.fullDefinition),
-        ...(conceptRefs.length ? { relatedConcepts: conceptRefs } : {}),
-        seo: seo(c.title, c.shortDefinition),
-      },
-    });
-  }
-
   if (gen.article) {
     const id = `drafts.${randomUUID()}`;
     const conceptRefs = pillarRefs(gen.article.relatedConceptIds);
@@ -231,6 +222,9 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
         title: gen.article.title,
         slug: ctx.slugFor(gen.article.title.pt, "article"),
         kind: "article",
+        // Fonte do material — vira o filtro por "categoria" na biblioteca.
+        source: ctx.source,
+        sourceUrl: ctx.url,
         excerpt: gen.article.excerpt,
         body: locBlock(gen.article.body),
         publishedAt: ctx.publishDate
@@ -244,15 +238,10 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
 
   if (gen.video) {
     const id = `drafts.${randomUUID()}`;
-    // Conceitos do vídeo: os gerados no mesmo lote + os pilares escolhidos
-    // pela IA (sem duplicar referências).
-    const videoConceptRefs = [
-      ...concepts.map((c) => ref(c._id)),
-      ...pillarRefs(gen.video.relatedConceptIds),
-    ].filter(
-      (r, i, all) => all.findIndex((o) => o._ref === r._ref) === i,
-    );
-    const transcriptBlocks = textToPortableText(ctx.transcript);
+    // Conceitos do vídeo: só os pilares escolhidos pela IA (conceitos não são
+    // mais gerados por link).
+    const videoConceptRefs = pillarRefs(gen.video.relatedConceptIds);
+    const transcriptBlocks = textToPortableText(ctx.material);
     const bucket = transcriptBucket(ctx.transcriptLang);
     const transcript: LocaleBlock = {
       pt: bucket === "pt" ? transcriptBlocks : [],
@@ -298,12 +287,7 @@ function buildDocuments(gen: GeneratedContent, ctx: BuildCtx): ResultDoc[] {
   }
 
   // Ordem de exibição.
-  return [
-    ...(video ? [video] : []),
-    ...questions,
-    ...concepts,
-    ...(article ? [article] : []),
-  ];
+  return [...(video ? [video] : []), ...questions, ...(article ? [article] : [])];
 }
 
 export async function POST(req: NextRequest) {
@@ -314,7 +298,7 @@ export async function POST(req: NextRequest) {
 
   let payload: {
     url?: string;
-    transcript?: string;
+    material?: string;
     transcriptLang?: string;
     publishDate?: string;
     chapters?: Chapter[];
@@ -335,14 +319,33 @@ export async function POST(req: NextRequest) {
   }
 
   const url = (payload.url ?? "").toString().trim();
-  const targets = payload.targets ?? {};
-  const hasTarget =
-    targets.video || targets.questions || targets.article || targets.concepts;
-  if (!url || !hasTarget) {
-    return Response.json({ error: "missing_fields" }, { status: 400 });
+  const source = detectSource(url);
+  if (!url || !source) {
+    return Response.json({ error: "invalid_url" }, { status: 400 });
   }
 
-  const transcript = (payload.transcript ?? "").toString();
+  // Só os alvos permitidos para a fonte (o cliente já esconde, aqui é a guarda).
+  const requested = payload.targets ?? {};
+  const targets: Targets = {};
+  const rejected: IngestTarget[] = [];
+  for (const key of ["video", "questions", "article"] as IngestTarget[]) {
+    if (!requested[key]) continue;
+    if (sourceAllows(source, key)) targets[key] = true;
+    else rejected.push(key);
+  }
+  if (!targets.video && !targets.questions && !targets.article) {
+    return Response.json(
+      {
+        error: "no_valid_target",
+        message: rejected.length
+          ? `Esta fonte (${source}) não gera: ${rejected.join(", ")}.`
+          : "Escolha ao menos um tipo de conteúdo.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const material = (payload.material ?? "").toString();
 
   // Configuração do painel (singleton aiSettings) + conceitos-pilar do hub
   // + slugs já usados (para gerar slugs limpos sem colisão).
@@ -354,13 +357,13 @@ export async function POST(req: NextRequest) {
   const counts: Counts = {
     questions:
       payload.counts?.questions ?? settings?.defaultQuestionsCount ?? 5,
-    concepts: payload.counts?.concepts ?? settings?.defaultConceptsCount ?? 4,
   };
 
   try {
     const gen = await generateContent({
+      source,
       meta: { ...payload.meta, url },
-      transcript,
+      material,
       targets,
       counts,
       settings: settings ?? undefined,
@@ -369,8 +372,9 @@ export async function POST(req: NextRequest) {
     });
 
     const documents = buildDocuments(gen, {
+      source,
       url,
-      transcript,
+      material,
       transcriptLang: payload.transcriptLang,
       durationSeconds: payload.meta?.durationSeconds,
       publishDate: payload.publishDate,

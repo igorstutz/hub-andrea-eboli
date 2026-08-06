@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import DetailHeader from "@/components/DetailHeader";
+import PageBanner from "@/components/PageBanner";
 import PortableTextBody from "@/components/PortableTextBody";
 import AuthorCard from "@/components/AuthorCard";
 import SideCard from "@/components/SideCard";
@@ -111,7 +111,7 @@ export default async function Page({
   return (
     <>
       <JsonLd data={articleLd} />
-      <DetailHeader
+      <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
           { label: t("libraries.articles.name"), href: "/artigos" },
@@ -121,7 +121,7 @@ export default async function Page({
         meta={
           <>
             {dateLabel && <span>{dateLabel}</span>}
-            {dateLabel && <span className="text-ink/30">·</span>}
+            {dateLabel && <span className="text-cream/30">·</span>}
             <span>{t("articlePage.readingTime", { minutes })}</span>
           </>
         }

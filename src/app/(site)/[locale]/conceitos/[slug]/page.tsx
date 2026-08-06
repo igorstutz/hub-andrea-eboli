@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import DetailHeader from "@/components/DetailHeader";
+import PageBanner from "@/components/PageBanner";
 import PortableTextBody from "@/components/PortableTextBody";
 import AuthorCard from "@/components/AuthorCard";
 import SideCard from "@/components/SideCard";
@@ -83,7 +83,7 @@ export default async function Page({
   return (
     <>
       <JsonLd data={definedTermLd} />
-      <DetailHeader
+      <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
           { label: t("libraries.concepts.name"), href: "/conceitos" },

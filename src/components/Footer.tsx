@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-
-const INSTAGRAM = "https://www.instagram.com/souandreaeboli";
+import SocialLinks from "./SocialLinks";
 
 const COL_A = [
   { key: "serPoder", href: "/ser-poder" },
@@ -30,15 +29,10 @@ export default async function Footer() {
             Andrea Eboli
           </Link>
           <p className="mt-3 max-w-sm text-sm leading-relaxed">{t("tagline")}</p>
-          <a
-            href={INSTAGRAM}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 text-sm text-cream/80 transition-colors hover:text-cream"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-cream/60" />
-            @souandreaeboli
-          </a>
+
+          <div className="mt-7">
+            <SocialLinks />
+          </div>
         </div>
 
         <nav className="flex flex-col gap-3 text-sm">

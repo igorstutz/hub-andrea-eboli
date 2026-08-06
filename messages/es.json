@@ -126,6 +126,14 @@
     "whitepaper": "White paper",
     "study": "Estudio"
   },
+  "articleSources": {
+    "label": "Fuente",
+    "all": "Todas",
+    "youtube": "YouTube",
+    "forbes": "Forbes",
+    "linkedin": "LinkedIn",
+    "original": "Originales"
+  },
   "comingSoon": {
     "title": "En construcción",
     "body": "Esta biblioteca se está preparando. Pronto, repleta de contenido."
@@ -140,7 +148,10 @@
     "quote": "El mundo cambió. Las relaciones de poder también. Y la forma de ocupar, sostener y vivir el poder necesita cambiar con él.",
     "credentialsLabel": "Reconocimiento",
     "methodCta": "Conocer la tesis Ser Poder",
-    "contactCta": "Hablar con Andrea"
+    "contactCta": "Hablar con Andrea",
+    "galleryLabel": "Galería",
+    "galleryTitle": "Andrea en imágenes",
+    "gallerySoon": "Galería en preparación."
   },
   "serPoderPage": {
     "badge": "La tesis",
@@ -165,7 +176,8 @@
     "questionsTitle": "Preguntas Humanas",
     "articlesTitle": "Artículos",
     "questionsCta": "Ver todas las preguntas",
-    "articlesCta": "Ver todos los artículos"
+    "articlesCta": "Ver todos los artículos",
+    "orderLabel": "Ver primero"
   },
   "mediaPage": {
     "badge": "En los medios",
@@ -190,6 +202,10 @@
     "emailCta": "Enviar correo",
     "socialLabel": "Redes",
     "newsletterTitle": "O recibe las Notas sobre el Poder"
+  },
+  "social": {
+    "follow": "Sigue",
+    "label": "Andrea Eboli en {network}"
   },
   "footer": {
     "tagline": "Referencia en liderazgo, neurociencia y poder consciente.",
