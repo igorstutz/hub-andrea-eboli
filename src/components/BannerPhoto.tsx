@@ -4,11 +4,10 @@ import Image from "next/image";
 // moldura em arco + bloco de cor deslocado atrás (colagem editorial) +
 // leve tratamento de cor da marca por cima.
 //
-// Enquanto a foto real não existe, mostra um placeholder desenhado (monograma
-// + tríade) que já parece intencional. Para ativar a foto de verdade:
-// coloque o arquivo em  public/brand/andrea-banner.jpg  e troque a constante
-// abaixo por  "/brand/andrea-banner.jpg"  (o next/image aplica o basePath).
-const PHOTO_SRC: string | null = null;
+// Foto da Andrea já enquadrada em 3:4 e cortada acima do cós da calça
+// (origem: andrea-img-hero.png, na raiz do projeto). Se PHOTO_SRC for null,
+// cai no placeholder desenhado (monograma + tríade).
+const PHOTO_SRC: string | null = "/brand/andrea-banner.webp";
 
 export default function BannerPhoto({
   priority = false,

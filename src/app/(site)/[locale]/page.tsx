@@ -52,16 +52,16 @@ function SectionHeading({
             className={`mb-4 inline-flex items-center gap-2.5 rounded-full border px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] ${
               dark
                 ? "border-cream/25 bg-cream/10 text-cream/90"
-                : "border-wine/20 bg-wine/5 text-wine"
+                : "border-green-deep/20 bg-green-deep/5 text-green-deep"
             }`}
           >
             <span
-              className={`pulse-dot h-1.5 w-1.5 rounded-full ${dark ? "bg-cream/80" : "bg-wine"}`}
+              className={`pulse-dot h-1.5 w-1.5 rounded-full ${dark ? "bg-cream/80" : "bg-green-deep"}`}
             />
             {badge}
           </span>
         )}
-        <h2 className={`text-3xl md:text-4xl ${dark ? "text-cream" : "text-green-deep"}`}>
+        <h2 className={`text-3xl md:text-4xl ${dark ? "text-cream" : "text-wine"}`}>
           {title}
         </h2>
         {lead && (
@@ -72,8 +72,8 @@ function SectionHeading({
         href={href}
         className={`group inline-flex shrink-0 items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-all duration-300 hover:gap-3 ${
           dark
-            ? "border-cream/40 text-cream hover:bg-cream hover:text-green-deep"
-            : "border-wine/30 text-wine hover:bg-wine hover:text-cream"
+            ? "border-cream/40 text-cream hover:bg-cream hover:text-wine"
+            : "border-green-deep/30 text-green-deep hover:bg-green-deep hover:text-cream"
         }`}
       >
         {cta}
@@ -112,7 +112,7 @@ export default async function HomePage({
       <section id="bibliotecas" className="bg-cream">
         <div className="mx-auto max-w-6xl px-6 py-28">
           <Reveal>
-            <h2 className="max-w-2xl text-4xl text-green-deep md:text-5xl">
+            <h2 className="max-w-2xl text-4xl text-wine md:text-5xl">
               {t("librariesTitle")}
             </h2>
           </Reveal>
@@ -125,35 +125,35 @@ export default async function HomePage({
               <Reveal key={key} delay={i * 110}>
                 <Link
                   href={href}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-bone p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(20,49,44,0.45)]"
+                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-bone p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(65,24,30,0.45)]"
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-wine/10 blur-2xl" />
+                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-green-deep/10 blur-2xl" />
                   </div>
-                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
 
                   <div className="relative flex items-start justify-between">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-green-deep/20 bg-green-deep/5 text-green-deep transition-all duration-500 group-hover:border-transparent group-hover:bg-wine group-hover:text-cream">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-wine/20 bg-wine/5 text-wine transition-all duration-500 group-hover:border-transparent group-hover:bg-green-deep group-hover:text-cream">
                       <LibraryIcon name={key} className="h-6 w-6" />
                     </span>
-                    <span className="font-serif text-4xl italic leading-none text-wine/35 transition-colors duration-500 group-hover:text-wine">
+                    <span className="font-serif text-4xl italic leading-none text-green-deep/35 transition-colors duration-500 group-hover:text-green-deep">
                       {num}
                     </span>
                   </div>
 
-                  <span className="relative mt-7 inline-flex w-fit items-center rounded-full bg-green-deep/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-green-soft transition-colors duration-500 group-hover:bg-wine/10 group-hover:text-wine">
+                  <span className="relative mt-7 inline-flex w-fit items-center rounded-full bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-wine-soft transition-colors duration-500 group-hover:bg-green-deep/10 group-hover:text-green-deep">
                     {tl(`${key}.badge`)}
                   </span>
 
-                  <h3 className="relative mt-4 text-2xl text-green-deep">
+                  <h3 className="relative mt-4 text-2xl text-wine">
                     {tl(`${key}.name`)}
                   </h3>
                   <p className="relative mt-2 flex-1 text-sm text-ink-soft">
                     {tl(`${key}.desc`)}
                   </p>
 
-                  <span className="relative mt-6 flex items-center gap-2 text-wine">
-                    <span className="h-px w-6 bg-wine transition-all duration-500 group-hover:w-9" />
+                  <span className="relative mt-6 flex items-center gap-2 text-green-deep">
+                    <span className="h-px w-6 bg-green-deep transition-all duration-500 group-hover:w-9" />
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -178,7 +178,7 @@ export default async function HomePage({
       {/* ============ VÍDEOS E PODCAST ============ */}
       {videos.length > 0 && (
         <section className="relative overflow-hidden bg-bone">
-          <div className="blob animate-float-2 absolute -left-20 top-16 h-72 w-72 bg-green-deep/8" />
+          <div className="blob animate-float-2 absolute -left-20 top-16 h-72 w-72 bg-wine/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
@@ -196,7 +196,7 @@ export default async function HomePage({
                   <Reveal key={v.slug} delay={i * 90}>
                     <Link
                       href={`/videos/${v.slug}`}
-                      className="group block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone transition-all hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
+                      className="group block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone transition-all hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
                     >
                       <div className="relative overflow-hidden">
                         {id ? (
@@ -207,10 +207,10 @@ export default async function HomePage({
                             className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="aspect-video w-full bg-green-deep/10" />
+                          <div className="aspect-video w-full bg-wine/10" />
                         )}
                         <span className="absolute inset-0 flex items-center justify-center">
-                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-darker/70 text-cream backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-wine">
+                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-wine-deep/70 text-cream backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-green-deep">
                             <svg
                               viewBox="0 0 24 24"
                               fill="currentColor"
@@ -222,13 +222,13 @@ export default async function HomePage({
                           </span>
                         </span>
                         {formatDurationHuman(v.durationSeconds) && (
-                          <span className="absolute bottom-3 right-3 rounded-full bg-green-darker/80 px-2.5 py-0.5 text-xs font-medium text-cream backdrop-blur-sm">
+                          <span className="absolute bottom-3 right-3 rounded-full bg-wine-deep/80 px-2.5 py-0.5 text-xs font-medium text-cream backdrop-blur-sm">
                             {formatDurationHuman(v.durationSeconds)}
                           </span>
                         )}
                       </div>
                       <div className="p-5">
-                        <h3 className="font-serif text-xl leading-snug text-green-deep">
+                        <h3 className="font-serif text-xl leading-snug text-wine">
                           {v.title}
                         </h3>
                         {v.summary && (
@@ -248,9 +248,9 @@ export default async function HomePage({
 
       {/* ============ CONCEITOS (pilares — vivem em Ser Poder) ============ */}
       {concepts.length > 0 && (
-        <section className="relative overflow-hidden bg-green-deep text-cream">
-          <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-40" />
-          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-wine/25" />
+        <section className="relative overflow-hidden bg-wine text-cream">
+          <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-40" />
+          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-green-soft/25" />
           <span
             aria-hidden
             className="pointer-events-none absolute -top-16 right-6 select-none font-serif text-[16rem] italic leading-none text-cream/5"
@@ -275,7 +275,7 @@ export default async function HomePage({
                     href={`/conceitos/${c.slug}`}
                     className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-cream/10 bg-cream/5 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-cream/40 hover:bg-cream/10"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-cream/60 to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-cream/60 to-green-soft transition-transform duration-500 group-hover:scale-x-100" />
                     <span
                       className="absolute right-5 top-4 font-serif text-3xl italic leading-none text-cream/20 transition-colors duration-300 group-hover:text-cream/50"
                       aria-hidden
@@ -309,11 +309,11 @@ export default async function HomePage({
         <section className="relative overflow-hidden bg-bone">
           <span
             aria-hidden
-            className="pointer-events-none absolute -right-8 -top-20 select-none font-serif text-[22rem] italic leading-none text-wine/[0.05]"
+            className="pointer-events-none absolute -right-8 -top-20 select-none font-serif text-[22rem] italic leading-none text-green-deep/[0.05]"
           >
             ?
           </span>
-          <div className="blob animate-float-2 absolute -left-24 bottom-0 h-72 w-72 bg-green-deep/8" />
+          <div className="blob animate-float-2 absolute -left-24 bottom-0 h-72 w-72 bg-wine/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
@@ -329,21 +329,21 @@ export default async function HomePage({
                 <Reveal key={q.slug} delay={i * 70}>
                   <Link
                     href={`/perguntas/${q.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-cream p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-cream p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
                     <span
                       aria-hidden
-                      className="absolute -right-1 -top-3 select-none font-serif text-6xl italic text-wine/5 transition-colors duration-300 group-hover:text-wine/15"
+                      className="absolute -right-1 -top-3 select-none font-serif text-6xl italic text-green-deep/5 transition-colors duration-300 group-hover:text-green-deep/15"
                     >
                       ?
                     </span>
                     {q.topic?.title && (
-                      <span className="text-[0.68rem] font-semibold uppercase tracking-wider text-wine">
+                      <span className="text-[0.68rem] font-semibold uppercase tracking-wider text-green-deep">
                         {q.topic.title}
                       </span>
                     )}
-                    <h3 className="mt-1 font-serif text-xl leading-snug text-green-deep transition-colors duration-300 group-hover:text-wine">
+                    <h3 className="mt-1 font-serif text-xl leading-snug text-wine transition-colors duration-300 group-hover:text-green-deep">
                       {q.title}
                     </h3>
                     {q.answer && (
@@ -362,7 +362,7 @@ export default async function HomePage({
       {/* ============ CASOS ============ */}
       {cases.length > 0 && (
         <section className="relative overflow-hidden bg-cream">
-          <div className="blob animate-float absolute -right-20 top-10 h-80 w-80 bg-wine/8" />
+          <div className="blob animate-float absolute -right-20 top-10 h-80 w-80 bg-green-deep/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
@@ -378,16 +378,16 @@ export default async function HomePage({
                 <Reveal key={c.slug} delay={i * 90}>
                   <Link
                     href={`/casos/${c.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(20,49,44,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
                   >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-green-soft to-wine transition-transform duration-500 group-hover:scale-x-100" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
                     <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-wine/10 blur-2xl" />
+                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-green-deep/10 blur-2xl" />
                     </div>
-                    <span className="relative mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-green-deep/15 bg-green-deep/5 font-serif text-2xl italic text-green-deep transition-all duration-300 group-hover:border-transparent group-hover:bg-wine group-hover:text-cream">
+                    <span className="relative mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-wine/15 bg-wine/5 font-serif text-2xl italic text-wine transition-all duration-300 group-hover:border-transparent group-hover:bg-green-deep group-hover:text-cream">
                       {c.title.charAt(0)}
                     </span>
-                    <h3 className="relative font-serif text-2xl italic text-green-deep transition-colors duration-300 group-hover:text-wine">
+                    <h3 className="relative font-serif text-2xl italic text-wine transition-colors duration-300 group-hover:text-green-deep">
                       {c.title}
                     </h3>
                     {c.description && (
@@ -404,8 +404,8 @@ export default async function HomePage({
       )}
 
       {/* ============ TESE ============ */}
-      <section className="relative overflow-hidden bg-green-darker text-cream">
-        <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-50" />
+      <section className="relative overflow-hidden bg-wine-deep text-cream">
+        <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
           <Reveal>
             <span className="font-serif text-7xl leading-none text-cream/25">
@@ -424,7 +424,7 @@ export default async function HomePage({
       {/* ============ ARTIGOS ============ */}
       {articles.length > 0 && (
         <section className="relative overflow-hidden bg-cream">
-          <div className="blob animate-float absolute -right-24 bottom-0 h-72 w-72 bg-wine/8" />
+          <div className="blob animate-float absolute -right-24 bottom-0 h-72 w-72 bg-green-deep/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
@@ -443,7 +443,7 @@ export default async function HomePage({
                     className="group flex items-center gap-6 py-7 transition-colors hover:bg-bone sm:gap-8"
                   >
                     <span
-                      className="hidden shrink-0 font-serif text-3xl italic leading-none text-wine/40 transition-colors duration-300 group-hover:text-wine sm:block"
+                      className="hidden shrink-0 font-serif text-3xl italic leading-none text-green-deep/40 transition-colors duration-300 group-hover:text-green-deep sm:block"
                       aria-hidden
                     >
                       {String(i + 1).padStart(2, "0")}
@@ -451,7 +451,7 @@ export default async function HomePage({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
                         {a.kind && (
-                          <span className="rounded-full border border-wine/30 bg-wine/5 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-wine">
+                          <span className="rounded-full border border-green-deep/30 bg-green-deep/5 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-wider text-green-deep">
                             {tk(a.kind)}
                           </span>
                         )}
@@ -463,7 +463,7 @@ export default async function HomePage({
                           </span>
                         )}
                       </div>
-                      <h3 className="mt-2 font-serif text-2xl leading-snug text-green-deep transition-colors group-hover:text-wine">
+                      <h3 className="mt-2 font-serif text-2xl leading-snug text-wine transition-colors group-hover:text-green-deep">
                         {a.title}
                       </h3>
                       {a.excerpt && (
@@ -473,7 +473,7 @@ export default async function HomePage({
                       )}
                     </div>
                     <span
-                      className="hidden shrink-0 text-wine opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100 sm:block"
+                      className="hidden shrink-0 text-green-deep opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100 sm:block"
                       aria-hidden
                     >
                       →
@@ -487,7 +487,7 @@ export default async function HomePage({
       )}
 
       {/* ============ NEWSLETTER ============ */}
-      <section className="relative overflow-hidden bg-wine text-cream">
+      <section className="relative overflow-hidden bg-green-deep text-cream">
         <div className="blob animate-float-2 absolute -left-16 -top-16 h-72 w-72 bg-cream/15" />
         <div className="relative mx-auto max-w-3xl px-6 py-24 text-center">
           <Reveal>

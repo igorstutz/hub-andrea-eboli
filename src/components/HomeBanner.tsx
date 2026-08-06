@@ -12,10 +12,10 @@ export default async function HomeBanner() {
   const tb = await getTranslations("banner");
 
   return (
-    <section className="relative flex min-h-[calc(100svh_-_var(--header-h))] items-center overflow-hidden bg-green-deep text-cream">
-      <div className="gradient-mesh pointer-events-none absolute inset-0" />
-      <div className="blob animate-float absolute -left-24 top-10 h-80 w-80 bg-wine/25" />
-      <div className="blob animate-float-2 absolute -right-24 bottom-0 h-96 w-96 bg-green-soft/25" />
+    <section className="relative flex min-h-[calc(100svh_-_var(--header-h))] items-center overflow-hidden bg-wine text-cream">
+      <div className="gradient-mesh-wine pointer-events-none absolute inset-0" />
+      <div className="blob animate-float absolute -left-24 top-10 h-80 w-80 bg-wine-soft/35" />
+      <div className="blob animate-float-2 absolute -right-24 bottom-0 h-96 w-96 bg-cream/10" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-10">
         {/* Coluna do texto */}
@@ -53,7 +53,7 @@ export default async function HomeBanner() {
             <div className="flex flex-wrap items-center gap-4">
               <a
                 href="#bibliotecas"
-                className="group inline-flex items-center gap-2 rounded-full bg-cream px-7 py-3.5 text-sm font-semibold text-green-deep transition-all hover:gap-3 hover:bg-white"
+                className="group inline-flex items-center gap-2 rounded-full border border-cream bg-cream px-7 py-3.5 text-sm font-semibold text-wine transition-all hover:gap-3 hover:bg-wine hover:text-cream"
               >
                 {t("ctaPrimary")}
                 <span className="transition-transform group-hover:translate-x-0.5">

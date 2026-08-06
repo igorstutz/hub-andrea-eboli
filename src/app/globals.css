@@ -15,6 +15,7 @@
 
   /* Vinho (protagonista) */
   --color-wine: #41181e;
+  --color-wine-deep: #2a0f13;
   --color-wine-soft: #6b2a32;
 
   /* Creme / areia (coadjuvante, um tom mais escuro) */
@@ -133,6 +134,17 @@ h4 {
     radial-gradient(42% 52% at 16% 20%, rgba(107, 42, 50, 0.4), transparent 70%),
     radial-gradient(40% 50% at 84% 26%, rgba(65, 24, 30, 0.5), transparent 70%),
     radial-gradient(58% 62% at 60% 96%, rgba(44, 90, 73, 0.45), transparent 72%);
+  background-size: 160% 160%;
+  animation: mesh-move 22s ease-in-out infinite;
+}
+/* Variante monocromática em vinho (hero da home) — mesma malha, sem verde:
+   só tons acima e abaixo do vinho, para dar profundidade sem virar gradiente
+   de duas cores. */
+.gradient-mesh-wine {
+  background-image:
+    radial-gradient(42% 52% at 16% 20%, rgba(107, 42, 50, 0.55), transparent 70%),
+    radial-gradient(40% 50% at 84% 26%, rgba(26, 9, 12, 0.5), transparent 70%),
+    radial-gradient(58% 62% at 60% 96%, rgba(107, 42, 50, 0.4), transparent 72%);
   background-size: 160% 160%;
   animation: mesh-move 22s ease-in-out infinite;
 }
@@ -260,6 +272,7 @@ h4 {
 
 @media (prefers-reduced-motion: reduce) {
   .gradient-mesh,
+  .gradient-mesh-wine,
   .animate-float,
   .animate-float-2,
   .marquee-track,

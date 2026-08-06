@@ -7,10 +7,17 @@ import { Link, usePathname } from "@/i18n/navigation";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 // Foto da Andrea para a "bolinha" (igual à do YouTube). Enquanto o arquivo
-// não existe, cai no monograma "AE". Para ativar: coloque a imagem em
-// public/brand/andrea-avatar.jpg e troque a constante abaixo por
-//   "/brand/andrea-avatar.jpg"  (o next/image cuida do basePath do Pages).
+// não existe, a bolinha não é renderizada — o header fica só com a assinatura.
+// Para ativar: coloque a imagem em public/brand/andrea-avatar.jpg e troque a
+// constante abaixo por "/brand/andrea-avatar.jpg" (o next/image cuida do
+// basePath do Pages).
 const AVATAR_SRC: string | null = null;
+
+// Assinatura da Andrea em vinho, gerada a partir de logo-andrea-eboli.png
+// (fundo recortado + recolorida). A variante creme existe para fundos escuros.
+const LOGO_SRC = "/brand/logo-andrea-eboli.webp";
+const LOGO_W = 900;
+const LOGO_H = 159;
 
 // Menu principal (ordem definida com a Andrea).
 const NAV = [
@@ -40,19 +47,16 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 function Avatar() {
+  if (!AVATAR_SRC) return null;
   return (
     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-green-deep/25 bg-green-deep text-cream">
-      {AVATAR_SRC ? (
-        <Image
-          src={AVATAR_SRC}
-          alt="Andrea Eboli"
-          width={40}
-          height={40}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="wordmark text-sm">AE</span>
-      )}
+      <Image
+        src={AVATAR_SRC}
+        alt=""
+        width={40}
+        height={40}
+        className="h-full w-full object-cover"
+      />
     </span>
   );
 }
@@ -94,16 +98,21 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/85 backdrop-blur">
       <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between gap-6 px-5 sm:px-6">
-        {/* Marca: bolinha + nome maior */}
+        {/* Marca: assinatura (+ bolinha da foto, quando houver) */}
         <Link
           href="/"
           className="flex items-center gap-3"
           aria-label="Andrea Eboli — início"
         >
           <Avatar />
-          <span className="wordmark text-xl leading-none text-green-deep sm:text-2xl">
-            Andrea Eboli
-          </span>
+          <Image
+            src={LOGO_SRC}
+            alt=""
+            width={LOGO_W}
+            height={LOGO_H}
+            priority
+            className="h-7 w-auto sm:h-8"
+          />
         </Link>
 
         {/* Navegação — desktop */}
