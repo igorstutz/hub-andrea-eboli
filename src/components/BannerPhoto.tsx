@@ -4,9 +4,10 @@ import Image from "next/image";
 // moldura em arco + bloco de cor deslocado atrás (colagem editorial) +
 // leve tratamento de cor da marca por cima.
 //
-// Foto da Andrea já enquadrada em 3:4 e cortada acima do cós da calça
-// (origem: andrea-img-hero.png, na raiz do projeto). Se PHOTO_SRC for null,
-// cai no placeholder desenhado (monograma + tríade).
+// Foto da Andrea já enquadrada em 3:4 e cortada acima do cós da calça. No
+// projeto fica só a versão leve (.webp); o PNG original está FORA do repositório,
+// na pasta irmã `brand-originais/`. Se PHOTO_SRC for null, cai no placeholder
+// desenhado (monograma + tríade).
 const PHOTO_SRC: string | null = "/brand/andrea-banner.webp";
 
 export default function BannerPhoto({

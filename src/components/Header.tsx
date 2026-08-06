@@ -13,8 +13,9 @@ import LanguageSwitcher from "./LanguageSwitcher";
 // basePath do Pages).
 const AVATAR_SRC: string | null = null;
 
-// Assinatura da Andrea em vinho, gerada a partir de logo-andrea-eboli.png
-// (fundo recortado + recolorida). A variante creme existe para fundos escuros.
+// Assinatura da Andrea em vinho (fundo recortado + recolorida). A variante creme
+// existe para fundos escuros. O PNG original está FORA do repositório, na pasta
+// irmã `brand-originais/` — no projeto fica só o .webp.
 const LOGO_SRC = "/brand/logo-andrea-eboli.webp";
 const LOGO_W = 900;
 const LOGO_H = 159;
