@@ -17,7 +17,9 @@ const nextConfig: NextConfig = {
   ...(isStaticExport
     ? {
         output: "export" as const,
-        basePath: "/hub-andrea-eboli",
+        // Mesma variável usada por src/lib/assetPath.ts — o next/image em modo
+        // `unoptimized` não aplica o basePath sozinho nos arquivos de public/.
+        basePath: process.env.NEXT_PUBLIC_BASE_PATH || "/hub-andrea-eboli",
         trailingSlash: true,
       }
     : {}),

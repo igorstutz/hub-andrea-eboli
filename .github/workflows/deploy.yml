@@ -47,6 +47,10 @@ jobs:
         env:
           STATIC_EXPORT: "1"
           NEXT_PUBLIC_SITE_URL: https://igorstutz.github.io/hub-andrea-eboli
+          # Caminho do repositório no Pages. Vira o basePath do Next E o prefixo
+          # dos arquivos de public/ (ver src/lib/assetPath.ts) — no modo
+          # `unoptimized` o next/image não aplica o basePath sozinho.
+          NEXT_PUBLIC_BASE_PATH: /hub-andrea-eboli
           # Identificadores PÚBLICOS do Sanity (dataset é público; não são segredos).
           NEXT_PUBLIC_SANITY_PROJECT_ID: 52ssivbg
           NEXT_PUBLIC_SANITY_DATASET: production

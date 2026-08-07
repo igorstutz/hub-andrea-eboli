@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { asset } from "@/lib/assetPath";
 
 // Foto integrada do banner — uso "não orgânico" (estilo Esther Perel):
 // moldura em arco + bloco de cor deslocado atrás (colagem editorial) +
@@ -28,7 +29,7 @@ export default function BannerPhoto({
       <div className="photo-arch photo-duotone relative aspect-[3/4] w-full bg-green-darker">
         {PHOTO_SRC ? (
           <Image
-            src={PHOTO_SRC}
+            src={asset(PHOTO_SRC)}
             alt="Andrea Eboli"
             fill
             priority={priority}

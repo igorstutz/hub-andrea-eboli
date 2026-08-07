@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import { asset } from "@/lib/assetPath";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 // Foto da Andrea para a "bolinha" (igual à do YouTube). Enquanto o arquivo
 // não existe, a bolinha não é renderizada — o header fica só com a assinatura.
 // Para ativar: coloque a imagem em public/brand/andrea-avatar.jpg e troque a
-// constante abaixo por "/brand/andrea-avatar.jpg" (o next/image cuida do
-// basePath do Pages).
+// constante abaixo por "/brand/andrea-avatar.jpg" (o asset() cuida do basePath
+// do Pages).
 const AVATAR_SRC: string | null = null;
 
 // Assinatura da Andrea em vinho (fundo recortado + recolorida). A variante creme
@@ -52,7 +53,7 @@ function Avatar() {
   return (
     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-green-deep/25 bg-green-deep text-cream">
       <Image
-        src={AVATAR_SRC}
+        src={asset(AVATAR_SRC)}
         alt=""
         width={40}
         height={40}
@@ -107,7 +108,7 @@ export default function Header() {
         >
           <Avatar />
           <Image
-            src={LOGO_SRC}
+            src={asset(LOGO_SRC)}
             alt=""
             width={LOGO_W}
             height={LOGO_H}
