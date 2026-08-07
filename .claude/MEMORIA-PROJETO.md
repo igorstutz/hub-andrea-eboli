@@ -54,7 +54,30 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ---
 
-### 🗓️ Sessão 06/08/2026 (mais recente) — Redes no rodapé + HERO ÚNICO em vinho
+### 🗓️ Sessão 07/08/2026 (mais recente) — Imagens de public/ no Pages (basePath)
+No site publicado a logo do header e a foto do hero não apareciam (404), embora
+os arquivos estivessem lá. **Causa:** o export estático exige
+`images.unoptimized` e, nesse modo, o `next/image` devolve o `src` como recebeu —
+**sem aplicar o basePath**. O HTML saía com `/brand/x.webp` em vez de
+`/hub-andrea-eboli/brand/x.webp`.
+
+- **Regra nova:** todo arquivo de `public/` referenciado no código passa por
+  `asset()` (`src/lib/assetPath.ts`), que prefixa `NEXT_PUBLIC_BASE_PATH`.
+  A MESMA variável alimenta o `basePath` do `next.config.ts` (uma verdade só) e
+  está definida no workflow de deploy. Aplicado no `Header` (logo e avatar) e no
+  `BannerPhoto` (foto). Corrigido, publicado e conferido no ar (200 nas duas
+  imagens; varredura do HTML não achou mais nenhuma URL local sem o basePath).
+- ⚠️ **Armadilha de ambiente:** se `STATIC_EXPORT`/`NEXT_PUBLIC_BASE_PATH`
+  vazarem para o processo do `npm run dev` (ex.: rodar o build estático e o dev
+  na mesma sessão de terminal), o dev passa a redirecionar `/pt` → `/pt/` e dá
+  **404** em tudo. Limpar as variáveis (e apagar `.next`) antes de subir o dev.
+- 📌 O Igor já usou a ferramenta nova: há artigo publicado com
+  `source: "forbes"` (+ `sourceUrl`) e outro com `source: "youtube"` — o filtro
+  do site já mostra a pastilha "Forbes". O pipeline das 3 fontes está em uso real.
+
+---
+
+### 🗓️ Sessão 06/08/2026 — Redes no rodapé + HERO ÚNICO em vinho
 Pedidos do Igor (lista de ajustes visuais; item 7 + dois seguintes). Tudo
 CONCLUÍDO e validado (`tsc`/`eslint` limpos + páginas conferidas no dev com
 screenshot headless do Chrome).
