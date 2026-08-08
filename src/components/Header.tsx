@@ -44,7 +44,9 @@ function isActive(pathname: string, href: string): boolean {
   }
   if (href === "/videos") return pathname.startsWith("/videos");
   if (href === "/ser-poder")
-    return pathname.startsWith("/ser-poder") || pathname.startsWith("/conceitos");
+    return (
+      pathname.startsWith("/ser-poder") || pathname.startsWith("/conceitos")
+    );
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -98,87 +100,93 @@ export default function Header() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/85 backdrop-blur">
-      <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between gap-6 px-5 sm:px-6">
-        {/* Marca: assinatura (+ bolinha da foto, quando houver) */}
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-          aria-label="Andrea Eboli — início"
-        >
-          <Avatar />
-          <Image
-            src={asset(LOGO_SRC)}
-            alt=""
-            width={LOGO_W}
-            height={LOGO_H}
-            priority
-            className="h-7 w-auto sm:h-8"
-          />
-        </Link>
-
-        {/* Navegação — desktop */}
-        <nav className="hidden items-center gap-5 lg:flex xl:gap-7">
-          {NAV.map(({ key, href }) => {
-            const active = isActive(pathname, href);
-            return (
-              <Link
-                key={key}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={`relative text-[0.9rem] leading-none transition-colors after:absolute after:-bottom-1.5 after:left-0 after:h-px after:bg-wine after:transition-all after:duration-300 ${
-                  active
-                    ? "font-medium text-wine after:w-full"
-                    : "text-ink-soft after:w-0 hover:text-wine hover:after:w-full"
-                }`}
-              >
-                {t(key)}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Ações — desktop */}
-        <div className="hidden items-center gap-5 lg:flex">
+    <>
+      <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/85 backdrop-blur">
+        <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between gap-6 px-5 sm:px-6">
+          {/* Marca: assinatura (+ bolinha da foto, quando houver) */}
           <Link
-            href="/busca"
-            aria-label={t("search")}
-            className="text-ink-soft transition-colors hover:text-wine"
+            href="/"
+            className="flex items-center gap-3"
+            aria-label="Andrea Eboli — início"
           >
-            <SearchIcon className="h-5 w-5" />
+            <Avatar />
+            <Image
+              src={asset(LOGO_SRC)}
+              alt=""
+              width={LOGO_W}
+              height={LOGO_H}
+              priority
+              className="h-7 w-auto sm:h-8"
+            />
           </Link>
-          <LanguageSwitcher />
+
+          {/* Navegação — desktop */}
+          <nav className="hidden items-center gap-5 lg:flex xl:gap-7">
+            {NAV.map(({ key, href }) => {
+              const active = isActive(pathname, href);
+              return (
+                <Link
+                  key={key}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative text-[0.9rem] leading-none transition-colors after:absolute after:-bottom-1.5 after:left-0 after:h-px after:bg-wine after:transition-all after:duration-300 ${
+                    active
+                      ? "font-medium text-wine after:w-full"
+                      : "text-ink-soft after:w-0 hover:text-wine hover:after:w-full"
+                  }`}
+                >
+                  {t(key)}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Ações — desktop */}
+          <div className="hidden items-center gap-5 lg:flex">
+            <Link
+              href="/busca"
+              aria-label={t("search")}
+              className="text-ink-soft transition-colors hover:text-wine"
+            >
+              <SearchIcon className="h-5 w-5" />
+            </Link>
+            <LanguageSwitcher />
+          </div>
+
+          {/* Botão do menu — mobile */}
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Menu"
+            aria-expanded={open}
+            className="flex h-10 w-10 items-center justify-center text-green-deep lg:hidden"
+          >
+            <span className="relative block h-4 w-6">
+              <span
+                className={`absolute left-0 block h-0.5 w-6 bg-current transition-all duration-300 ${
+                  open ? "top-1.5 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-1.5 block h-0.5 w-6 bg-current transition-all duration-300 ${
+                  open ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-0.5 w-6 bg-current transition-all duration-300 ${
+                  open ? "top-1.5 -rotate-45" : "top-3"
+                }`}
+              />
+            </span>
+          </button>
         </div>
+      </header>
 
-        {/* Botão do menu — mobile */}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Menu"
-          aria-expanded={open}
-          className="flex h-10 w-10 items-center justify-center text-green-deep lg:hidden"
-        >
-          <span className="relative block h-4 w-6">
-            <span
-              className={`absolute left-0 block h-0.5 w-6 bg-current transition-all duration-300 ${
-                open ? "top-1.5 rotate-45" : "top-0"
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-1.5 block h-0.5 w-6 bg-current transition-all duration-300 ${
-                open ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <span
-              className={`absolute left-0 block h-0.5 w-6 bg-current transition-all duration-300 ${
-                open ? "top-1.5 -rotate-45" : "top-3"
-              }`}
-            />
-          </span>
-        </button>
-      </div>
-
-      {/* Drawer — mobile */}
+      {/* Drawer — mobile.
+          ⚠️ Precisa ficar FORA do <header>: o `backdrop-blur` dele cria bloco de
+          contenção para descendentes `position: fixed`, então aqui dentro o
+          drawer era posicionado em relação à BARRA (80px) e ficava com altura 0
+          — abria, travava o scroll da página e não aparecia nada. */}
       <div
         className={`fixed inset-0 top-[var(--header-h)] z-40 bg-green-deep text-cream transition-all duration-300 lg:hidden ${
           open
@@ -220,6 +228,6 @@ export default function Header() {
           </div>
         </nav>
       </div>
-    </header>
+    </>
   );
 }

@@ -54,7 +54,30 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ---
 
-### 🗓️ Sessão 07/08/2026 (mais recente) — Imagens de public/ no Pages (basePath)
+### 🗓️ Sessão 08/08/2026 (mais recente) — Menu hamburguer não abria no celular
+**Sintoma:** no celular o botão do menu "não funcionava" — a página até travava o
+scroll, mas nada aparecia.
+
+**Causa (armadilha de CSS):** o `<header>` tem `backdrop-blur`, e um elemento com
+`backdrop-filter` vira **bloco de contenção para descendentes `position: fixed`**.
+O drawer era filho do `<header>`, então o `fixed inset-0 top-[var(--header-h)]`
+passou a ser relativo à BARRA (80px de altura): topo em 80px, base em 0 →
+**altura 0**. Medido no navegador: `drawer_rect {y:80, w:390, h:0}` com
+`visibility: visible` e `opacity: 1`.
+
+**Correção:** o drawer saiu de dentro do `<header>` (agora são irmãos, dentro de
+um fragmento) — o bloco de contenção volta a ser a viewport. Nada de z-index ou
+design mudou. Verificado com Chrome emulando iPhone 12: altura passou de 0 para
+764px, o menu aparece, clicar em "Contato" navega para `/pt/contato` e fecha o
+drawer destravando o scroll.
+
+> ⚠️ Regra para o futuro: **nada `position: fixed` dentro do `<header>`** (ou de
+> qualquer elemento com `backdrop-blur`/`transform`/`filter`). Modal, drawer e
+> afins ficam fora dele.
+
+---
+
+### 🗓️ Sessão 07/08/2026 — Imagens de public/ no Pages (basePath)
 No site publicado a logo do header e a foto do hero não apareciam (404), embora
 os arquivos estivessem lá. **Causa:** o export estático exige
 `images.unoptimized` e, nesse modo, o `next/image` devolve o `src` como recebeu —
