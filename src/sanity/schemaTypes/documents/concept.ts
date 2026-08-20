@@ -20,6 +20,28 @@ export const concept = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
+      name: "group",
+      title: "Grupo",
+      type: "string",
+      description:
+        "Onde o conceito aparece na página inicial: como dimensão da ECP ou como verbete do vocabulário Ser Poder.",
+      options: {
+        list: [
+          { title: "Dimensão da ECP", value: "dimension" },
+          { title: "Vocabulário Ser Poder", value: "vocabulary" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "vocabulary",
+    }),
+    defineField({
+      name: "order",
+      title: "Ordem",
+      type: "number",
+      description:
+        "Posição dentro do grupo (1, 2, 3…). Sem número, entra em ordem alfabética no fim.",
+    }),
+    defineField({
       name: "shortDefinition",
       title: "Definição curta (1 frase)",
       type: "localeText",

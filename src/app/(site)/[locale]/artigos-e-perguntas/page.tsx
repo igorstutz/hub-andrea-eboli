@@ -7,6 +7,7 @@ import SectionOrderToggle from "@/components/SectionOrderToggle";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { questionsListQuery, articlesListQuery } from "@/sanity/lib/queries";
 import { alternatesFor } from "@/lib/seo";
+import { ASK_QUESTION_URL } from "@/lib/askQuestion";
 import {
   normalizeArticleSource,
   presentArticleSources,
@@ -42,17 +43,37 @@ export async function generateMetadata({
   };
 }
 
-function SectionTitle({ title, cta, href }: { title: string; cta: string; href: string }) {
+// Cabeçalho de cada bloco: título, CTA para a listagem completa e os dois
+// parágrafos de apresentação que a Andrea escreveu.
+function SectionIntro({
+  title,
+  cta,
+  href,
+  p1,
+  p2,
+}: {
+  title: string;
+  cta: string;
+  href: string;
+  p1: string;
+  p2: string;
+}) {
   return (
-    <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-      <h2 className="text-3xl text-green-deep md:text-4xl">{title}</h2>
-      <Link
-        href={href}
-        className="group inline-flex items-center gap-2 text-sm font-medium text-wine transition-all hover:gap-3"
-      >
-        {cta}
-        <span className="transition-transform group-hover:translate-x-0.5">→</span>
-      </Link>
+    <div className="mb-12">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 className="text-3xl text-green-deep md:text-4xl">{title}</h2>
+        <Link
+          href={href}
+          className="group inline-flex items-center gap-2 text-sm font-medium text-wine transition-all hover:gap-3"
+        >
+          {cta}
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+        </Link>
+      </div>
+      <div className="mt-6 max-w-3xl space-y-4">
+        <p className="leading-relaxed text-ink-soft">{p1}</p>
+        <p className="leading-relaxed text-ink-soft">{p2}</p>
+      </div>
     </div>
   );
 }
@@ -66,7 +87,6 @@ export default async function Page({
   setRequestLocale(locale);
   const t = await getTranslations();
   const tp = await getTranslations("articlesQuestionsPage");
-  const tb = await getTranslations("banner");
 
   const [questions, articles] = await Promise.all([
     sanityFetch<QItem[]>(questionsListQuery, { locale }),
@@ -81,7 +101,6 @@ export default async function Page({
           { label: t("nav.articlesQuestions") },
         ]}
         badge={tp("badge")}
-        kicker={tb("kicker")}
         title={t("nav.articlesQuestions")}
         lead={tp("headline")}
       />
@@ -94,10 +113,12 @@ export default async function Page({
         articlesLabel={tp("articlesTitle")}
         questions={
           <>
-            <SectionTitle
+            <SectionIntro
               title={tp("questionsTitle")}
               cta={tp("questionsCta")}
               href="/perguntas"
+              p1={tp("questionsP1")}
+              p2={tp("questionsP2")}
             />
             {questions.length === 0 ? (
               <p className="text-ink-soft">{t("common.empty")}</p>
@@ -114,14 +135,34 @@ export default async function Page({
                 }))}
               />
             )}
+
+            {/* Convite para enviar uma pergunta nova */}
+            <div className="mt-12 flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-wine/20 bg-wine/[0.04] px-7 py-7">
+              <p className="max-w-xl font-serif text-lg italic leading-relaxed text-green-deep">
+                {tp("askPrompt")}
+              </p>
+              <a
+                href={ASK_QUESTION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-wine px-7 py-3.5 text-sm font-semibold uppercase tracking-wider text-cream transition-all hover:gap-3 hover:bg-wine-deep"
+              >
+                {tp("askCta")}
+                <span className="transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
+              </a>
+            </div>
           </>
         }
         articles={
           <>
-            <SectionTitle
+            <SectionIntro
               title={tp("articlesTitle")}
               cta={tp("articlesCta")}
               href="/artigos"
+              p1={tp("articlesP1")}
+              p2={tp("articlesP2")}
             />
             {articles.length === 0 ? (
               <p className="text-ink-soft">{t("common.empty")}</p>

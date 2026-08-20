@@ -5,20 +5,18 @@
     "cases": "Cases",
     "articles": "Articles",
     "videos": "Videos",
-    "about": "About Andrea Eboli",
-    "serPoder": "About Ser Poder",
+    "about": "About",
+    "aboutLong": "About Andrea Eboli",
     "articlesQuestions": "Articles & Questions",
     "videosPodcast": "Videos & Podcast",
+    "research": "Research",
+    "confraria": "Confraria",
     "media": "In the Media",
     "book": "Book",
     "contact": "Contact",
     "search": "Search"
   },
-  "banner": {
-    "kicker": "Perception · Choice · Presence"
-  },
   "home": {
-    "badge": "Researcher · Forbes Councils · TED",
     "rotatingLabel": "Have you ever wondered…",
     "rotatingQuestions": [
       "Why do I feel empty despite success?",
@@ -30,23 +28,33 @@
     ],
     "answerLabel": "There is a name for all of this",
     "title": "Ser Poder",
-    "lead": "A knowledge hub on the distance between outer success and inner coherence — and the language to cross it.",
-    "ctaPrimary": "Explore the libraries",
+    "leadStrong": "The world taught us to HAVE power. But no one taught us to BE it.",
+    "lead": "Ser Poder means not depending on what you have in order to recognize who you are. It means finding within yourself a potency that does not vanish when roles, achievements, relationships or recognition change.",
+    "ctaPrimary": "What Ser Poder is",
     "ctaSecondary": "Meet Andrea",
-    "credentialsLabel": "Recognized by",
-    "credentials": [
-      "Forbes Councils",
-      "TED",
-      "ESPM",
-      "Natura &Co.",
-      "Harvard",
-      "NYU",
-      "Swiss Business School"
-    ],
-    "librariesTitle": "Four libraries, one body of knowledge",
-    "librariesLead": "People arrive through questions. Here, each question meets an answer — and a language of its own to name it.",
-    "thesis": "The next great leap in leadership won't be technological. It will be neurological.",
-    "thesisAuthor": "Andrea Eboli",
+    "thesisBadge": "The thesis",
+    "thesisTitle": "What is Ser Poder?",
+    "thesisP1": "For more than 25 years I worked alongside capable, recognized and successful people. People who had earned roles, influence, results and everything we usually associate with power.",
+    "thesisP2": "But something did not add up. Some lost their own potency the moment they left a position. Others, even surrounded by recognition, never came to feel truly powerful.",
+    "thesisP3": "That is when one question became unavoidable: if power disappears when whatever confirms it changes, does that power really belong to us?",
+    "thesisP4": "Ser Poder was born out of that restlessness, as an investigation into the distance between what we achieve and the potency we manage to recognize and sustain within ourselves.",
+    "questionsTitle": "Three questions drive this investigation",
+    "q1": "Why do people who have power seem to lose it when they leave roles, titles or positions?",
+    "q2": "Why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
+    "q3": "And why do some people, with no roles, titles or recognition at all, reveal a potency that seems to depend on none of it?",
+    "ecpBadge": "ECP · original method",
+    "ecpTitle": "Out of the investigation came the Conscious Structure of Power",
+    "ecpP1": "The three questions revealed that the experience of power cannot be explained by what a person owns. It is organized in the relationship between who that person is, the context they live in and the way they move inside it.",
+    "ecpP2": "From that understanding came the Conscious Structure of Power, the ECP: Andrea Eboli's original method for crossing the distance between HAVING power and BEING power.",
+    "ecpP3": "The ECP articulates three inseparable dimensions (Identity, Context and Movement) and offers a path to recognize where we hand over our potency, understand what influences us and choose how to act.",
+    "ecpQuote": "It is not a formula for controlling life. It is a structure for not disappearing inside it.",
+    "dimensionsLabel": "The concepts",
+    "dimensionsTitle": "The three dimensions of the ECP",
+    "vocabularyLabel": "Glossary",
+    "vocabularyTitle": "The Ser Poder vocabulary",
+    "vocabularyLead": "Every idea in the thesis with a name of its own.",
+    "librariesTitle": "The hub libraries",
+    "librariesLead": "All the content gathered by type: the questions people ask, the dictionary of the thesis, the behavior patterns and the articles that support the research.",
     "newsletterBadge": "Weekly newsletter",
     "newsletterTitle": "Notes on Power",
     "newsletterLead": "Observations on human behavior, identity and conscious power. No noise.",
@@ -60,7 +68,7 @@
     "questions": {
       "name": "Human Questions",
       "badge": "The core asset",
-      "desc": "The real questions people ask every day — from identity to leadership."
+      "desc": "The real questions people ask every day, from identity to leadership."
     },
     "concepts": {
       "name": "Ser Poder Concepts",
@@ -70,7 +78,7 @@
     "cases": {
       "name": "Cases & Characters",
       "badge": "The patterns",
-      "desc": "The behavior patterns you recognize — and how to move through them."
+      "desc": "The behavior patterns you recognize and the way through them."
     },
     "articles": {
       "name": "Articles",
@@ -80,7 +88,7 @@
     "videos": {
       "name": "Videos & Podcasts",
       "badge": "The thesis in motion",
-      "desc": "Andrea's episodes and interviews — with summary, takeaways and transcript."
+      "desc": "Andrea's episodes and interviews, with summary, takeaways and transcript."
     }
   },
   "videoPage": {
@@ -140,44 +148,75 @@
   },
   "aboutPage": {
     "role": "Researcher · Author · Professor",
-    "headline": "Founder of the Academia do Poder — investigating the new relationships between power, identity and leadership in contemporary life.",
+    "headline": "Founder of the Academia do Poder. She investigates the new relationships between power, identity and leadership in contemporary life.",
     "p1": "Andrea Eboli is a researcher, author, professor and founder of the Academia do Poder. She investigates the new relationships between power, identity and leadership in contemporary life.",
-    "p2": "Her investigation begins with two central questions: why do people who have power seem to lose it when they leave roles, titles or positions? And why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
-    "p3": "With international master's and doctoral training, an academic career and more than two decades of executive experience, Andrea proposes a new reading of contemporary power and conscious leadership.",
-    "p4": "Creator of the Conscious Structure of Power — ECP, her original method, she turns this investigation into a practical path for people and leaders to cross the distance between having power and feeling truly potent in it.",
+    "questionsLabel": "The three questions behind the investigation",
+    "q1": "Why do people who have power seem to lose it when they leave roles, titles or positions?",
+    "q2": "Why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
+    "q3": "And why do some people, with no roles, titles or recognition at all, reveal a potency that seems to depend on none of it?",
+    "p2": "With an international academic path, a master's degree, a doctorate and more than two decades of executive experience, Andrea brings research and practice together to propose a new understanding of contemporary power and conscious leadership.",
+    "p3": "Creator of the Conscious Structure of Power (ECP), Andrea turns this investigation into a practical path for people and leaders to cross the distance between having power and recognizing their own potency.",
     "quote": "The world has changed. So have the relationships of power. And the way we occupy, sustain and live power must change with it.",
-    "credentialsLabel": "Recognition",
+    "experiencesLabel": "Experience",
+    "experiences": [
+      "17 years of executive leadership at Natura &Co.",
+      "MBA professor at FGV",
+      "Master's degree and doctorate from Swiss Business School",
+      "Further education at Harvard and NYU",
+      "Forbes Business Council member and contributor at forbes.com",
+      "TEDx speaker"
+    ],
     "methodCta": "Explore the Ser Poder thesis",
     "contactCta": "Get in touch",
     "galleryLabel": "Gallery",
     "galleryTitle": "Andrea in pictures",
     "gallerySoon": "Gallery coming soon."
   },
-  "serPoderPage": {
-    "badge": "The thesis",
-    "headline": "The distance between having power and feeling truly potent in it.",
-    "introTitle": "What Ser Poder is",
-    "introBody": "Ser Poder is a new reading of contemporary power and conscious leadership. It begins with a simple, uncomfortable realization: having power and feeling powerful are not the same thing. Roles, titles and recognition do not guarantee a sense of potency — and it is in that distance that most people get lost.",
-    "questionsTitle": "Two questions drive this investigation",
-    "q1": "Why do people who have power seem to lose it when they leave roles, titles or positions?",
-    "q2": "Why do so many others, even surrounded by recognition, influence and performance, not feel truly powerful?",
-    "ecpBadge": "ECP · original method",
-    "ecpTitle": "The Conscious Structure of Power",
-    "ecpBody": "The ECP is Andrea Eboli's original method — a practical path to cross that distance. Instead of treating power as a role or a performance, it works power as a conscious structure: something you occupy, sustain and live from the inside out. It is the axis that connects every concept in this hub.",
-    "conceptsTitle": "The pillar concepts",
-    "conceptsLead": "The vocabulary of the thesis — each idea with a name of its own.",
-    "ctaTitle": "Where the thesis becomes practice",
-    "ctaBody": "Human questions, articles and cases that name what you live.",
-    "cta": "Explore Articles & Questions"
-  },
   "articlesQuestionsPage": {
     "badge": "Articles & Questions",
-    "headline": "The real questions people ask — and the foundation behind the answers.",
+    "headline": "Real questions and reflections on power, identity and the way we are living, to widen the view and strengthen awareness and inner power.",
     "questionsTitle": "Human Questions",
+    "questionsP1": "When we begin a journey of personal growth, new questions become part of the path, and we do not always find ready answers.",
+    "questionsP2": "Human Questions is a space for reflection and provocation around those questions, grounded in the principles of the Conscious Structure of Power (ECP). More than offering certainties, each answer invites you to widen your view and find more conscious paths.",
+    "askPrompt": "Didn't find your question here? Send it in. It may inspire one of the next answers.",
+    "askCta": "Send your question",
     "articlesTitle": "Articles",
+    "articlesP1": "These articles are born where research, theoretical references and lived experience meet. Questions, perceptions and contributions from the people who take part in studies, gatherings and conversations around the ECP.",
+    "articlesP2": "Here, knowledge is not presented as something finished. It is built collectively, tested against real life and expanded with every new exchange. The sources behind each reflection are cited in the texts themselves.",
     "questionsCta": "See all questions",
     "articlesCta": "See all articles",
     "orderLabel": "Show first"
+  },
+  "evidence": {
+    "label": "Research and experience",
+    "intro": "Ser Poder is built and validated where research meets experience: the research gathers the evidence that supports its hypotheses, while the Confraria Let's Be takes the method into real life, making it possible to observe its application, its effects and the learning it generates in different contexts. Together they connect theory, data and practice, keeping the method in constant evolution.",
+    "quote": "The research reveals the patterns. The Confraria puts the method into practice."
+  },
+  "researchPage": {
+    "badge": "ECP Research",
+    "title": "ECP Research",
+    "headline": "The evidence that supports the hypotheses of Ser Poder.",
+    "findingsLabel": "What the data shows",
+    "chartLabel": "Research overview",
+    "methodologyLabel": "Sample and methodology",
+    "soon": "The research data will be published here soon.",
+    "methodologySoon": "In preparation.",
+    "cta": "Explore the research",
+    "crossTitle": "And in practice?",
+    "crossBody": "The Confraria Let's Be takes the ECP into real conversations.",
+    "crossCta": "Discover the Confraria"
+  },
+  "confrariaPage": {
+    "badge": "Confraria Let's Be",
+    "title": "Confraria Let's Be",
+    "headline": "Where the Conscious Structure of Power meets real life.",
+    "photosLabel": "The Confraria in pictures",
+    "testimonialLabel": "What a participant learned",
+    "soon": "Photos and testimonials from the Confraria are coming soon.",
+    "cta": "Discover the Confraria",
+    "crossTitle": "And the data?",
+    "crossBody": "The ECP research gathers the evidence behind the method.",
+    "crossCta": "Explore the research"
   },
   "mediaPage": {
     "badge": "In the Media",
@@ -191,7 +230,7 @@
     "badge": "Book",
     "status": "In preparation",
     "headline": "Andrea Eboli's book is on its way.",
-    "body": "A work on conscious power, identity and contemporary leadership — the Ser Poder thesis in book form. Leave your email and be the first to know at launch."
+    "body": "A work on conscious power, identity and contemporary leadership: the Ser Poder thesis in book form. Leave your email and be the first to know at launch."
   },
   "contactPage": {
     "badge": "Contact",
@@ -208,7 +247,7 @@
     "label": "Andrea Eboli on {network}"
   },
   "footer": {
-    "tagline": "A reference in leadership, neuroscience and conscious power.",
+    "tagline": "Researcher and creator of the ECP, a pioneering approach to understanding and developing conscious power.",
     "rights": "All rights reserved."
   }
 }

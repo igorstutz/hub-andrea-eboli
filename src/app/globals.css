@@ -100,12 +100,11 @@ h4 {
 }
 
 /* ----------------------------------------------------------------
-   Foto editorial (uso "não orgânico", estilo Esther Perel):
-   moldura em arco + leve tratamento de cor da marca.
+   Foto editorial: moldura RETANGULAR (pedido da Andrea em 19/08/2026 —
+   o arco anterior saiu) + leve tratamento de cor da marca.
 ----------------------------------------------------------------- */
-.photo-arch {
-  border-top-left-radius: 999px;
-  border-top-right-radius: 999px;
+.photo-frame {
+  border-radius: 4px;
   overflow: hidden;
 }
 .photo-duotone {

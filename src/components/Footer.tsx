@@ -3,14 +3,17 @@ import { Link } from "@/i18n/navigation";
 import SocialLinks from "./SocialLinks";
 
 const COL_A = [
-  { key: "serPoder", href: "/ser-poder" },
   { key: "about", href: "/sobre" },
   { key: "articlesQuestions", href: "/artigos-e-perguntas" },
   { key: "videosPodcast", href: "/videos" },
+  { key: "concepts", href: "/conceitos" },
+  { key: "cases", href: "/casos" },
 ] as const;
 
+// "Na mídia" saiu (pedido de 19/08/2026) — a rota existe, mas não é linkada.
 const COL_B = [
-  { key: "media", href: "/na-midia" },
+  { key: "research", href: "/pesquisa" },
+  { key: "confraria", href: "/confraria" },
   { key: "book", href: "/livro" },
   { key: "contact", href: "/contato" },
   { key: "search", href: "/busca" },
@@ -19,7 +22,6 @@ const COL_B = [
 export default async function Footer() {
   const t = await getTranslations("footer");
   const tn = await getTranslations("nav");
-  const tb = await getTranslations("banner");
 
   return (
     <footer className="bg-green-darker text-cream/70">
@@ -62,7 +64,7 @@ export default async function Footer() {
 
       <div className="border-t border-cream/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="kicker text-cream/40">{tb("kicker")}</p>
+          <p className="kicker text-cream/40">Ser Poder</p>
           <p className="text-xs text-cream/50">
             © Andrea Eboli. {t("rights")}
           </p>

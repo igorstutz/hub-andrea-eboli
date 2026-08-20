@@ -16,7 +16,7 @@ export default async function AuthorCard() {
           <p className="font-serif text-xl leading-tight text-green-deep">
             Andrea Eboli
           </p>
-          <p className="text-xs text-muted">{t("home.badge")}</p>
+          <p className="text-xs text-muted">{t("aboutPage.role")}</p>
         </div>
       </div>
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">

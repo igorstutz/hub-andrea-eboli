@@ -22,7 +22,13 @@ const LIBRARIES = [
 ] as const;
 
 type QItem = { title: string; slug: string; answer?: string; topic?: { title: string } | null };
-type CItem = { title: string; slug: string; shortDefinition?: string };
+type CItem = {
+  title: string;
+  slug: string;
+  group?: string;
+  order?: number;
+  shortDefinition?: string;
+};
 type CaseItem = { title: string; slug: string; description?: string };
 type AItem = { title: string; slug: string; kind?: string; excerpt?: string; publishedAt?: string };
 type VItem = { title: string; slug: string; summary?: string; youtubeUrl?: string; durationSeconds?: number };
@@ -103,77 +109,220 @@ export default async function HomePage({
     sanityFetch<VItem[]>(videosListQuery, { locale }),
   ]);
 
+  // A home é a página central da tese: as três dimensões da ECP e o vocabulário
+  // Ser Poder vêm da mesma biblioteca de conceitos, separados pelo campo "group".
+  const dimensions = concepts.filter((c) => c.group === "dimension");
+  const vocabulary = concepts.filter((c) => c.group === "vocabulary");
+
   return (
     <>
       {/* ============ BANNER ============ */}
       <HomeBanner />
 
-      {/* ============ BIBLIOTECAS ============ */}
-      <section id="bibliotecas" className="bg-cream">
-        <div className="mx-auto max-w-6xl px-6 py-28">
+      {/* ============ A TESE — o que é Ser Poder ============ */}
+      <section id="ser-poder" className="bg-cream">
+        <div className="mx-auto max-w-3xl px-6 py-24 md:py-28">
           <Reveal>
-            <h2 className="max-w-2xl text-4xl text-wine md:text-5xl">
-              {t("librariesTitle")}
+            <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
+              {t("thesisBadge")}
+            </span>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 className="mt-6 text-4xl text-wine md:text-5xl">
+              {t("thesisTitle")}
             </h2>
           </Reveal>
-          <Reveal delay={120}>
-            <p className="mt-4 max-w-2xl text-ink-soft">{t("librariesLead")}</p>
+          <Reveal delay={200}>
+            <div className="drop-cap mt-8">
+              <p className="text-xl leading-relaxed text-ink">{t("thesisP1")}</p>
+            </div>
           </Reveal>
+          <Reveal delay={280}>
+            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP2")}</p>
+          </Reveal>
+          <Reveal delay={340}>
+            <p className="mt-6 border-l-2 border-wine pl-5 font-serif text-xl italic leading-relaxed text-green-deep">
+              {t("thesisP3")}
+            </p>
+          </Reveal>
+          <Reveal delay={400}>
+            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP4")}</p>
+          </Reveal>
+        </div>
+      </section>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            {LIBRARIES.map(({ key, href, num }, i) => (
-              <Reveal key={key} delay={i * 110}>
-                <Link
-                  href={href}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-bone p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(65,24,30,0.45)]"
-                >
-                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-green-deep/10 blur-2xl" />
-                  </div>
-                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
-
-                  <div className="relative flex items-start justify-between">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-wine/20 bg-wine/5 text-wine transition-all duration-500 group-hover:border-transparent group-hover:bg-green-deep group-hover:text-cream">
-                      <LibraryIcon name={key} className="h-6 w-6" />
-                    </span>
-                    <span className="font-serif text-4xl italic leading-none text-green-deep/35 transition-colors duration-500 group-hover:text-green-deep">
-                      {num}
-                    </span>
-                  </div>
-
-                  <span className="relative mt-7 inline-flex w-fit items-center rounded-full bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-wine-soft transition-colors duration-500 group-hover:bg-green-deep/10 group-hover:text-green-deep">
-                    {tl(`${key}.badge`)}
+      {/* ============ AS TRÊS PERGUNTAS ============ */}
+      <section className="relative overflow-hidden bg-green-deep text-cream">
+        <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-50" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-6 -top-16 select-none font-serif text-[22rem] leading-none text-cream/[0.05]"
+        >
+          ?
+        </span>
+        <div className="relative mx-auto max-w-5xl px-6 py-24">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl text-cream md:text-4xl">
+              {t("questionsTitle")}
+            </h2>
+          </Reveal>
+          <div className="mt-14 grid gap-10 md:grid-cols-3">
+            {[t("q1"), t("q2"), t("q3")].map((q, i) => (
+              <Reveal key={i} delay={i * 140}>
+                <div>
+                  <span className="font-serif text-5xl font-semibold leading-none text-cream/25">
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-
-                  <h3 className="relative mt-4 text-2xl text-wine">
-                    {tl(`${key}.name`)}
-                  </h3>
-                  <p className="relative mt-2 flex-1 text-sm text-ink-soft">
-                    {tl(`${key}.desc`)}
+                  <p className="mt-4 font-serif text-xl italic leading-snug text-cream/90 md:text-2xl">
+                    {q}
                   </p>
-
-                  <span className="relative mt-6 flex items-center gap-2 text-green-deep">
-                    <span className="h-px w-6 bg-green-deep transition-all duration-500 group-hover:w-9" />
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4 -translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
-                      aria-hidden
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m13 6 6 6-6 6" />
-                    </svg>
-                  </span>
-                </Link>
+                </div>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ============ A ECP — o método ============ */}
+      <section className="bg-bone">
+        <div className="mx-auto max-w-3xl px-6 py-24">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
+              {t("ecpBadge")}
+            </span>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 className="mt-6 text-3xl text-green-deep md:text-5xl">
+              {t("ecpTitle")}
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p className="mt-8 leading-relaxed text-ink-soft">{t("ecpP1")}</p>
+          </Reveal>
+          <Reveal delay={260}>
+            <p className="mt-5 leading-relaxed text-ink-soft">{t("ecpP2")}</p>
+          </Reveal>
+          <Reveal delay={320}>
+            <p className="mt-5 leading-relaxed text-ink-soft">{t("ecpP3")}</p>
+          </Reveal>
+          <Reveal delay={400}>
+            <blockquote className="mt-12 border-t border-ink/10 pt-10">
+              <p className="font-serif text-2xl font-medium leading-snug text-wine md:text-3xl">
+                {t("ecpQuote")}
+              </p>
+              <cite className="mt-5 block text-sm uppercase not-italic tracking-[0.2em] text-wine">
+                Andrea Eboli
+              </cite>
+            </blockquote>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============ AS TRÊS DIMENSÕES DA ECP ============ */}
+      {dimensions.length > 0 && (
+        <section className="relative overflow-hidden bg-wine text-cream">
+          <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-40" />
+          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-green-soft/25" />
+          <div className="relative mx-auto max-w-6xl px-6 py-24">
+            <Reveal>
+              <SectionHeading
+                badge={t("dimensionsLabel")}
+                title={t("dimensionsTitle")}
+                href="/conceitos"
+                cta={t("sectionCta")}
+                dark
+              />
+            </Reveal>
+            <div className="grid gap-5 md:grid-cols-3">
+              {dimensions.map((c, i) => (
+                <Reveal key={c.slug} delay={i * 110}>
+                  <Link
+                    href={`/conceitos/${c.slug}`}
+                    className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-cream/10 bg-cream/5 p-7 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-cream/40 hover:bg-cream/10"
+                  >
+                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-cream/60 to-green-soft transition-transform duration-500 group-hover:scale-x-100" />
+                    <span
+                      className="font-serif text-4xl font-semibold leading-none text-cream/25 transition-colors duration-300 group-hover:text-cream/55"
+                      aria-hidden
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="mt-4 font-serif text-2xl text-cream">
+                      {c.title}
+                    </h3>
+                    {c.shortDefinition && (
+                      <p className="mt-3 flex-1 text-sm leading-relaxed text-cream/75">
+                        {c.shortDefinition}
+                      </p>
+                    )}
+                    <span className="mt-6 flex items-center gap-2 text-cream">
+                      <span className="h-px w-6 bg-cream/50 transition-all duration-500 group-hover:w-10" />
+                      <span className="-translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">
+                        →
+                      </span>
+                    </span>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============ O VOCABULÁRIO SER PODER ============ */}
+      {vocabulary.length > 0 && (
+        <section className="relative overflow-hidden bg-cream">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-16 right-6 select-none font-serif text-[16rem] italic leading-none text-wine/[0.05]"
+          >
+            “
+          </span>
+          <div className="relative mx-auto max-w-5xl px-6 py-24">
+            <Reveal>
+              <p className="kicker text-wine">{t("vocabularyLabel")}</p>
+              <h2 className="mt-3 text-3xl text-wine md:text-4xl">
+                {t("vocabularyTitle")}
+              </h2>
+              <p className="mt-3 text-ink-soft">{t("vocabularyLead")}</p>
+            </Reveal>
+            <ul className="mt-12 divide-y divide-ink/10 border-y border-ink/10">
+              {vocabulary.map((c, i) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/conceitos/${c.slug}`}
+                    className="group flex items-baseline gap-5 py-7 transition-colors hover:bg-bone sm:gap-8"
+                  >
+                    <span className="font-serif text-2xl italic leading-none text-wine/40 transition-colors group-hover:text-wine">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-6">
+                        <h3 className="min-w-[15rem] font-serif text-2xl uppercase tracking-tight text-wine transition-colors group-hover:text-green-deep">
+                          {c.title}
+                        </h3>
+                        {c.shortDefinition && (
+                          <span className="text-ink-soft">
+                            {c.shortDefinition}
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                    <span
+                      className="hidden self-center text-green-deep opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100 sm:block"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* ============ VÍDEOS E PODCAST ============ */}
       {videos.length > 0 && (
@@ -246,67 +395,9 @@ export default async function HomePage({
         </section>
       )}
 
-      {/* ============ CONCEITOS (pilares — vivem em Ser Poder) ============ */}
-      {concepts.length > 0 && (
-        <section className="relative overflow-hidden bg-wine text-cream">
-          <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-40" />
-          <div className="blob animate-float absolute -right-24 top-16 h-80 w-80 bg-green-soft/25" />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -top-16 right-6 select-none font-serif text-[16rem] italic leading-none text-cream/5"
-          >
-            “
-          </span>
-          <div className="relative mx-auto max-w-6xl px-6 py-24">
-            <Reveal>
-              <SectionHeading
-                badge={tl("concepts.badge")}
-                title={tl("concepts.name")}
-                lead={tl("concepts.desc")}
-                href="/ser-poder"
-                cta={t("sectionCta")}
-                dark
-              />
-            </Reveal>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {concepts.map((c, i) => (
-                <Reveal key={c.slug} delay={i * 90}>
-                  <Link
-                    href={`/conceitos/${c.slug}`}
-                    className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-cream/10 bg-cream/5 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-cream/40 hover:bg-cream/10"
-                  >
-                    <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-cream/60 to-green-soft transition-transform duration-500 group-hover:scale-x-100" />
-                    <span
-                      className="absolute right-5 top-4 font-serif text-3xl italic leading-none text-cream/20 transition-colors duration-300 group-hover:text-cream/50"
-                      aria-hidden
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="pr-10 font-serif text-2xl text-cream">
-                      {c.title}
-                    </h3>
-                    {c.shortDefinition && (
-                      <p className="mt-3 flex-1 text-sm leading-relaxed text-cream/75">
-                        {c.shortDefinition}
-                      </p>
-                    )}
-                    <span className="mt-5 flex items-center gap-2 text-cream">
-                      <span className="h-px w-6 bg-cream/50 transition-all duration-500 group-hover:w-10" />
-                      <span className="-translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">
-                        →
-                      </span>
-                    </span>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* ============ PERGUNTAS ============ */}
       {questions.length > 0 && (
-        <section className="relative overflow-hidden bg-bone">
+        <section className="relative overflow-hidden bg-cream">
           <span
             aria-hidden
             className="pointer-events-none absolute -right-8 -top-20 select-none font-serif text-[22rem] italic leading-none text-green-deep/[0.05]"
@@ -329,7 +420,7 @@ export default async function HomePage({
                 <Reveal key={q.slug} delay={i * 70}>
                   <Link
                     href={`/perguntas/${q.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-cream p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
                   >
                     <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
                     <span
@@ -361,7 +452,7 @@ export default async function HomePage({
 
       {/* ============ CASOS ============ */}
       {cases.length > 0 && (
-        <section className="relative overflow-hidden bg-cream">
+        <section className="relative overflow-hidden bg-bone">
           <div className="blob animate-float absolute -right-20 top-10 h-80 w-80 bg-green-deep/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
@@ -378,7 +469,7 @@ export default async function HomePage({
                 <Reveal key={c.slug} delay={i * 90}>
                   <Link
                     href={`/casos/${c.slug}`}
-                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-bone p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
+                    className="group relative block h-full overflow-hidden rounded-xl border border-ink/10 bg-cream p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(65,24,30,0.4)]"
                   >
                     <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
                     <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
@@ -402,24 +493,6 @@ export default async function HomePage({
           </div>
         </section>
       )}
-
-      {/* ============ TESE ============ */}
-      <section className="relative overflow-hidden bg-wine-deep text-cream">
-        <div className="gradient-mesh-wine pointer-events-none absolute inset-0 opacity-50" />
-        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
-          <Reveal>
-            <span className="font-serif text-7xl leading-none text-cream/25">
-              “
-            </span>
-            <blockquote className="-mt-6 font-serif text-3xl italic leading-snug md:text-5xl">
-              {t("thesis")}
-            </blockquote>
-            <cite className="mt-8 block text-sm uppercase not-italic tracking-[0.2em] text-cream/70">
-              {t("thesisAuthor")}
-            </cite>
-          </Reveal>
-        </div>
-      </section>
 
       {/* ============ ARTIGOS ============ */}
       {articles.length > 0 && (
@@ -485,6 +558,75 @@ export default async function HomePage({
           </div>
         </section>
       )}
+
+      {/* ============ BIBLIOTECAS ============
+          A pedido da Andrea (19/08/2026) as bibliotecas saíram do topo e vivem
+          aqui no fim, como referência para as outras abas. */}
+      <section id="bibliotecas" className="border-t border-ink/10 bg-bone">
+        <div className="mx-auto max-w-6xl px-6 py-24">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl text-wine md:text-4xl">
+              {t("librariesTitle")}
+            </h2>
+          </Reveal>
+          <Reveal delay={120}>
+            <p className="mt-4 max-w-2xl text-ink-soft">{t("librariesLead")}</p>
+          </Reveal>
+
+          <div className="mt-14 grid gap-6 sm:grid-cols-2">
+            {LIBRARIES.map(({ key, href, num }, i) => (
+              <Reveal key={key} delay={i * 110}>
+                <Link
+                  href={href}
+                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-cream p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(65,24,30,0.45)]"
+                >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-green-deep/10 blur-2xl" />
+                  </div>
+                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
+
+                  <div className="relative flex items-start justify-between">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-wine/20 bg-wine/5 text-wine transition-all duration-500 group-hover:border-transparent group-hover:bg-green-deep group-hover:text-cream">
+                      <LibraryIcon name={key} className="h-6 w-6" />
+                    </span>
+                    <span className="font-serif text-4xl italic leading-none text-green-deep/35 transition-colors duration-500 group-hover:text-green-deep">
+                      {num}
+                    </span>
+                  </div>
+
+                  <span className="relative mt-7 inline-flex w-fit items-center rounded-full bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-wine-soft transition-colors duration-500 group-hover:bg-green-deep/10 group-hover:text-green-deep">
+                    {tl(`${key}.badge`)}
+                  </span>
+
+                  <h3 className="relative mt-4 text-2xl text-wine">
+                    {tl(`${key}.name`)}
+                  </h3>
+                  <p className="relative mt-2 flex-1 text-sm text-ink-soft">
+                    {tl(`${key}.desc`)}
+                  </p>
+
+                  <span className="relative mt-6 flex items-center gap-2 text-green-deep">
+                    <span className="h-px w-6 bg-green-deep transition-all duration-500 group-hover:w-9" />
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4 -translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
+                      aria-hidden
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m13 6 6 6-6 6" />
+                    </svg>
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ============ NEWSLETTER ============ */}
       <section className="relative overflow-hidden bg-green-deep text-cream">

@@ -4,12 +4,11 @@ import Reveal from "@/components/Reveal";
 import RotatingQuestions from "@/components/RotatingQuestions";
 import BannerPhoto from "@/components/BannerPhoto";
 
-// Banner principal (home) — estilo Brené Brown / Esther Perel:
-// slogan "SER PODER" + perguntas rodando de um lado, foto integrada do outro,
-// kicker "Percepção · Escolha · Presença". Sem "reconhecida por".
+// Banner principal (home): perguntas rodando de um lado, foto integrada do
+// outro, e a virada "Existe um nome para tudo isso" → SER PODER.
+// O kicker "Percepção · Escolha · Presença" saiu a pedido da Andrea (19/08/2026).
 export default async function HomeBanner() {
   const t = await getTranslations("home");
-  const tb = await getTranslations("banner");
 
   return (
     <section className="relative flex min-h-[calc(100svh_-_var(--header-h))] items-center overflow-hidden bg-wine text-cream">
@@ -21,10 +20,6 @@ export default async function HomeBanner() {
         {/* Coluna do texto */}
         <div>
           <Reveal>
-            <span className="kicker text-cream/55">{tb("kicker")}</span>
-          </Reveal>
-
-          <Reveal delay={120} className="mt-7">
             <p className="mb-3 text-sm uppercase tracking-[0.2em] text-cream/45">
               {t("rotatingLabel")}
             </p>
@@ -33,7 +28,7 @@ export default async function HomeBanner() {
             </div>
           </Reveal>
 
-          <Reveal delay={240} className="mt-8">
+          <Reveal delay={140} className="mt-8">
             <div className="flex items-center gap-4">
               <span className="h-px w-12 bg-cream/40" />
               <span className="text-xs uppercase tracking-[0.2em] text-cream/50">
@@ -45,19 +40,24 @@ export default async function HomeBanner() {
             </h1>
           </Reveal>
 
-          <Reveal delay={360} className="mt-6 max-w-xl">
-            <p className="text-lg leading-relaxed text-cream/80">{t("lead")}</p>
+          <Reveal delay={280} className="mt-7 max-w-xl">
+            <p className="font-serif text-2xl leading-snug text-cream md:text-[1.7rem]">
+              {t("leadStrong")}
+            </p>
+            <p className="mt-4 text-lg leading-relaxed text-cream/80">
+              {t("lead")}
+            </p>
           </Reveal>
 
-          <Reveal delay={480} className="mt-9">
+          <Reveal delay={420} className="mt-9">
             <div className="flex flex-wrap items-center gap-4">
               <a
-                href="#bibliotecas"
+                href="#ser-poder"
                 className="group inline-flex items-center gap-2 rounded-full border border-cream bg-cream px-7 py-3.5 text-sm font-semibold text-wine transition-all hover:gap-3 hover:bg-wine hover:text-cream"
               >
                 {t("ctaPrimary")}
-                <span className="transition-transform group-hover:translate-x-0.5">
-                  →
+                <span className="transition-transform group-hover:translate-y-0.5">
+                  ↓
                 </span>
               </a>
               <Link

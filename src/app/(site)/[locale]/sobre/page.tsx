@@ -54,8 +54,7 @@ export default async function Page({
   const t = await getTranslations("aboutPage");
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
-  const th = await getTranslations("home");
-  const credentials = th.raw("credentials") as string[];
+  const experiences = t.raw("experiences") as string[];
   const gallery =
     (await sanityFetch<GalleryPhoto[] | null>(aboutGalleryQuery, { locale })) ??
     [];
@@ -76,7 +75,7 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: tc("home"), href: "/" },
-          { label: tn("about") },
+          { label: tn("aboutLong") },
         ]}
         badge={t("role")}
         title="Andrea Eboli"
@@ -85,26 +84,28 @@ export default async function Page({
 
       <section className="bg-cream">
         <div className="mx-auto grid max-w-5xl gap-12 px-6 py-20 md:grid-cols-[300px_1fr] md:gap-16">
-          {/* Sidebar — retrato + reconhecimento + ações */}
+          {/* Sidebar — retrato + experiências + ações.
+              "Reconhecimento" virou "Experiências" a pedido da Andrea
+              (19/08/2026): a lista fala do que ela viveu, não de prêmios. */}
           <aside className="md:sticky md:top-[calc(var(--header-h)+2rem)] md:self-start">
             <BannerPhoto />
 
-            <p className="mt-8 kicker text-wine">{t("credentialsLabel")}</p>
+            <p className="mt-8 kicker text-wine">{t("experiencesLabel")}</p>
             <ul className="mt-4 space-y-2.5">
-              {credentials.map((cr, i) => (
+              {experiences.map((item, i) => (
                 <li
                   key={i}
-                  className="flex items-center gap-2.5 text-sm text-ink-soft"
+                  className="flex items-start gap-2.5 text-sm leading-snug text-ink-soft"
                 >
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-wine" />
-                  {cr}
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-wine" />
+                  {item}
                 </li>
               ))}
             </ul>
 
             <div className="mt-8 flex flex-col gap-3">
               <Link
-                href="/ser-poder"
+                href="/"
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-green-deep px-5 py-3 text-sm font-semibold text-cream transition-all hover:gap-3 hover:bg-green-darker"
               >
                 {t("methodCta")}
@@ -127,16 +128,26 @@ export default async function Page({
               <p className="mb-6 text-xl leading-relaxed text-ink">{t("p1")}</p>
             </div>
 
-            {/* As duas perguntas — núcleo da investigação */}
+            {/* As TRÊS perguntas — núcleo da investigação (a terceira entrou a
+                pedido da Andrea em 19/08/2026) */}
             <div className="my-8 rounded-r-lg border-l-2 border-wine bg-bone px-6 py-6">
-              <p className="kicker mb-3 text-wine">{tn("about")}</p>
-              <p className="font-serif text-xl italic leading-relaxed text-green-deep">
-                {t("p2")}
-              </p>
+              <p className="kicker mb-4 text-wine">{t("questionsLabel")}</p>
+              <ol className="space-y-4">
+                {[t("q1"), t("q2"), t("q3")].map((q, i) => (
+                  <li key={i} className="flex gap-4">
+                    <span className="font-serif text-lg font-semibold leading-snug text-wine/45">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <p className="font-serif text-lg italic leading-relaxed text-green-deep">
+                      {q}
+                    </p>
+                  </li>
+                ))}
+              </ol>
             </div>
 
+            <p className="mb-6 leading-relaxed text-ink-soft">{t("p2")}</p>
             <p className="mb-6 leading-relaxed text-ink-soft">{t("p3")}</p>
-            <p className="mb-6 leading-relaxed text-ink-soft">{t("p4")}</p>
 
             {/* Frase de fecho */}
             <blockquote className="mt-12 border-t border-ink/10 pt-10">

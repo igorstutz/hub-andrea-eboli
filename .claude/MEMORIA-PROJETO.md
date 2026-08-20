@@ -22,6 +22,111 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
+### 🗓️ Sessão 19–20/08/2026 (MAIS RECENTE) — Reestruturação pedida pela Andrea
+**Origem:** documento no Google Docs ("INPUTS SITE") com os pedidos dela.
+Texto bruto salvo em `.claude/inputs-andrea-2026-08.txt`.
+Como ler um Docs compartilhado: `curl -sL ".../export?format=txt"` (não use
+Git Bash com caminhos `/algo` em env var — o MSYS converte para `C:/...`).
+
+**Decisões tomadas com o Igor (4 perguntas, todas na recomendação):**
+1. Menu de 7 itens curtos, sem submenu.
+2. Pesquisa e Confraria = **duas páginas separadas**.
+3. Biblioteca de conceitos **substituída pelos 9 verbetes novos**.
+4. Botão "Envie sua pergunta" → **formulário externo** (Tally/Forms), porque é
+   o único caminho que também gera o backlog que ela pediu.
+
+**O que mudou (tudo validado: `tsc`/`eslint` limpos + build estático de
+produção OK com 156 páginas + conferência visual por screenshot headless):**
+
+1. **A HOME virou a página central da tese.** `/ser-poder` foi **APAGADA** (a
+   Andrea: "ele não precisa ser uma aba, ele é a página central"). A home agora
+   é: hero → "O que é Ser Poder?" (`#ser-poder`) → **3 perguntas** (eram 2) →
+   a ECP + a frase de fecho → **as 3 dimensões da ECP** → **o vocabulário Ser
+   Poder** → vídeos → perguntas → casos → artigos → **bibliotecas (foram para o
+   FIM**, pedido dela: "como referência das outras abas") → newsletter.
+   - A seção "TESE" solta (blockquote "salto neurológico") foi **removida**:
+     não está no vocabulário novo e a home agora explica a tese de verdade.
+   - Namespace `serPoderPage` deletado; textos novos em `home.*`.
+2. **Kicker "Percepção · Escolha · Presença" REMOVIDO do site inteiro**
+   (o namespace `banner` deixou de existir). Ela marcou "PODE TIRAR".
+3. **Foto: fim do arco.** `.photo-arch` → `.photo-frame` (retangular, raio 4px)
+   em `globals.css`; `BannerPhoto` acompanhou. Vale no hero e no `/sobre`.
+4. **Barra:** `Sobre · Artigos e Perguntas · Vídeos · Pesquisa · Confraria ·
+   Livro · Contato`. **"Na mídia" saiu** do menu, do rodapé e do sitemap — a
+   rota `/na-midia` continua existindo, só não é linkada (reversível).
+5. **Rotas novas `/pesquisa` e `/confraria`**, com `EvidenceIntro` compartilhado
+   (o texto do par + "A pesquisa revela os padrões. A Confraria coloca o método
+   em prática."). Os dados/fotos ainda não existem → cada página tem
+   **constantes no topo do arquivo** para preencher (`STATS`, `CHART_SRC`,
+   `METHOD`, `RESEARCH_URL` / `PHOTOS`, `TESTIMONIAL`, `CONFRARIA_URL`) e
+   placeholders elegantes nas cores da marca enquanto estiverem vazias.
+   ⚠️ Sobre "não deixar baixar os slides": **não existe proteção real na web**.
+   A marca d'água tem de estar **gravada no arquivo** da imagem; o
+   `select-none`/`draggable=false` no código é só atrito.
+6. **`/sobre`:** bio nova (3 parágrafos dela), o quadro destacado passou a ter
+   as **3 perguntas** numeradas, e "Reconhecimento" virou **"Experiências"**
+   (`aboutPage.experiences`; `home.credentials` deixou de existir).
+   ⚠️ Corrigido: a lista dizia **ESPM**, o documento dela diz **FGV**.
+7. **`/artigos-e-perguntas`:** lead novo + os dois parágrafos de apresentação em
+   cada bloco + caixa com o botão **"ENVIE SUA PERGUNTA"**.
+   O destino vive em `src/lib/askQuestion.ts`: enquanto
+   `ASK_QUESTION_FORM_URL` for `null`, cai no **WhatsApp** com mensagem
+   iniciada. ⏭️ Igor precisa criar o formulário e colar a URL lá.
+   - "Andrea Responde" NÃO virou seção: ela escreveu o texto com esse nome mas
+     anotou "SUBSTITUI POR PERGUNTAS HUMANAS" → o nome é **Perguntas Humanas**
+     e o texto dela foi adaptado.
+8. **Assinatura do rodapé** trocada para "Pesquisadora e criadora da ECP,
+   abordagem pioneira para compreender e desenvolver o poder consciente."
+   (`footer.tagline`, usada também no `AuthorCard`).
+9. **CONCEITOS: os 5 antigos foram APAGADOS e substituídos por 9**
+   (`update-concepts-vocabulario.mjs`, transação única, já rodado):
+   - `concept` ganhou os campos **`group`** ("dimension" | "vocabulary") e
+     **`order`**; a home separa os dois blocos por esse campo.
+   - Dimensões: Identidade · Contexto · Movimento.
+     Vocabulário: Ter Poder · Ser Poder · O Pêndulo · O Centro do Pêndulo ·
+     A Entrega do Poder · O Sequestro da Identidade pelo Contexto.
+   - `shortDefinition` são as **palavras dela**, copiadas do documento.
+     **`fullDefinition` ficou VAZIA de propósito** — é conteúdo autoral que só
+     ela pode escrever. ⏭️ As 9 páginas de conceito precisam disso no Studio.
+   - Os **28 documentos publicados** que apontavam para os conceitos antigos
+     foram **repontados um por um** (mapa manual no script, feito pelos
+     títulos). Zero documento sem conceito. É leitura editorial minha: ela pode
+     ajustar qualquer vínculo pelo Studio.
+   - "Ter Poder"/"Ser Poder" ficam em português nos 3 idiomas (termo autoral);
+     os outros 4 verbetes e as 3 dimensões foram traduzidos.
+10. **Travessões / "cara de IA"** (pedido explícito dela). Duas frentes:
+    - Os 3 `messages/*.json` foram **varridos** (nenhum `—` sobrou nos textos
+      do site).
+    - **A raiz do problema era o prompt da IA:** `src/lib/ai/generate.ts` tinha
+      a tese ANTIGA (duas perguntas, léxico "soberania/posicionamento") e usava
+      travessão à vontade. O `DEFAULT_VOICE` foi reescrito com a tese nova, as
+      3 perguntas, as 3 dimensões e os 6 termos do vocabulário; e o
+      `STRUCTURAL_RULES` (bloco FIXO, não editável no painel) ganhou uma regra
+      de **PONTUAÇÃO** proibindo travessão e outros vícios de texto de máquina.
+    - ⏭️ **PENDENTE:** o conteúdo JÁ GRAVADO no Sanity tem **317 travessões em
+      26 documentos** (perguntas 124, artigos 144, vídeos 43, casos 6). Duas
+      saídas: (a) passada mecânica trocando `—` por vírgula/ponto/dois-pontos
+      (rápido, mas pode sair frase torta), ou (b) regerar o conteúdo com o
+      prompt novo. **Decisão do Igor/Andrea.**
+
+**⏭️ MATERIAL QUE A ANDREA VAI MANDAR (WhatsApp/Drive) — nada disso está no ar:**
+foto da página central; foto do `/sobre` (ela disse "pode ser esta / formato
+diferente" — confirmar se é a mesma do hero); o Drive de imagens para a galeria;
+a capa do YouTube (+ shorts); os números/gráfico/metodologia da Pesquisa ECP;
+as 3 fotos + depoimento da Confraria; e os destinos dos botões "Conheça a
+pesquisa" e "Conheça a Confraria". Falta também a bolinha do header
+(`AVATAR_SRC = null`).
+
+**NÃO É TAREFA DE CÓDIGO:** comprar `andreaeboli.com` e criar os e-mails
+(`contato@` e `andreaeboli@`). O site já usa `contato@andreaeboli.com`.
+
+**FASE 2 (feature nova, escopo próprio):** o "inverso" que ela pediu — trazer as
+perguntas que as pessoas fazem às IAs e gerar uma proposta de resposta para ela
+validar, + backlog das perguntas enviadas pelo público. Seria uma ferramenta
+nova no Studio (gerar a partir de um tema, sem link de origem).
+
+---
+
 ### 📌 RESUMO EXECUTIVO (20–21/07/2026 — redesign de marca + publicado)
 **O sistema está PUBLICADO** (homologação): **https://igorstutz.github.io/hub-andrea-eboli**
 - Repositório `github.com/igorstutz/hub-andrea-eboli` (branch `master`;

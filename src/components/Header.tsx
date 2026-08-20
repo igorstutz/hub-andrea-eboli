@@ -21,19 +21,23 @@ const LOGO_SRC = "/brand/logo-andrea-eboli.webp";
 const LOGO_W = 900;
 const LOGO_H = 159;
 
-// Menu principal (ordem definida com a Andrea).
+// Menu principal (ordem e rótulos definidos com a Andrea em 19/08/2026:
+// menos palavras para caber Pesquisa e Confraria). "Na mídia" saiu do menu —
+// a rota continua existindo, apenas oculta. A tese "Ser Poder" também saiu:
+// virou a própria home.
 const NAV = [
-  { key: "serPoder", href: "/ser-poder" },
   { key: "about", href: "/sobre" },
   { key: "articlesQuestions", href: "/artigos-e-perguntas" },
-  { key: "videosPodcast", href: "/videos" },
-  { key: "media", href: "/na-midia" },
+  { key: "videos", href: "/videos" },
+  { key: "research", href: "/pesquisa" },
+  { key: "confraria", href: "/confraria" },
   { key: "book", href: "/livro" },
   { key: "contact", href: "/contato" },
 ] as const;
 
 // Destaca o item ativo — inclusive nas páginas de detalhe (uma pergunta ou
-// artigo acende "Artigos e Perguntas"; um vídeo acende "Vídeos e Podcast").
+// artigo acende "Artigos e Perguntas"; um vídeo acende "Vídeos"; um conceito
+// acende nada, porque o glossário vive na home).
 function isActive(pathname: string, href: string): boolean {
   if (href === "/artigos-e-perguntas") {
     return (
@@ -43,10 +47,6 @@ function isActive(pathname: string, href: string): boolean {
     );
   }
   if (href === "/videos") return pathname.startsWith("/videos");
-  if (href === "/ser-poder")
-    return (
-      pathname.startsWith("/ser-poder") || pathname.startsWith("/conceitos")
-    );
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

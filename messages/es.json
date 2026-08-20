@@ -5,20 +5,18 @@
     "cases": "Casos",
     "articles": "Artículos",
     "videos": "Vídeos",
-    "about": "Sobre Andrea Eboli",
-    "serPoder": "Sobre Ser Poder",
+    "about": "Sobre",
+    "aboutLong": "Sobre Andrea Eboli",
     "articlesQuestions": "Artículos y Preguntas",
     "videosPodcast": "Vídeos y Podcast",
+    "research": "Investigación",
+    "confraria": "Confraria",
     "media": "En los medios",
     "book": "Libro",
     "contact": "Contacto",
     "search": "Buscar"
   },
-  "banner": {
-    "kicker": "Percepción · Elección · Presencia"
-  },
   "home": {
-    "badge": "Investigadora · Forbes Councils · TED",
     "rotatingLabel": "¿Alguna vez te preguntaste…",
     "rotatingQuestions": [
       "¿Por qué me siento vacía a pesar del éxito?",
@@ -30,23 +28,33 @@
     ],
     "answerLabel": "Existe un nombre para todo esto",
     "title": "Ser Poder",
-    "lead": "Un centro de conocimiento sobre la distancia entre el éxito externo y la coherencia interna — y el lenguaje para atravesarla.",
-    "ctaPrimary": "Explorar las bibliotecas",
+    "leadStrong": "El mundo nos enseñó a TENER poder. Pero nadie nos enseñó a SER.",
+    "lead": "Ser Poder es no depender de aquello que tienes para reconocer quién eres. Es encontrar en ti una potencia que no desaparece cuando cambian los cargos, los logros, las relaciones o el reconocimiento.",
+    "ctaPrimary": "Qué es Ser Poder",
     "ctaSecondary": "Conocer a Andrea",
-    "credentialsLabel": "Reconocida por",
-    "credentials": [
-      "Forbes Councils",
-      "TED",
-      "ESPM",
-      "Natura &Co.",
-      "Harvard",
-      "NYU",
-      "Swiss Business School"
-    ],
-    "librariesTitle": "Cuatro bibliotecas, un solo conocimiento",
-    "librariesLead": "Las personas llegan por preguntas. Aquí, cada pregunta encuentra una respuesta — y un lenguaje propio para nombrarla.",
-    "thesis": "El próximo gran salto del liderazgo no será tecnológico. Será neurológico.",
-    "thesisAuthor": "Andrea Eboli",
+    "thesisBadge": "La tesis",
+    "thesisTitle": "¿Qué es Ser Poder?",
+    "thesisP1": "Durante más de 25 años conviví con personas capaces, reconocidas y exitosas. Personas que habían conquistado cargos, influencia, resultados y todo aquello que solemos asociar al poder.",
+    "thesisP2": "Pero algo no cerraba. Algunas perdían su propia potencia cuando dejaban una posición. Otras, aun rodeadas de reconocimiento, nunca llegaban a sentirse verdaderamente poderosas.",
+    "thesisP3": "Fue entonces que una pregunta se volvió inevitable: si el poder desaparece cuando cambia aquello que lo confirma, ¿ese poder realmente nos pertenece?",
+    "thesisP4": "De esa inquietud nació el Ser Poder, una investigación sobre la distancia entre aquello que conquistamos y la potencia que logramos reconocer y sostener en nosotros.",
+    "questionsTitle": "Tres preguntas mueven esta investigación",
+    "q1": "¿Por qué las personas que tienen poder parecen perderlo cuando dejan cargos, títulos o posiciones?",
+    "q2": "¿Por qué tantas otras, aun rodeadas de reconocimiento, influencia y desempeño, no se sienten verdaderamente poderosas?",
+    "q3": "¿Y por qué algunas personas, incluso sin cargos, títulos ni reconocimiento, revelan una potencia que parece no depender de nada de eso?",
+    "ecpBadge": "ECP · método propio",
+    "ecpTitle": "De la investigación nació la Estructura Consciente de Poder",
+    "ecpP1": "Las tres preguntas revelaron que la experiencia de poder no se explica solo por aquello que una persona posee. Se organiza en la relación entre quién es, el contexto en el que vive y la forma en que se mueve dentro de él.",
+    "ecpP2": "De esa comprensión nació la Estructura Consciente de Poder, la ECP: el método de autoría propia de Andrea Eboli para atravesar la distancia entre TENER poder y SER poder.",
+    "ecpP3": "La ECP articula tres dimensiones inseparables (Identidad, Contexto y Movimiento) y ofrece un camino para reconocer dónde entregamos nuestra potencia, comprender lo que nos influye y elegir cómo actuar.",
+    "ecpQuote": "No es una fórmula para controlar la vida. Es una estructura para no desaparecer dentro de ella.",
+    "dimensionsLabel": "Los conceptos",
+    "dimensionsTitle": "Las tres dimensiones de la ECP",
+    "vocabularyLabel": "Glosario",
+    "vocabularyTitle": "El vocabulario Ser Poder",
+    "vocabularyLead": "Cada idea de la tesis con un nombre propio.",
+    "librariesTitle": "Las bibliotecas del hub",
+    "librariesLead": "Todo el contenido reunido por tipo: las preguntas que las personas hacen, el diccionario de la tesis, los patrones de comportamiento y los artículos que sostienen la investigación.",
     "newsletterBadge": "Newsletter semanal",
     "newsletterTitle": "Notas sobre el Poder",
     "newsletterLead": "Observaciones sobre el comportamiento humano, la identidad y el poder consciente. Sin ruido.",
@@ -60,7 +68,7 @@
     "questions": {
       "name": "Preguntas Humanas",
       "badge": "El activo principal",
-      "desc": "Las preguntas reales que las personas hacen cada día — de la identidad al liderazgo."
+      "desc": "Las preguntas reales que las personas hacen cada día, de la identidad al liderazgo."
     },
     "concepts": {
       "name": "Conceptos Ser Poder",
@@ -70,7 +78,7 @@
     "cases": {
       "name": "Casos y Personajes",
       "badge": "Los patrones",
-      "desc": "Los patrones de comportamiento que reconoces — y cómo atravesarlos."
+      "desc": "Los patrones de comportamiento que reconoces y el camino para atravesarlos."
     },
     "articles": {
       "name": "Artículos",
@@ -80,7 +88,7 @@
     "videos": {
       "name": "Vídeos y Podcasts",
       "badge": "La tesis en movimiento",
-      "desc": "Episodios y entrevistas de Andrea — con resumen, aprendizajes y transcripción."
+      "desc": "Episodios y entrevistas de Andrea, con resumen, aprendizajes y transcripción."
     }
   },
   "videoPage": {
@@ -140,44 +148,75 @@
   },
   "aboutPage": {
     "role": "Investigadora · Escritora · Profesora",
-    "headline": "Fundadora de la Academia do Poder — investiga las nuevas relaciones entre poder, identidad y liderazgo en la vida contemporánea.",
+    "headline": "Fundadora de la Academia do Poder. Investiga las nuevas relaciones entre poder, identidad y liderazgo en la vida contemporánea.",
     "p1": "Andrea Eboli es investigadora, escritora, profesora y fundadora de la Academia do Poder. Investiga las nuevas relaciones entre poder, identidad y liderazgo en la vida contemporánea.",
-    "p2": "Su investigación parte de dos preguntas centrales: ¿por qué las personas que tienen poder parecen perderlo cuando dejan cargos, títulos o posiciones? ¿Y por qué tantas otras, aun rodeadas de reconocimiento, influencia y desempeño, no se sienten verdaderamente poderosas?",
-    "p3": "Con formación internacional de maestría y doctorado, trayectoria académica y más de dos décadas de experiencia ejecutiva, Andrea propone una nueva lectura sobre el poder contemporáneo y el liderazgo consciente.",
-    "p4": "Creadora de la Estructura Consciente de Poder — ECP, su método de autoría propia, transforma esta investigación en un camino práctico para que personas y líderes atraviesen la distancia entre tener poder y sentirse verdaderamente potentes en él.",
+    "questionsLabel": "Las tres preguntas de la investigación",
+    "q1": "¿Por qué las personas que tienen poder parecen perderlo cuando dejan cargos, títulos o posiciones?",
+    "q2": "¿Por qué tantas otras, aun rodeadas de reconocimiento, influencia y desempeño, no se sienten verdaderamente poderosas?",
+    "q3": "¿Y por qué algunas personas, incluso sin cargos, títulos ni reconocimiento, revelan una potencia que parece no depender de nada de eso?",
+    "p2": "Con trayectoria académica internacional, maestría, doctorado y más de dos décadas de experiencia ejecutiva, Andrea reúne investigación y práctica para proponer una nueva comprensión sobre el poder contemporáneo y el liderazgo consciente.",
+    "p3": "Creadora de la Estructura Consciente de Poder (ECP), Andrea transforma esta investigación en un camino práctico para que personas y líderes atraviesen la distancia entre tener poder y reconocer su propia potencia.",
     "quote": "El mundo cambió. Las relaciones de poder también. Y la forma de ocupar, sostener y vivir el poder necesita cambiar con él.",
-    "credentialsLabel": "Reconocimiento",
+    "experiencesLabel": "Experiencias",
+    "experiences": [
+      "17 años de liderazgo ejecutivo en Natura &Co.",
+      "Profesora de MBA en la FGV",
+      "Maestría y doctorado por la Swiss Business School",
+      "Formación complementaria en Harvard y NYU",
+      "Miembro del Forbes Business Council y autora de artículos en forbes.com",
+      "Conferencista TEDx"
+    ],
     "methodCta": "Conocer la tesis Ser Poder",
     "contactCta": "Hablar con Andrea",
     "galleryLabel": "Galería",
     "galleryTitle": "Andrea en imágenes",
     "gallerySoon": "Galería en preparación."
   },
-  "serPoderPage": {
-    "badge": "La tesis",
-    "headline": "La distancia entre tener poder y sentirse verdaderamente potente en él.",
-    "introTitle": "Qué es Ser Poder",
-    "introBody": "Ser Poder es una nueva lectura sobre el poder contemporáneo y el liderazgo consciente. Nace de una constatación simple e incómoda: tener poder y sentirse poderoso no son lo mismo. Cargos, títulos y reconocimiento no garantizan la sensación de potencia — y es en esa distancia donde la mayoría de las personas se pierde.",
-    "questionsTitle": "Dos preguntas mueven esta investigación",
-    "q1": "¿Por qué las personas que tienen poder parecen perderlo cuando dejan cargos, títulos o posiciones?",
-    "q2": "¿Por qué tantas otras, aun rodeadas de reconocimiento, influencia y desempeño, no se sienten verdaderamente poderosas?",
-    "ecpBadge": "ECP · método propio",
-    "ecpTitle": "La Estructura Consciente de Poder",
-    "ecpBody": "La ECP es el método de autoría propia de Andrea Eboli — un camino práctico para atravesar esa distancia. En lugar de tratar el poder como cargo o desempeño, trabaja el poder como estructura consciente: algo que se ocupa, se sostiene y se vive de adentro hacia afuera. Es el eje que conecta todos los conceptos de este hub.",
-    "conceptsTitle": "Los conceptos-pilar",
-    "conceptsLead": "El vocabulario de la tesis — cada idea con un nombre propio.",
-    "ctaTitle": "Donde la tesis se vuelve práctica",
-    "ctaBody": "Preguntas humanas, artículos y casos que dan nombre a lo que vives.",
-    "cta": "Explorar Artículos y Preguntas"
-  },
   "articlesQuestionsPage": {
     "badge": "Artículos y Preguntas",
-    "headline": "Las preguntas reales que las personas hacen — y la base que sostiene las respuestas.",
+    "headline": "Preguntas reales y reflexiones sobre el poder, la identidad y la forma en que estamos viviendo, para ampliar la mirada y fortalecer la consciencia y el poder interno.",
     "questionsTitle": "Preguntas Humanas",
+    "questionsP1": "Cuando comenzamos un camino de crecimiento personal, nuevas preguntas pasan a formar parte del recorrido, y no siempre encontramos respuestas hechas.",
+    "questionsP2": "Preguntas Humanas es un espacio de reflexión y provocación sobre esas cuestiones, a partir de los principios de la Estructura Consciente de Poder (ECP). Más que ofrecer certezas, cada respuesta te invita a ampliar la mirada y encontrar caminos más conscientes.",
+    "askPrompt": "¿No encontraste aquí tu pregunta? Envía tu cuestión. Podrá inspirar una de las próximas respuestas.",
+    "askCta": "Envía tu pregunta",
     "articlesTitle": "Artículos",
+    "articlesP1": "Estos artículos nacen del encuentro entre investigación, referencias teóricas y experiencias vividas. Preguntas, percepciones y contribuciones de las personas que participan en estudios, encuentros y conversaciones en torno a la ECP.",
+    "articlesP2": "Aquí, el conocimiento no se presenta como algo terminado. Se construye colectivamente, se confronta con la vida real y se amplía con cada nuevo intercambio. Las fuentes que sostienen cada reflexión se indican en los propios textos.",
     "questionsCta": "Ver todas las preguntas",
     "articlesCta": "Ver todos los artículos",
     "orderLabel": "Ver primero"
+  },
+  "evidence": {
+    "label": "Investigación y experiencia",
+    "intro": "El Ser Poder se construye y se valida en el encuentro entre investigación y experiencia: la investigación reúne evidencias que sostienen sus hipótesis, mientras la Confraria Let's Be lleva el método a la vida real, permitiendo observar su aplicación, sus efectos y los aprendizajes generados en distintos contextos. Juntas conectan teoría, datos y práctica, manteniendo el método en constante evolución.",
+    "quote": "La investigación revela los patrones. La Confraria pone el método en práctica."
+  },
+  "researchPage": {
+    "badge": "Investigación ECP",
+    "title": "Investigación ECP",
+    "headline": "Las evidencias que sostienen las hipótesis del Ser Poder.",
+    "findingsLabel": "Lo que muestran los datos",
+    "chartLabel": "Panorama de la investigación",
+    "methodologyLabel": "Muestra y metodología",
+    "soon": "Los datos de la investigación entran aquí pronto.",
+    "methodologySoon": "En preparación.",
+    "cta": "Conoce la investigación",
+    "crossTitle": "¿Y en la práctica?",
+    "crossBody": "La Confraria Let's Be lleva la ECP a conversaciones reales.",
+    "crossCta": "Conocer la Confraria"
+  },
+  "confrariaPage": {
+    "badge": "Confraria Let's Be",
+    "title": "Confraria Let's Be",
+    "headline": "Donde la Estructura Consciente de Poder encuentra la vida real.",
+    "photosLabel": "La Confraria en imágenes",
+    "testimonialLabel": "Aprendizaje de un participante",
+    "soon": "Las fotos y los testimonios de la Confraria entran aquí pronto.",
+    "cta": "Conoce la Confraria",
+    "crossTitle": "¿Y los datos?",
+    "crossBody": "La investigación ECP reúne las evidencias que sostienen el método.",
+    "crossCta": "Conocer la investigación"
   },
   "mediaPage": {
     "badge": "En los medios",
@@ -191,7 +230,7 @@
     "badge": "Libro",
     "status": "En preparación",
     "headline": "El libro de Andrea Eboli está en camino.",
-    "body": "Una obra sobre poder consciente, identidad y liderazgo contemporáneo — la tesis Ser Poder en forma de libro. Deja tu correo y entérate en el lanzamiento."
+    "body": "Una obra sobre poder consciente, identidad y liderazgo contemporáneo: la tesis Ser Poder en forma de libro. Deja tu correo y entérate en el lanzamiento."
   },
   "contactPage": {
     "badge": "Contacto",
@@ -208,7 +247,7 @@
     "label": "Andrea Eboli en {network}"
   },
   "footer": {
-    "tagline": "Referencia en liderazgo, neurociencia y poder consciente.",
+    "tagline": "Investigadora y creadora de la ECP, un enfoque pionero para comprender y desarrollar el poder consciente.",
     "rights": "Todos los derechos reservados."
   }
 }

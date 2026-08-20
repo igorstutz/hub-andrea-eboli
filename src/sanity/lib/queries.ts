@@ -29,10 +29,14 @@ export const questionBySlugQuery = groq`
 }`;
 
 // ---------- Conceitos ----------
+// `order` posiciona o verbete dentro do grupo (dimensão da ECP / vocabulário);
+// sem número, cai no fim em ordem alfabética.
 export const conceptsListQuery = groq`
-*[_type == "concept" && defined(slug.current)] | order(title.pt asc){
+*[_type == "concept" && defined(slug.current)] | order(coalesce(order, 999) asc, title.pt asc){
   "title": coalesce(title[$locale], title.pt),
   "slug": slug.current,
+  "group": group,
+  "order": order,
   "shortDefinition": coalesce(shortDefinition[$locale], shortDefinition.pt)
 }`;
 
