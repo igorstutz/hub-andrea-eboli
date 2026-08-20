@@ -5,10 +5,11 @@ import { asset } from "@/lib/assetPath";
 // em 19/08/2026) + bloco de cor deslocado atrás, mantendo a colagem editorial +
 // leve tratamento de cor da marca por cima.
 //
-// Foto da Andrea já enquadrada em 3:4 e cortada acima do cós da calça. No
-// projeto fica só a versão leve (.webp); o PNG original está FORA do repositório,
-// na pasta irmã `brand-originais/`. Se PHOTO_SRC for null, cai no placeholder
-// desenhado (monograma).
+// Retrato de 2026 (trocado em 20/08/2026), recortado em 3:4 a partir do
+// original 1154x1731: enquadramento fechado no rosto e no torso, com as mãos
+// inteiras. No projeto fica só a versão leve (.webp, 900x1200); o JPG original
+// está FORA do repositório, na pasta irmã `brand-originais/`. Se PHOTO_SRC for
+// null, cai no placeholder desenhado (monograma).
 const PHOTO_SRC: string | null = "/brand/andrea-banner.webp";
 
 export default function BannerPhoto({
