@@ -216,7 +216,10 @@
     "cta": "Conheça a Confraria",
     "crossTitle": "E os dados?",
     "crossBody": "A pesquisa ECP reúne as evidências que sustentam o método.",
-    "crossCta": "Conhecer a pesquisa"
+    "crossCta": "Conhecer a pesquisa",
+    "photoConversaAlt": "Andrea Eboli em conversa com participantes num encontro da Confraria Let’s Be",
+    "photoGrupoAlt": "Grupo de participantes da Confraria Let’s Be reunido ao fim de um encontro",
+    "photoEncontroAlt": "Participantes da Confraria Let’s Be em volta da mesa durante um encontro"
   },
   "mediaPage": {
     "badge": "Na mídia",
@@ -237,7 +240,7 @@
     "headline": "Vamos conversar.",
     "lead": "Para palestras, mentorias, imprensa e parcerias.",
     "emailLabel": "E-mail",
-    "email": "contato@andreaeboli.com",
+    "email": "contato@serpoder.com",
     "emailCta": "Enviar e-mail",
     "socialLabel": "Redes",
     "newsletterTitle": "Ou receba as Notas sobre Poder"

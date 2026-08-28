@@ -216,7 +216,10 @@
     "cta": "Discover the Confraria",
     "crossTitle": "And the data?",
     "crossBody": "The ECP research gathers the evidence behind the method.",
-    "crossCta": "Explore the research"
+    "crossCta": "Explore the research",
+    "photoConversaAlt": "Andrea Eboli in conversation with participants at a Confraria Let’s Be gathering",
+    "photoGrupoAlt": "Confraria Let’s Be participants gathered at the end of a session",
+    "photoEncontroAlt": "Confraria Let’s Be participants around the table during a gathering"
   },
   "mediaPage": {
     "badge": "In the Media",
@@ -237,7 +240,7 @@
     "headline": "Let's talk.",
     "lead": "For talks, mentoring, press and partnerships.",
     "emailLabel": "Email",
-    "email": "contato@andreaeboli.com",
+    "email": "contato@serpoder.com",
     "emailCta": "Send email",
     "socialLabel": "Social",
     "newsletterTitle": "Or get the Notes on Power"

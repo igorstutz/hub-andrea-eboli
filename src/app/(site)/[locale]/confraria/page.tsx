@@ -17,7 +17,11 @@ import { asset } from "@/lib/assetPath";
    CONFRARIA_URL → destino do botão "Conheça a Confraria". Enquanto for null
              o botão não aparece.
 ------------------------------------------------------------------- */
-const PHOTOS: { src: string; alt: string }[] = [];
+const PHOTOS: { src: string; altKey: string }[] = [
+  { src: "/confraria/confraria-conversa.webp", altKey: "photoConversaAlt" },
+  { src: "/confraria/confraria-grupo.webp", altKey: "photoGrupoAlt" },
+  { src: "/confraria/confraria-encontro.webp", altKey: "photoEncontroAlt" },
+];
 const TESTIMONIAL: { quote: string; author: string } | null = null;
 const CONFRARIA_URL: string | null = null;
 
@@ -93,7 +97,7 @@ export default async function Page({
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-green-darker md:aspect-auto md:h-full">
                   <Image
                     src={asset(main.src)}
-                    alt={main.alt}
+                    alt={t(main.altKey)}
                     fill
                     sizes="(max-width: 768px) 100vw, 60vw"
                     className="object-cover"
@@ -125,7 +129,7 @@ export default async function Page({
                       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-green-darker">
                         <Image
                           src={asset(photo.src)}
-                          alt={photo.alt}
+                          alt={t(photo.altKey)}
                           fill
                           sizes="(max-width: 768px) 100vw, 35vw"
                           className="object-cover"

@@ -1,0 +1,158 @@
+import fs from "node:fs";
+import path from "node:path";
+import { getCliClient } from "sanity/cli";
+
+const DIR = process.env.GALERIA_DIR;
+const client = getCliClient({ apiVersion: "2024-10-01" });
+
+// Ordem editorial. A Andrea pode reordenar no Studio arrastando os cartoes.
+// O alt descreve o que da para VER na foto. A legenda (quem, quando, qual
+// evento exatamente) fica VAZIA de proposito: e ela que sabe.
+const FOTOS = [
+  ["g12", "Retrato de Andrea Eboli em estúdio",
+          "Studio portrait of Andrea Eboli",
+          "Retrato de Andrea Eboli en estudio"],
+  ["g09", "Andrea Eboli no palco de um painel do BrasaConnect; o telão apresenta os participantes",
+          "Andrea Eboli on stage at a BrasaConnect panel; the screen introduces the speakers",
+          "Andrea Eboli en el escenario de un panel de BrasaConnect; la pantalla presenta a los participantes"],
+  ["g14", "Andrea Eboli no palco do NRF com o FGVcev, em Nova York",
+          "Andrea Eboli on stage at the NRF with FGVcev, in New York",
+          "Andrea Eboli en el escenario del NRF con FGVcev, en Nueva York"],
+  ["g10", "Andrea Eboli diante do painel do SXSW",
+          "Andrea Eboli in front of the SXSW backdrop",
+          "Andrea Eboli frente al panel de SXSW"],
+  ["g39", "Andrea Eboli na alameda de bandeiras da sede da ONU",
+          "Andrea Eboli at the flag alley of the UN headquarters",
+          "Andrea Eboli en la alameda de banderas de la sede de la ONU"],
+  ["g40", "Andrea Eboli na cadeira do Brasil em um plenário da ONU",
+          "Andrea Eboli at the Brazil seat in a UN assembly hall",
+          "Andrea Eboli en el asiento de Brasil en un plenario de la ONU"],
+  ["g42", "Andrea Eboli com outras participantes em um plenário da ONU",
+          "Andrea Eboli with other participants in a UN assembly hall",
+          "Andrea Eboli con otras participantes en un plenario de la ONU"],
+  ["g41", "Andrea Eboli durante uma sessão em plenário da ONU",
+          "Andrea Eboli during a session in a UN assembly hall",
+          "Andrea Eboli durante una sesión en un plenario de la ONU"],
+  ["g43", "Foto do grupo de participantes na alameda de bandeiras da ONU",
+          "Group photo of the participants at the UN flag alley",
+          "Foto del grupo de participantes en la alameda de banderas de la ONU"],
+  ["g01", "Andrea Eboli em gravação do podcast Gerações Cast, à mesa de estúdio com o apresentador",
+          "Andrea Eboli recording the Gerações Cast podcast at the studio table with the host",
+          "Andrea Eboli grabando el pódcast Gerações Cast en la mesa de estudio con el presentador"],
+  ["g02", "Andrea Eboli falando durante gravação, com o painel do Gerações Cast ao fundo",
+          "Andrea Eboli speaking during a recording, with the Gerações Cast backdrop behind her",
+          "Andrea Eboli hablando durante una grabación, con el panel de Gerações Cast al fondo"],
+  ["g18", "Estúdio do Gerações Cast durante a gravação, com os participantes à mesa",
+          "The Gerações Cast studio during a recording, with the guests around the table",
+          "El estudio de Gerações Cast durante la grabación, con los participantes en la mesa"],
+  ["g06", "Andrea Eboli ao microfone em um estúdio de podcast",
+          "Andrea Eboli at the microphone in a podcast studio",
+          "Andrea Eboli ante el micrófono en un estudio de pódcast"],
+  ["g17", "Andrea Eboli conduzindo uma sessão; o slide pergunta qual é a diferença entre conflito e crise",
+          "Andrea Eboli leading a session; the slide asks what the difference is between conflict and crisis",
+          "Andrea Eboli conduciendo una sesión; la diapositiva pregunta cuál es la diferencia entre conflicto y crisis"],
+  ["g23", "Andrea Eboli apresentando o slide que compara um modelo divisivo e um modelo distributivo de poder",
+          "Andrea Eboli presenting the slide comparing a divisive and a distributive model of power",
+          "Andrea Eboli presentando la diapositiva que compara un modelo divisivo y uno distributivo de poder"],
+  ["g24", "Andrea Eboli apresentando o slide que compara um modelo degenerativo e um modelo regenerativo",
+          "Andrea Eboli presenting the slide comparing a degenerative and a regenerative model",
+          "Andrea Eboli presentando la diapositiva que compara un modelo degenerativo y uno regenerativo"],
+  ["g21", "Andrea Eboli em uma sessão sobre estratégia e pensamento estratégico",
+          "Andrea Eboli in a session on strategy and strategic thinking",
+          "Andrea Eboli en una sesión sobre estrategia y pensamiento estratégico"],
+  ["g22", "Andrea Eboli conduzindo uma sessão de estratégia em sala de reunião",
+          "Andrea Eboli leading a strategy session in a meeting room",
+          "Andrea Eboli conduciendo una sesión de estrategia en una sala de reuniones"],
+  ["g20", "Andrea Eboli apresentando uma dinâmica em uma sessão corporativa",
+          "Andrea Eboli presenting an exercise during a corporate session",
+          "Andrea Eboli presentando una dinámica en una sesión corporativa"],
+  ["g19", "Andrea Eboli conduzindo um workshop com participantes em mesas de trabalho",
+          "Andrea Eboli leading a workshop with participants at working tables",
+          "Andrea Eboli conduciendo un taller con participantes en mesas de trabajo"],
+  ["g33", "Andrea Eboli apresentando os comitês de um grupo de trabalho",
+          "Andrea Eboli presenting the committees of a working group",
+          "Andrea Eboli presentando los comités de un grupo de trabajo"],
+  ["g05", "Andrea Eboli em conversa durante um encontro da Confraria Let’s Be",
+          "Andrea Eboli in conversation at a Confraria Let’s Be gathering",
+          "Andrea Eboli conversando en un encuentro de la Confraria Let’s Be"],
+  ["g16", "Andrea Eboli no Consulado-Geral do Brasil",
+          "Andrea Eboli at the Consulate General of Brazil",
+          "Andrea Eboli en el Consulado General de Brasil"],
+  ["g26", "Andrea Eboli com uma comitiva em uma repartição oficial brasileira",
+          "Andrea Eboli with a delegation at a Brazilian official building",
+          "Andrea Eboli con una comitiva en una dependencia oficial brasileña"],
+  ["g35", "Andrea Eboli com um troféu em evento da comunidade brasileira em Nova York",
+          "Andrea Eboli holding a trophy at a Brazilian community event in New York",
+          "Andrea Eboli con un trofeo en un evento de la comunidad brasileña en Nueva York"],
+  ["g34", "Andrea Eboli com outras convidadas em um evento de gala nos Estados Unidos",
+          "Andrea Eboli with other guests at a gala event in the United States",
+          "Andrea Eboli con otras invitadas en un evento de gala en Estados Unidos"],
+  ["g30", "Andrea Eboli com a comissão organizadora de um evento da comunidade brasileira",
+          "Andrea Eboli with the organising committee of a Brazilian community event",
+          "Andrea Eboli con la comisión organizadora de un evento de la comunidad brasileña"],
+  ["g28", "Andrea Eboli com participantes de um encontro do Grupo Mulheres do Brasil",
+          "Andrea Eboli with participants at a Grupo Mulheres do Brasil meeting",
+          "Andrea Eboli con participantes de un encuentro del Grupo Mulheres do Brasil"],
+  ["g37", "Andrea Eboli com outras participantes em um evento do Grupo Mulheres do Brasil",
+          "Andrea Eboli with other participants at a Grupo Mulheres do Brasil event",
+          "Andrea Eboli con otras participantes en un evento del Grupo Mulheres do Brasil"],
+  ["g32", "Roda de conversa com mulheres em um encontro",
+          "A circle of women in conversation at a gathering",
+          "Rueda de conversación con mujeres en un encuentro"],
+  ["g03", "Painel com a arte “Be the Power” em um espaço de evento",
+          "Wall art reading “Be the Power” at an event space",
+          "Panel con el arte “Be the Power” en un espacio de evento"],
+  ["g15", "Andrea Eboli em uma cerimônia de premiação",
+          "Andrea Eboli at an awards ceremony",
+          "Andrea Eboli en una ceremonia de premiación"],
+  ["g27", "Andrea Eboli em um evento de gala",
+          "Andrea Eboli at a gala event",
+          "Andrea Eboli en un evento de gala"],
+  ["g25", "Andrea Eboli com uma liderança empresarial durante um evento",
+          "Andrea Eboli with a business leader during an event",
+          "Andrea Eboli con una líder empresarial durante un evento"],
+  ["g31", "Andrea Eboli com uma liderança empresarial em um encontro",
+          "Andrea Eboli with a business leader at a gathering",
+          "Andrea Eboli con una líder empresarial en un encuentro"],
+  ["g07", "Andrea Eboli com participantes de um congresso internacional",
+          "Andrea Eboli with fellow participants at an international conference",
+          "Andrea Eboli con participantes de un congreso internacional"],
+  ["g36", "Andrea Eboli com participantes de um congresso",
+          "Andrea Eboli with participants at a conference",
+          "Andrea Eboli con participantes de un congreso"],
+  ["g13", "Andrea Eboli com outras convidadas em um evento",
+          "Andrea Eboli with other guests at an event",
+          "Andrea Eboli con otras invitadas en un evento"],
+  ["g29", "Andrea Eboli com outras participantes em um encontro",
+          "Andrea Eboli with other participants at a gathering",
+          "Andrea Eboli con otras participantes en un encuentro"],
+  ["g04", "Andrea Eboli com colegas após uma gravação",
+          "Andrea Eboli with colleagues after a recording",
+          "Andrea Eboli con colegas después de una grabación"],
+  ["g08", "Auditório preparado antes de uma palestra",
+          "An auditorium set up before a talk",
+          "Auditorio preparado antes de una conferencia"],
+];
+
+console.log("fotos a subir:", FOTOS.length);
+
+const gallery = [];
+let i = 0;
+for (const [id, pt, en, es] of FOTOS) {
+  i++;
+  const file = path.join(DIR, `${id}.jpeg`);
+  if (!fs.existsSync(file)) throw new Error("arquivo nao encontrado: " + file);
+  const asset = await client.assets.upload("image", fs.createReadStream(file), {
+    filename: `andrea-eboli-${String(i).padStart(2, "0")}.jpeg`,
+  });
+  gallery.push({
+    _type: "galleryPhoto",
+    _key: `foto-${String(i).padStart(2, "0")}`,
+    asset: { _type: "reference", _ref: asset._id },
+    alt: { _type: "localeString", pt, en, es },
+  });
+  console.log(`${String(i).padStart(2, "0")}/${FOTOS.length}  ${id} -> ${asset._id}`);
+}
+
+await client.patch("aboutPage").set({ gallery }).commit();
+console.log(`\naboutPage.gallery gravada com ${gallery.length} fotos.`);

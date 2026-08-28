@@ -20,7 +20,60 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 19–20/08/2026 (MAIS RECENTE) — Reestruturação pedida pela Andrea
+### 🗓️ Sessão 27/08/2026 (MAIS RECENTE) — Fotos da Andrea + e-mail novo
+Ela mandou pelo WhatsApp uma pasta com **71 fotos** (`Downloads/andrea imagens`,
+com a subpasta `confraria/`) e o e-mail definitivo. Tudo já está no ar.
+
+1. **E-MAIL NOVO: `contato@serpoder.com`** (era o provisório
+   `contato@andreaeboli.com`). Trocado nos 3 `messages/*.json` →
+   `contactPage.email`. ⚠️ **O domínio do SITE continua `andreaeboli.com`** —
+   decisão do Igor. Ou seja: `metadataBase` (`layout.tsx`) e o fallback de
+   `src/lib/seo.ts` **não** foram tocados. Se um dia o site virar `serpoder.com`,
+   são esses dois lugares.
+
+2. **`/confraria` ganhou as 3 fotos.** Arquivos em `public/confraria/`
+   (`confraria-conversa.webp` = principal, `confraria-grupo.webp`,
+   `confraria-encontro.webp`); originais em `../brand-originais/confraria/`.
+   A constante `PHOTOS` mudou de `{src, alt}` para **`{src, altKey}`** e o alt
+   passou a vir do i18n (`confrariaPage.photoConversaAlt` / `photoGrupoAlt` /
+   `photoEncontroAlt`, nos 3 idiomas) — antes seria português nos 3.
+   ⚠️ **Duas fotos do lote da Confraria têm marca d'água de fotógrafo
+   ("GIT Ikeda")** — as melhores retratos, justamente. Ficaram de fora. Se a
+   Andrea tiver o direito de uso, dá para usar (são as 2 do fim da pasta).
+
+3. **Galeria do `/sobre`: 40 fotos no Sanity.** Subidas por script
+   (`upload-galeria.mjs`, na raiz — guarda a curadoria e os textos). Cada uma
+   com **`alt` em pt/en/es** descrevendo o que se VÊ; a **legenda ficou vazia de
+   propósito** (quem é quem, qual evento e que ano é ela que sabe).
+   Ordem editorial: retrato → palcos (BrasaConnect/NRF/SXSW) → ONU → podcasts →
+   sessões → Confraria → comunidade brasileira → encontros. Ela reordena
+   arrastando no Studio.
+   - **Descartei 12 das 52** do conjunto principal: 2 duplicatas idênticas
+     (md5), 6 prints de celular (story, WhatsApp, navegador), 1 colagem,
+     1 panorama 960×348 (recorta mal no 3:4), 1 quase-duplicata que caía ao lado
+     da irmã na grade, e **1 foto de família de Ano Novo com o que parecem ser
+     menores de idade** — essa não entra num site profissional sem consentimento
+     explícito.
+   - **Não nomeei terceiros em nenhum alt**, mesmo reconhecendo gente conhecida:
+     errar um nome no site dela é pior do que um alt genérico. Os nomes entram
+     pela legenda, se ela quiser.
+   - ⚠️ O `alt` sai do Sanity, então **republicar** depois de qualquer edição
+     dela (site estático).
+
+4. **NÃO serve para o hero.** Tudo veio comprimido pelo WhatsApp (máx. 1600px,
+   muita coisa em 768×1024). O hero segue com `andrea-hero-2026.jpg`. Para
+   trocar, ela precisa mandar o ORIGINAL fora do WhatsApp (Drive/e-mail).
+   A bolinha do header segue `AVATAR_SRC = null` — decisão do Igor de manter só
+   a assinatura.
+
+**⏭️ CONTINUA FALTANDO:** os números/gráfico/metodologia da Pesquisa ECP
+(`STATS`, `CHART_SRC`, `METHOD`, `RESEARCH_URL` em `/pesquisa`); o depoimento e
+o link da Confraria (`TESTIMONIAL`, `CONFRARIA_URL`); a capa do YouTube; e o
+retrato em alta para o hero.
+
+---
+
+### 🗓️ Sessão 19–20/08/2026 — Reestruturação pedida pela Andrea
 **Origem:** documento no Google Docs ("INPUTS SITE") com os pedidos dela.
 Texto bruto salvo em `.claude/inputs-andrea-2026-08.txt`.
 Como ler um Docs compartilhado: `curl -sL ".../export?format=txt"` (não use
@@ -107,16 +160,17 @@ produção OK com 156 páginas + conferência visual por screenshot headless):**
       (rápido, mas pode sair frase torta), ou (b) regerar o conteúdo com o
       prompt novo. **Decisão do Igor/Andrea.**
 
-**⏭️ MATERIAL QUE A ANDREA VAI MANDAR (WhatsApp/Drive) — nada disso está no ar:**
-foto da página central; foto do `/sobre` (ela disse "pode ser esta / formato
-diferente" — confirmar se é a mesma do hero); o Drive de imagens para a galeria;
-a capa do YouTube (+ shorts); os números/gráfico/metodologia da Pesquisa ECP;
-as 3 fotos + depoimento da Confraria; e os destinos dos botões "Conheça a
-pesquisa" e "Conheça a Confraria". Falta também a bolinha do header
-(`AVATAR_SRC = null`).
+**⏭️ MATERIAL QUE A ANDREA VAI MANDAR** (parte chegou em 27/08 — ver a sessão
+mais recente no topo): já entraram as fotos da galeria e as 3 da Confraria.
+**Ainda faltam:** o retrato em alta para o hero (o que veio está comprimido pelo
+WhatsApp); a capa do YouTube (+ shorts); os números/gráfico/metodologia da
+Pesquisa ECP; o depoimento da Confraria; e os destinos dos botões "Conheça a
+pesquisa" e "Conheça a Confraria". A bolinha do header segue `AVATAR_SRC = null`
+por decisão do Igor.
 
-**NÃO É TAREFA DE CÓDIGO:** comprar `andreaeboli.com` e criar os e-mails
-(`contato@` e `andreaeboli@`). O site já usa `contato@andreaeboli.com`.
+**NÃO É TAREFA DE CÓDIGO:** o domínio. O e-mail já existe e o site já usa
+`contato@serpoder.com` (desde 27/08). O domínio do site continua
+`andreaeboli.com` no `metadataBase` e no `src/lib/seo.ts`.
 
 **FASE 2 (feature nova, escopo próprio):** o "inverso" que ela pediu — trazer as
 perguntas que as pessoas fazem às IAs e gerar uma proposta de resposta para ela
