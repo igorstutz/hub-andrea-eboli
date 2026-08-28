@@ -20,7 +20,55 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 28/08/2026 (parte 2, MAIS RECENTE) — Casos fora da home + 4 fotos a mais
+### 🗓️ Sessão 28/08/2026 (parte 3, MAIS RECENTE) — A /pesquisa saiu do placeholder
+O Igor mandou os dois arquivos da Pesquisa ECP: o deck
+`Pesquisa IGB - (QExpress) (415_2026).pptx` e o
+`Analise de Hipoteses vs Pesquisa - ECP.docx` (ambos em `Downloads/`, FORA do
+repositório). A página deixou de ser placeholder.
+
+1. **De onde vieram os números.** Extraí o texto localmente (docx e pptx são ZIP
+   com XML dentro; `unzip -p` + limpeza das tags), sem mandar nada para serviço
+   externo — é material não publicado dela. Os percentuais do gráfico saíram do
+   `ppt/charts/chart12.xml` do próprio deck, não digitados à mão.
+   **Base: 403 respondentes**, margem de erro ~4,9%, mulheres 59,6%,
+   Sudeste 64,3%, idades de 25 a 55.
+   ⚠️ O documento de análise registra que o recorte pretendido era **35-55** e
+   que **39,7% da amostra tem 25-34**, fora do alvo. Por isso a metodologia no
+   site diz "de 25 a 55 anos", que é a amostra realizada.
+   ⚠️ **Falta o crédito do instituto.** O arquivo diz "IGB" e "QExpress", mas eu
+   não sei qual é o instituto e qual é o painel, então **não creditei ninguém**.
+   Errar isso numa página pública é pior do que omitir. Igor precisa confirmar.
+2. **O que entrou na página** (todos os textos no i18n, 3 idiomas, em
+   `researchPage.*`; a página é trilíngue):
+   - **3 números de impacto:** 82,9% (poder externo não traz realização),
+     72,2% (alternam entre entrega e busca de pausa) e **1%** (citaram a si
+     mesmas como pessoa poderosa).
+   - **Seção nova "Os dados, dimensão por dimensão"**, que lê a pesquisa pelas
+     3 dimensões da ECP — é o que amarra a pesquisa ao vocabulário do site.
+     Cada dimensão traz o par "declaram X, mas vivem Y", que é o achado central
+     da análise (ex.: 84,6% leem o contexto, mas 64% se sentem capturados por
+     ele).
+   - **Gráfico próprio**, gerado por **`gera-grafico-pesquisa.mjs`**: barras da
+     P20 em duas famílias (vinho = poder externo, verde = poder interno), um
+     arquivo **por idioma** em `public/pesquisa/`, **com marca d'água gravada**
+     (o comentário da página sempre pediu isso; CSS por cima é só atrito).
+   - Metodologia e alt do gráfico escritos; placeholders e as chaves `soon` e
+     `methodologySoon` foram apagados.
+3. 🐛 **Bug achado e corrigido de quebra:** a `/videos` publicada mostrava o
+   texto cru **"banner.kicker"** no hero, nos 3 idiomas. Era resquício da
+   remoção do kicker em 19/08 (o namespace `banner` foi apagado, a chamada em
+   `videos/page.tsx` ficou). O build acusava `MISSING_MESSAGE` e ninguém tinha
+   olhado. Agora o build sobe **sem nenhum MISSING_MESSAGE**.
+   📌 Lição: **ler os erros do `npm run build`**, não só o "Compiled successfully".
+4. ⏭️ **O que ainda falta na /pesquisa:** `RESEARCH_URL` (destino do botão
+   "Conheça a pesquisa": deck público, PDF ou página) segue `null`, então o
+   botão não aparece. E o crédito do instituto (item 1).
+   ⏭️ A análise recomenda um **crosstab** (cruzar P25/P26 com P13/P21) para
+   fechar H5 e H6, que hoje ficam como plausíveis mas não comprovadas.
+
+---
+
+### 🗓️ Sessão 28/08/2026 (parte 2) — Casos fora da home + 4 fotos a mais
 1. **"Casos e Personagens" saiu da home INTEIRA** (pedido do Igor): a seção de
    casos **e** o cartão no bloco "As bibliotecas do hub". Não apaguei nada — quem
    manda é a flag `SHOW_CASES` no topo de `src/app/(site)/[locale]/page.tsx`,

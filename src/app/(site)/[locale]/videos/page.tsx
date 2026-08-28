@@ -46,7 +46,6 @@ export default async function Page({
           { label: t("common.home"), href: "/" },
           { label: t("nav.videosPodcast") },
         ]}
-        kicker={t("banner.kicker")}
         title={t("nav.videosPodcast")}
         lead={t("libraries.videos.desc")}
       />

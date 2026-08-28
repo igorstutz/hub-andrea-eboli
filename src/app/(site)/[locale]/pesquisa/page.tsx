@@ -9,20 +9,52 @@ import { pageMetadata } from "@/lib/seo";
 import { asset } from "@/lib/assetPath";
 
 /* ------------------------------------------------------------------
-   DADOS DA PESQUISA — preencher quando a Andrea enviar os números.
+   DADOS DA PESQUISA ECP (base: 403 respondentes).
 
-   STATS      → os "dois ou três percentuais de maior impacto".
-   CHART_SRC  → o gráfico principal, já redesenhado na identidade do site e
-                COM A MARCA D'ÁGUA GRAVADA NO ARQUIVO. Isso é importante: a
-                marca d'água em CSS por cima é só atrito visual, quem quiser
-                baixa a imagem original. A proteção real é a do próprio arquivo.
-   METHOD     → nota curta de amostra e metodologia.
+   Os números vêm do deck da pesquisa e do documento de análise de hipóteses
+   que a Andrea enviou. Os TEXTOS moram no i18n (`researchPage.*`), porque a
+   página é trilíngue; aqui ficam só as chaves e a estrutura.
+
+   STATS       → os três percentuais de maior impacto.
+   DIMENSIONS  → os dados lidos pelas três dimensões da ECP, que é o que liga
+                 a pesquisa ao vocabulário do resto do site.
+   CHART_BY_LOCALE → o gráfico principal, desenhado na identidade do site por
+                 `gera-grafico-pesquisa.mjs`, um arquivo por idioma e COM A
+                 MARCA D'ÁGUA GRAVADA. Isso importa: marca d'água em CSS por
+                 cima é só atrito, quem quiser baixa a imagem original.
    RESEARCH_URL → destino do botão "Conheça a pesquisa" (deck, PDF, página).
-                Enquanto for null o botão não aparece.
+                 Enquanto for null o botão não aparece.
 ------------------------------------------------------------------- */
-const STATS: { value: string; label: string }[] = [];
-const CHART_SRC: string | null = null;
-const METHOD: string | null = null;
+const STATS = [
+  { valueKey: "stat1Value", labelKey: "stat1Label" },
+  { valueKey: "stat2Value", labelKey: "stat2Label" },
+  { valueKey: "stat3Value", labelKey: "stat3Label" },
+] as const;
+
+const DIMENSIONS = [
+  {
+    nameKey: "dimIdentityName",
+    factKeys: ["dimIdentityFact1", "dimIdentityFact2"],
+    num: "01",
+  },
+  {
+    nameKey: "dimContextName",
+    factKeys: ["dimContextFact1", "dimContextFact2"],
+    num: "02",
+  },
+  {
+    nameKey: "dimMovementName",
+    factKeys: ["dimMovementFact1", "dimMovementFact2"],
+    num: "03",
+  },
+] as const;
+
+const CHART_BY_LOCALE: Record<string, string> = {
+  pt: "/pesquisa/pesquisa-ecp-o-que-e-poder-pt.webp",
+  en: "/pesquisa/pesquisa-ecp-o-que-e-poder-en.webp",
+  es: "/pesquisa/pesquisa-ecp-o-que-e-poder-es.webp",
+};
+
 const RESEARCH_URL: string | null = null;
 
 export async function generateMetadata({
@@ -72,44 +104,66 @@ export default async function Page({
           </Reveal>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            {(STATS.length > 0
-              ? STATS
-              : [{ value: "", label: "" }, { value: "", label: "" }, { value: "", label: "" }]
-            ).map((s, i) => (
-              <Reveal key={i} delay={i * 110}>
-                <div className="relative overflow-hidden rounded-2xl border border-wine/15 bg-cream p-8">
+            {STATS.map((s, i) => (
+              <Reveal key={s.valueKey} delay={i * 110}>
+                <div className="relative h-full overflow-hidden rounded-2xl border border-wine/15 bg-cream p-8">
                   <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-wine-soft to-green-deep" />
-                  {s.value ? (
-                    <>
-                      <p className="font-serif text-5xl font-semibold leading-none text-wine">
-                        {s.value}
-                      </p>
-                      <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-                        {s.label}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p
-                        aria-hidden
-                        className="font-serif text-5xl font-semibold leading-none text-wine/20"
+                  <p className="font-serif text-5xl font-semibold leading-none text-wine">
+                    {t(s.valueKey)}
+                  </p>
+                  <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+                    {t(s.labelKey)}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Os mesmos dados lidos pelas três dimensões da ECP: é o que amarra a
+          pesquisa ao vocabulário do resto do site. */}
+      <section className="border-t border-ink/10 bg-cream">
+        <div className="mx-auto max-w-5xl px-6 py-20">
+          <Reveal>
+            <h2 className="text-3xl text-green-deep md:text-4xl">
+              {t("dimensionsLabel")}
+            </h2>
+          </Reveal>
+          <Reveal delay={100}>
+            <p className="mt-4 max-w-2xl text-ink-soft">{t("dimensionsLead")}</p>
+          </Reveal>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {DIMENSIONS.map((d, i) => (
+              <Reveal key={d.nameKey} delay={i * 110}>
+                <div className="h-full rounded-2xl border border-ink/10 bg-bone p-8">
+                  <span className="font-serif text-3xl italic leading-none text-green-deep/35">
+                    {d.num}
+                  </span>
+                  <h3 className="mt-4 font-serif text-2xl italic text-wine">
+                    {t(d.nameKey)}
+                  </h3>
+                  <ul className="mt-5 space-y-4">
+                    {d.factKeys.map((k) => (
+                      <li
+                        key={k}
+                        className="border-l-2 border-wine/20 pl-4 text-sm leading-relaxed text-ink-soft"
                       >
-                        00%
-                      </p>
-                      <span className="mt-5 block h-2 w-full rounded-full bg-wine/10" />
-                      <span className="mt-2 block h-2 w-2/3 rounded-full bg-wine/10" />
-                    </>
-                  )}
+                        {t(k)}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </Reveal>
             ))}
           </div>
 
-          {STATS.length === 0 && (
-            <p className="mt-8 font-serif text-lg italic text-muted">
-              {t("soon")}
+          <Reveal delay={340}>
+            <p className="mt-10 max-w-3xl border-l-2 border-green-deep/30 pl-5 font-serif text-lg italic leading-relaxed text-green-deep">
+              {t("dimensionsClose")}
             </p>
-          )}
+          </Reveal>
         </div>
       </section>
 
@@ -121,47 +175,28 @@ export default async function Page({
               <p className="kicker text-wine">{t("chartLabel")}</p>
             </Reveal>
             <Reveal delay={100}>
-              {CHART_SRC ? (
-                /* A marca d'água precisa estar GRAVADA no arquivo. O
-                   select-none / draggable=false abaixo é só atrito: não existe
-                   forma de impedir a captura de uma imagem na web. */
-                <div className="relative mt-5 select-none overflow-hidden rounded-2xl border border-ink/10 bg-bone">
-                  <Image
-                    src={asset(CHART_SRC)}
-                    alt={t("chartLabel")}
-                    width={1600}
-                    height={1000}
-                    draggable={false}
-                    className="pointer-events-none w-full"
-                  />
-                </div>
-              ) : (
-                <div className="mt-5 flex aspect-[8/5] items-end gap-3 rounded-2xl border border-dashed border-ink/15 bg-bone p-8">
-                  {[38, 62, 47, 80, 55].map((h, i) => (
-                    <span
-                      key={i}
-                      aria-hidden
-                      className="flex-1 rounded-t-md bg-wine/12"
-                      style={{ height: `${h}%` }}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* A marca d'água está GRAVADA no arquivo. O select-none e o
+                  draggable={false} abaixo são só atrito: não existe forma de
+                  impedir a captura de uma imagem na web. */}
+              <div className="relative mt-5 select-none overflow-hidden rounded-2xl border border-ink/10 bg-bone">
+                <Image
+                  src={asset(CHART_BY_LOCALE[locale] ?? CHART_BY_LOCALE.pt)}
+                  alt={t("chartAlt")}
+                  width={1600}
+                  height={1000}
+                  draggable={false}
+                  className="pointer-events-none w-full"
+                />
+              </div>
             </Reveal>
           </div>
 
           <aside className="md:pt-9">
             <Reveal delay={200}>
               <p className="kicker text-wine">{t("methodologyLabel")}</p>
-              {METHOD ? (
-                <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-                  {METHOD}
-                </p>
-              ) : (
-                <p className="mt-4 font-serif text-lg italic text-muted">
-                  {t("methodologySoon")}
-                </p>
-              )}
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+                {t("method")}
+              </p>
             </Reveal>
 
             {RESEARCH_URL && (
