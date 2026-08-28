@@ -18,7 +18,7 @@ import sharp from "sharp";
 import { promises as fs } from "node:fs";
 
 const W = 1600;
-const H = 1000;
+const H = 1080;
 const WINE = "#41181e";
 const WINE_SOFT = "#6b2a32";
 const GREEN = "#14312c";
@@ -92,10 +92,10 @@ const numero = (v, locale) =>
 
 function svg(locale) {
   const t = TEXTOS[locale];
-  const ESQ = 470; // onde as barras começam (espaço para os rótulos)
-  const DIR = 150; // espaço à direita para o valor
-  const ALTURA_LINHA = 68;
-  const ALTURA_BARRA = 34;
+  const ESQ = 560; // onde as barras começam (espaço para os rótulos)
+  const DIR = 175; // espaço à direita para o valor
+  const ALTURA_LINHA = 76;
+  const ALTURA_BARRA = 38;
   const larguraMax = W - ESQ - DIR;
   const escala = larguraMax / 60; // 60% cobre a maior barra com folga
 
@@ -106,23 +106,23 @@ function svg(locale) {
     { titulo: t.interno, cor: GREEN, de: EXTERNAS, ate: VALORES.length, opacidade: 0.78 },
   ];
 
-  let y = 218;
+  let y = 232;
   const partes = [];
   for (const g of GRUPOS) {
     partes.push(`
       <text x="44" y="${y}" font-family="Helvetica, Arial, sans-serif"
-        font-size="19" letter-spacing="3" fill="${g.cor}" fill-opacity="0.85">${esc(g.titulo.toUpperCase())}</text>
+        font-size="21" letter-spacing="3" fill="${g.cor}" fill-opacity="0.85">${esc(g.titulo.toUpperCase())}</text>
       <line x1="44" y1="${y + 18}" x2="${W - 44}" y2="${y + 18}" stroke="${g.cor}" stroke-opacity="0.18" stroke-width="2"/>`);
     y += 48;
     for (let i = g.de; i < g.ate; i++) {
       const largura = Math.round(VALORES[i] * escala);
       partes.push(`
         <text x="${ESQ - 26}" y="${y + ALTURA_BARRA / 2 + 7}" text-anchor="end"
-          font-family="Helvetica, Arial, sans-serif" font-size="23"
+          font-family="Helvetica, Arial, sans-serif" font-size="28"
           fill="${INK}" fill-opacity="${g.opacidade}">${esc(t.itens[i])}</text>
         <rect x="${ESQ}" y="${y}" width="${largura}" height="${ALTURA_BARRA}" rx="6" fill="${g.cor}"/>
         <text x="${ESQ + largura + 18}" y="${y + ALTURA_BARRA / 2 + 8}"
-          font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="bold"
+          font-family="Georgia, 'Times New Roman', serif" font-size="33" font-weight="bold"
           fill="${g.cor}">${numero(VALORES[i], locale)}</text>`);
       y += ALTURA_LINHA;
     }
@@ -135,7 +135,7 @@ function svg(locale) {
   const diagonais = [0, 1, 2]
     .map(
       (i) =>
-        `<text x="${150 + i * 500}" y="${905 - i * 95}" transform="rotate(-22 ${150 + i * 500} ${905 - i * 95})"
+        `<text x="${150 + i * 500}" y="${975 - i * 100}" transform="rotate(-22 ${150 + i * 500} ${975 - i * 100})"
           font-family="Georgia, 'Times New Roman', serif" font-size="52" font-style="italic"
           fill="${WINE}" fill-opacity="0.04">andreaeboli.com</text>`,
     )
@@ -145,16 +145,16 @@ function svg(locale) {
     <rect width="${W}" height="${H}" fill="${BONE}"/>
     ${diagonais}
     <rect x="0" y="0" width="${W}" height="6" fill="${WINE}"/>
-    <text x="44" y="104" font-family="Georgia, 'Times New Roman', serif" font-size="52"
+    <text x="44" y="112" font-family="Georgia, 'Times New Roman', serif" font-size="62"
       fill="${WINE}">${esc(t.titulo)}</text>
-    <text x="44" y="152" font-family="Helvetica, Arial, sans-serif" font-size="24"
+    <text x="44" y="164" font-family="Helvetica, Arial, sans-serif" font-size="28"
       fill="${INK}" fill-opacity="0.62">${esc(t.subtitulo)}</text>
     ${barras}
     <line x1="44" y1="${H - 92}" x2="${W - 44}" y2="${H - 92}" stroke="${INK}" stroke-opacity="0.12" stroke-width="2"/>
-    <text x="44" y="${H - 52}" font-family="Helvetica, Arial, sans-serif" font-size="21"
-      fill="${INK}" fill-opacity="0.55">${esc(t.nota)}</text>
-    <text x="${W - 44}" y="${H - 52}" text-anchor="end" font-family="Georgia, 'Times New Roman', serif"
-      font-size="23" font-style="italic" fill="${WINE_SOFT}" fill-opacity="0.9">Andrea Eboli</text>
+    <text x="44" y="${H - 50}" font-family="Helvetica, Arial, sans-serif" font-size="24"
+      fill="${INK}" fill-opacity="0.58">${esc(t.nota)}</text>
+    <text x="${W - 44}" y="${H - 50}" text-anchor="end" font-family="Georgia, 'Times New Roman', serif"
+      font-size="27" font-style="italic" fill="${WINE_SOFT}" fill-opacity="0.9">Andrea Eboli</text>
   </svg>`;
 }
 

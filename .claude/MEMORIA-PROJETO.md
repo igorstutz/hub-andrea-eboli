@@ -54,6 +54,17 @@ repositório). A página deixou de ser placeholder.
      (o comentário da página sempre pediu isso; CSS por cima é só atrito).
    - Metodologia e alt do gráfico escritos; placeholders e as chaves `soon` e
      `methodologySoon` foram apagados.
+   - ⚠️ **O gráfico nasceu ilegível e foi refeito** (o Igor apontou). Duas causas:
+     ele estava numa coluna de `1.5fr` num grid, renderizando a 770px, e o
+     desenho fora feito para 1600px, ou seja, tudo caía para 48% do tamanho.
+     Agora o gráfico ocupa a **largura inteira** da seção (a metodologia desceu
+     para baixo dele) e o desenho subiu de escala (rótulos 23→28, valores
+     27→33, título 52→62, altura 1000→1080).
+     No **celular** ele não encolhe: mantém `min-w-[760px]` e a caixa rola na
+     horizontal, com a dica `chartScrollHint` visível só em tela pequena.
+     📌 E o `sizes` do `next/image` precisou casar com isso
+     (`(max-width: 760px) 760px, ...`): com `100vw` o Next servia um arquivo de
+     503px esticado para 760 e a imagem saía borrada no celular.
 3. 🐛 **Bug achado e corrigido de quebra:** a `/videos` publicada mostrava o
    texto cru **"banner.kicker"** no hero, nos 3 idiomas. Era resquício da
    remoção do kicker em 19/08 (o namespace `banner` foi apagado, a chamada em

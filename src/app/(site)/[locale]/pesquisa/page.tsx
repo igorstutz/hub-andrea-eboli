@@ -167,40 +167,47 @@ export default async function Page({
         </div>
       </section>
 
-      {/* Gráfico principal + amostra e metodologia */}
+      {/* Gráfico principal + amostra e metodologia.
+          O gráfico ocupa a LARGURA INTEIRA: ele é o argumento da página, e
+          numa coluna estreita os rótulos das barras ficavam ilegíveis. A
+          metodologia desceu para baixo dele. */}
       <section className="bg-cream">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-[1.5fr_1fr] md:gap-16">
-          <div>
-            <Reveal>
-              <p className="kicker text-wine">{t("chartLabel")}</p>
-            </Reveal>
-            <Reveal delay={100}>
-              {/* A marca d'água está GRAVADA no arquivo. O select-none e o
-                  draggable={false} abaixo são só atrito: não existe forma de
-                  impedir a captura de uma imagem na web. */}
-              <div className="relative mt-5 select-none overflow-hidden rounded-2xl border border-ink/10 bg-bone">
-                <Image
-                  src={asset(CHART_BY_LOCALE[locale] ?? CHART_BY_LOCALE.pt)}
-                  alt={t("chartAlt")}
-                  width={1600}
-                  height={1000}
-                  draggable={false}
-                  className="pointer-events-none w-full"
-                />
-              </div>
-            </Reveal>
-          </div>
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <Reveal>
+            <p className="kicker text-wine">{t("chartLabel")}</p>
+          </Reveal>
+          <Reveal delay={100}>
+            {/* A marca d'água está GRAVADA no arquivo. O select-none e o
+                draggable={false} abaixo são só atrito: não existe forma de
+                impedir a captura de uma imagem na web. */}
+            {/* No celular o gráfico não cabe legível: em vez de encolher os
+                rótulos até sumirem, ele mantém uma largura mínima e a caixa
+                rola na horizontal. */}
+            <div className="relative mt-5 select-none overflow-x-auto rounded-2xl border border-ink/10 bg-bone">
+              <Image
+                src={asset(CHART_BY_LOCALE[locale] ?? CHART_BY_LOCALE.pt)}
+                alt={t("chartAlt")}
+                width={1600}
+                height={1080}
+                sizes="(max-width: 760px) 760px, (max-width: 1152px) 100vw, 1104px"
+                draggable={false}
+                className="pointer-events-none w-full min-w-[760px] max-w-none"
+              />
+            </div>
+            {/* A caixa acima rola no celular: sem esta linha ninguém descobre. */}
+            <p className="mt-3 text-xs text-muted sm:hidden">{t("chartScrollHint")}</p>
+          </Reveal>
 
-          <aside className="md:pt-9">
+          <div className="mt-12 grid gap-8 border-t border-ink/10 pt-10 md:grid-cols-[220px_1fr] md:gap-12">
             <Reveal delay={200}>
               <p className="kicker text-wine">{t("methodologyLabel")}</p>
-              <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+            </Reveal>
+            <Reveal delay={260}>
+              <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
                 {t("method")}
               </p>
-            </Reveal>
 
-            {RESEARCH_URL && (
-              <Reveal delay={280}>
+              {RESEARCH_URL && (
                 <a
                   href={RESEARCH_URL}
                   target="_blank"
@@ -212,9 +219,9 @@ export default async function Page({
                     →
                   </span>
                 </a>
-              </Reveal>
-            )}
-          </aside>
+              )}
+            </Reveal>
+          </div>
         </div>
       </section>
 
