@@ -66,6 +66,43 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
    - Sobrou lixo do template do Next em `public/` (`file.svg`, `globe.svg`,
      `next.svg`, `vercel.svg`, `window.svg`) — nada referencia, dá para apagar.
 
+5. **SEO de metadata refeito** (achado ao revisar o SEO das imagens: os alts
+   estavam bons, mas o metadata do site tinha três furos sérios).
+   - 🔴 **O canonical apontava sempre para o português.** `alternatesFor(path)`
+     usava o `defaultLocale`, então `/en/sobre` declarava `/pt/sobre` como
+     canônica — ou seja, dizia ao Google que as versões em inglês e espanhol são
+     duplicatas e não devem ser indexadas. Num hub trilíngue isso jogava dois
+     terços do site fora. Agora é `alternatesFor(path, locale)` (canonical no
+     próprio idioma) + **x-default**.
+   - 🔴 **A home não tinha canonical nem hreflang** (era a única página sem
+     `generateMetadata`) e servia a descrição em português nos 3 idiomas.
+     Ganhou metadata própria e **JSON-LD** (WebSite + Person), com o mesmo
+     `@id` (`${SITE_URL}/#person`) que o `/sobre` — as duas páginas passam a
+     falar da mesma entidade, o que importa para SEO e para GEO.
+   - 🔴 **Não existia Open Graph em lugar nenhum:** todo link compartilhado saía
+     sem imagem e sem título. Agora há cartão em todas as páginas
+     (`pageMetadata()` em `src/lib/seo.ts`, que as 17 páginas usam) e a imagem
+     **`public/brand/og-andrea-eboli.jpg`** (1200x630), gerada por
+     **`gera-og-image.mjs`** com material da marca: fundo vinho, assinatura em
+     creme e o retrato de 2026.
+     ⚠️ **Por que `pageMetadata` monta o `openGraph` inteiro:** o merge de
+     metadata do Next é **raso**, então uma página que declara `openGraph`
+     substitui o do layout. Declarar só `title` ali apagaria a imagem.
+     ⚠️ O kicker gravado na imagem ("PESQUISADORA · CRIADORA DA ECP") está em
+     português nos 3 idiomas; o `og:image:alt` e a descrição são traduzidos.
+   - **`metadataBase`** era fixo em `andreaeboli.com` enquanto o site publicado
+     mora no github.io: virou `new URL(SITE_URL)`. Caminhos "/algo" nos campos
+     de metadata são resolvidos **a partir do fim** do metadataBase (é o que a
+     doc do Next chama de URL Composition), então o basePath do Pages vem junto
+     sem precisar do `asset()`.
+   - Também: `title` do site era "Andrea Eboli — Ser Poder", **com travessão**,
+     justamente o que a Andrea pediu para tirar. Virou "·". Textos novos no
+     namespace **`meta`** (`siteTitle`, `siteDescription`, `ogImageAlt`).
+   - Os 5 SVGs do template do Next saíram de `public/`.
+6. ✅ **PUBLICADO** em 28/08/2026 (commit `1d1c746`): 156 páginas, deploy
+   verde e conferido no ar (canonical por idioma, og:image 200, as 16 fotos da
+   Confraria com basePath, Casos fora da home).
+
 4. **Screenshot headless: como pegar UMA seção.** O truque antigo
    (`--window-size` altíssimo) **não serve para a home**: o hero é
    `min-h-screen`, então ele engole a viewport inteira e a captura sai só vinho.
