@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import PageBanner from "@/components/PageBanner";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -10,10 +10,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  return {
+  const tp = await getTranslations({ locale, namespace: "mediaPage" });
+  return pageMetadata({
     title: t("media"),
-    alternates: alternatesFor("/na-midia"),
-  };
+    description: tp("headline"),
+    path: "/na-midia",
+    locale,
+  });
 }
 
 export default async function Page({

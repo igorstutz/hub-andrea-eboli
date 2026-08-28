@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import PageBanner from "@/components/PageBanner";
 import BannerPhoto from "@/components/BannerPhoto";
 import JsonLd from "@/components/JsonLd";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { SITE_URL, localizedUrl, pageMetadata } from "@/lib/seo";
 import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { aboutGalleryQuery } from "@/sanity/lib/queries";
@@ -38,10 +38,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  return {
+  const tp = await getTranslations({ locale, namespace: "aboutPage" });
+  return pageMetadata({
     title: t("about"),
-    alternates: alternatesFor("/sobre"),
-  };
+    description: tp("headline"),
+    path: "/sobre",
+    locale,
+  });
 }
 
 export default async function Page({
@@ -59,13 +62,17 @@ export default async function Page({
     (await sanityFetch<GalleryPhoto[] | null>(aboutGalleryQuery, { locale })) ??
     [];
 
+  // O @id é o MESMO que a home declara: assim buscadores e IAs entendem as
+  // duas páginas como a mesma pessoa, em vez de duas entidades soltas.
   const personLd = {
     "@context": "https://schema.org",
     "@type": "Person",
+    "@id": `${SITE_URL}/#person`,
     name: "Andrea Eboli",
     description: t("headline"),
     url: localizedUrl(locale, "/sobre"),
     jobTitle: t("role"),
+    image: `${SITE_URL}/brand/andrea-eboli-retrato-2026.webp`,
     sameAs: SOCIAL_SAME_AS,
   };
 
@@ -191,7 +198,7 @@ export default async function Page({
                           .fit("crop")
                           .auto("format")
                           .url()}
-                        alt={g.alt ?? "Andrea Eboli"}
+                        alt={g.alt ?? t("galleryFallbackAlt")}
                         fill
                         sizes="(max-width: 768px) 50vw, 33vw"
                         {...(g.lqip

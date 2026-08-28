@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SITE_URL, OG_IMAGE_PATH, ogLocaleFor } from "@/lib/seo";
 import "../../globals.css";
 
 // Fraunces — serifada variável, de alto contraste e com pesos fortes:
@@ -24,15 +25,39 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://andreaeboli.com"),
-  title: {
-    default: "Andrea Eboli — Ser Poder",
-    template: "%s · Andrea Eboli",
-  },
-  description:
-    "Centro de conhecimento sobre liderança, neurociência e poder consciente. A linguagem para atravessar a distância entre sucesso externo e coerência interna.",
-};
+// Metadata base de TODAS as páginas, por idioma: título, descrição e o cartão
+// que aparece quando alguém compartilha um link (Open Graph / Twitter).
+// O metadataBase vem de SITE_URL para valer também na homologação do Pages, que
+// mora num subcaminho; caminhos "/algo" nos campos de metadata são resolvidos a
+// partir do fim dele, então preservam o basePath.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  const title = t("siteTitle");
+  const description = t("siteDescription");
+  const images = [
+    { url: OG_IMAGE_PATH, width: 1200, height: 630, alt: t("ogImageAlt") },
+  ];
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: title, template: "%s · Andrea Eboli" },
+    description,
+    openGraph: {
+      type: "website",
+      siteName: "Andrea Eboli",
+      locale: ogLocaleFor(locale),
+      title,
+      description,
+      images,
+    },
+    twitter: { card: "summary_large_image", title, description, images },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

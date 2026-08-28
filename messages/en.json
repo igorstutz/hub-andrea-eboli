@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "siteTitle": "Andrea Eboli · Ser Poder",
+    "siteDescription": "A knowledge hub on leadership, neuroscience and conscious power. The language to cross the distance between outer success and inner coherence.",
+    "ogImageAlt": "Andrea Eboli, researcher and creator of the Conscious Power Structure, next to the Ser Poder signature"
+  },
   "nav": {
     "questions": "Questions",
     "concepts": "Concepts",
@@ -54,7 +59,7 @@
     "vocabularyTitle": "The Ser Poder vocabulary",
     "vocabularyLead": "Every idea in the thesis with a name of its own.",
     "librariesTitle": "The hub libraries",
-    "librariesLead": "All the content gathered by type: the questions people ask, the dictionary of the thesis, the behavior patterns and the articles that support the research.",
+    "librariesLead": "All the content gathered by type: the questions people ask, the dictionary of the thesis and the articles that support the research.",
     "newsletterBadge": "Weekly newsletter",
     "newsletterTitle": "Notes on Power",
     "newsletterLead": "Observations on human behavior, identity and conscious power. No noise.",
@@ -111,7 +116,8 @@
     "relatedArticles": "Related articles",
     "relatedVideos": "Related videos",
     "empty": "Content coming soon.",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "portraitAlt": "Portrait of Andrea Eboli, researcher and creator of the Conscious Structure of Power"
   },
   "search": {
     "title": "Search",
@@ -170,7 +176,8 @@
     "contactCta": "Get in touch",
     "galleryLabel": "Gallery",
     "galleryTitle": "Andrea in pictures",
-    "gallerySoon": "Gallery coming soon."
+    "gallerySoon": "Gallery coming soon.",
+    "galleryFallbackAlt": "Andrea Eboli at one of the stages, gatherings and behind the scenes shown in the gallery"
   },
   "articlesQuestionsPage": {
     "badge": "Articles & Questions",
@@ -212,14 +219,26 @@
     "headline": "Where the Conscious Structure of Power meets real life.",
     "photosLabel": "The Confraria in pictures",
     "testimonialLabel": "What a participant learned",
-    "soon": "Photos and testimonials from the Confraria are coming soon.",
     "cta": "Discover the Confraria",
     "crossTitle": "And the data?",
     "crossBody": "The ECP research gathers the evidence behind the method.",
     "crossCta": "Explore the research",
-    "photoConversaAlt": "Andrea Eboli in conversation with participants at a Confraria Let’s Be gathering",
-    "photoGrupoAlt": "Confraria Let’s Be participants gathered at the end of a session",
-    "photoEncontroAlt": "Confraria Let’s Be participants around the table during a gathering"
+    "photoRodaConversaAlt": "Andrea Eboli speaking in a Confraria Let’s Be conversation circle, holding her notes from the session",
+    "photoGrupoOficialAlt": "Official group photo of the Confraria Let’s Be participants in their Let’s Be Better Humans t-shirts",
+    "photoConduzindoAlt": "Andrea Eboli gesturing as she leads the conversation at a Confraria Let’s Be gathering",
+    "photoGrupoAlt": "Confraria Let’s Be participants celebrating together at the end of a gathering, in Let’s Be Better Humans t-shirts",
+    "photoGrupoSalaoAlt": "Confraria Let’s Be participants standing together in the gathering hall, all in Let’s Be Better Humans t-shirts",
+    "photoMesaAlt": "Confraria Let’s Be participants talking around the long table at an evening gathering",
+    "photoCamisetasGrupoAlt": "Confraria Let’s Be group in front of the tree panel, with the gathering table in the background",
+    "photoDuplaAlt": "Andrea Eboli next to a Confraria Let’s Be participant, both in Let’s Be Better Humans t-shirts",
+    "photoDuplaPainelAlt": "Two Confraria Let’s Be participants posing together in front of the tree panel, in Let’s Be Better Humans t-shirts",
+    "photoJantarAlt": "Confraria Let’s Be participants applauding around the table during the gathering dinner",
+    "photoSelfieAlt": "Selfie of the Confraria Let’s Be participants together at the gathering dinner",
+    "photoSelfieDuplaAlt": "Two Confraria Let’s Be participants taking a selfie in front of the tree panel in the gathering room",
+    "photoAbracoAlt": "Andrea Eboli hugging a Confraria Let’s Be participant during a gathering",
+    "photoSacolasAlt": "Confraria Let’s Be participants holding their Let’s Be Real tote bags at the end of the gathering",
+    "photoCamisetasAlt": "Let’s Be Better Humans t-shirts folded in a straw basket with Let’s Be tags, the gift from the Confraria gathering",
+    "photoCestaBrindeAlt": "Straw basket with the Let’s Be Better Humans t-shirts and Let’s Be tags, the gift handed out on the evening of the Confraria gathering"
   },
   "mediaPage": {
     "badge": "In the Media",

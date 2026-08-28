@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import PageBanner from "@/components/PageBanner";
 import NewsletterForm from "@/components/NewsletterForm";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 import { INSTAGRAM_URL } from "@/lib/social";
 
 export async function generateMetadata({
@@ -12,10 +12,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  return {
+  const tp = await getTranslations({ locale, namespace: "contactPage" });
+  return pageMetadata({
     title: t("contact"),
-    alternates: alternatesFor("/contato"),
-  };
+    description: tp("headline"),
+    path: "/contato",
+    locale,
+  });
 }
 
 export default async function Page({

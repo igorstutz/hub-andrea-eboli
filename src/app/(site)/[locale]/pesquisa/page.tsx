@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import PageBanner from "@/components/PageBanner";
 import EvidenceIntro from "@/components/EvidenceIntro";
 import Reveal from "@/components/Reveal";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 import { asset } from "@/lib/assetPath";
 
 /* ------------------------------------------------------------------
@@ -32,11 +32,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "researchPage" });
-  return {
+  return pageMetadata({
     title: t("title"),
     description: t("headline"),
-    alternates: alternatesFor("/pesquisa"),
-  };
+    path: "/pesquisa",
+    locale,
+  });
 }
 
 export default async function Page({

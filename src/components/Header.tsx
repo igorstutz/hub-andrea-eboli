@@ -112,7 +112,7 @@ export default function Header() {
             <Avatar />
             <Image
               src={asset(LOGO_SRC)}
-              alt=""
+              alt="Andrea Eboli"
               width={LOGO_W}
               height={LOGO_H}
               priority

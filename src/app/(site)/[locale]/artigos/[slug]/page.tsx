@@ -13,7 +13,7 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { articleBySlugQuery } from "@/sanity/lib/queries";
 import { slugify } from "@/lib/portableText";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { localizedUrl, pageMetadata } from "@/lib/seo";
 
 // Export estático: pré-gera todos os artigos publicados.
 export async function generateStaticParams() {
@@ -69,11 +69,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const a = await sanityFetch<ArticleDetail>(articleBySlugQuery, { locale, slug });
   if (!a) return {};
-  return {
+  return pageMetadata({
     title: a.metaTitle || a.title,
     description: a.metaDescription || a.excerpt,
-    alternates: alternatesFor(`/artigos/${slug}`),
-  };
+    path: `/artigos/${slug}`,
+    locale,
+  });
 }
 
 export default async function Page({

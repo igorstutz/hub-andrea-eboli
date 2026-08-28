@@ -13,7 +13,7 @@ import JsonLd from "@/components/JsonLd";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { caseBySlugQuery } from "@/sanity/lib/queries";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { localizedUrl, pageMetadata } from "@/lib/seo";
 
 // Export estático: pré-gera todos os casos publicados.
 export async function generateStaticParams() {
@@ -43,11 +43,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const c = await sanityFetch<CaseDetail>(caseBySlugQuery, { locale, slug });
   if (!c) return {};
-  return {
+  return pageMetadata({
     title: c.metaTitle || c.title,
     description: c.metaDescription || c.description,
-    alternates: alternatesFor(`/casos/${slug}`),
-  };
+    path: `/casos/${slug}`,
+    locale,
+  });
 }
 
 export default async function Page({

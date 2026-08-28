@@ -20,7 +20,116 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 27/08/2026 (MAIS RECENTE) — Fotos da Andrea + e-mail novo
+### 🗓️ Sessão 28/08/2026 (parte 2, MAIS RECENTE) — Casos fora da home + 4 fotos a mais
+1. **"Casos e Personagens" saiu da home INTEIRA** (pedido do Igor): a seção de
+   casos **e** o cartão no bloco "As bibliotecas do hub". Não apaguei nada — quem
+   manda é a flag `SHOW_CASES` no topo de `src/app/(site)/[locale]/page.tsx`,
+   que governa os dois lugares. A rota `/casos`, os documentos no Sanity e o
+   sitemap continuam intactos.
+   - `LIBRARIES` agora é derivada de `ALL_LIBRARIES` (filtro pela flag) e o
+     **número do cartão vem da posição na lista**, para não sair 01, 02, 04.
+     A grade fecha em **3 colunas** com 3 cartões e volta a 2 + 2 com os 4
+     (`LIBRARIES_GRID`).
+   - ⚠️ `home.librariesLead` foi reescrito nos 3 idiomas: prometia "os padrões
+     de comportamento", que era a descrição de Casos. **Se `SHOW_CASES` voltar a
+     true, devolver esse trecho ao lead.**
+   - ⚠️ **O rodapé continua linkando "Casos"** (`src/components/Footer.tsx:10`) —
+     e ele é global, aparece em toda página. O Igor pediu só a home; fica aí até
+     ele decidir.
+2. **A /confraria foi de 12 para 16 fotos.** Reavaliei as 7 que tinham ficado de
+   fora olhando uma por uma: 4 voltaram (grupo de pé no salão, selfie de duas
+   participantes, dupla no painel de árvores e a 2ª cesta de camisetas).
+   O `prepara-fotos-confraria.mjs` foi atualizado (é a memória da curadoria) e a
+   ordem do mosaico separa as cenas parecidas — as duas cestas ficaram uma no
+   topo da 1ª coluna e outra no fim da 3ª.
+   - **Continuam de fora, 3:** o print de story do Instagram e os **2 retratos
+     com a marca d'água "GIT Ikeda"**.
+   - 🔎 **Descoberta:** esses 2 retratos são da **MESMA sessão** do retrato que
+     já está no site (`brand/andrea-eboli-retrato-2026.webp`) — mesmo sofá,
+     mesmo quadro da Torre Eiffel, mesma roupa. Então não é questão de direito:
+     falta só o **arquivo limpo, sem marca d'água**. Pedir essa sessão inteira
+     em alta à Andrea resolve de uma vez a pendência do **retrato do hero**.
+   - Os 4 alts novos (`photoGrupoSalaoAlt`, `photoSelfieDuplaAlt`,
+     `photoDuplaPainelAlt`, `photoCestaBrindeAlt`) estão nos 3 idiomas.
+     **A mulher de tiara das fotos novas NÃO foi nomeada:** o crachá dela diz
+     "ANDREA T…" e o look é outro, então pode não ser a Andrea Eboli. Se o Igor
+     confirmar, é trocar 2 alts × 3 idiomas.
+3. **SEO das imagens — auditoria fechada.** Varri `public/` e todo `alt=` do
+   código: nenhum arquivo com nome de WhatsApp/celular sobrou e todo `alt` do
+   site tem texto, exceto 3 casos de propósito (as 2 thumbs de vídeo do YouTube,
+   que têm o título ao lado, e o avatar do header, que nem renderiza).
+   - **A galeria do /sobre não tem o que arrumar:** os 40 assets do Sanity já
+     estão como `andrea-eboli-01..41.jpeg` (nada de WhatsApp) e com `alt` nos 3
+     idiomas. E **nome de arquivo no Sanity não vale para SEO**: a URL do CDN é
+     hash (`…/8b3766a9…-1066x1600.jpg`), o nome não aparece nela. Nome de
+     arquivo só conta para o que está em `public/`.
+   - Sobrou lixo do template do Next em `public/` (`file.svg`, `globe.svg`,
+     `next.svg`, `vercel.svg`, `window.svg`) — nada referencia, dá para apagar.
+
+4. **Screenshot headless: como pegar UMA seção.** O truque antigo
+   (`--window-size` altíssimo) **não serve para a home**: o hero é
+   `min-h-screen`, então ele engole a viewport inteira e a captura sai só vinho.
+   E navegar para `#ancora` não resolve (o scroll acontece antes do layout
+   final). O que funciona é **CDP**: subir o Chrome com
+   `--remote-debugging-port`, `Runtime.evaluate` com `scrollIntoView` (é o que
+   dispara os `Reveal`, que são IntersectionObserver), esperar ~1,8s, ler o
+   `getBoundingClientRect` + `scrollY` e capturar com
+   `Page.captureScreenshot { clip, captureBeyondViewport: true }`.
+   O Node 24 já tem `WebSocket` e `fetch` globais, então não precisa de
+   dependência nenhuma. (Alternativa pobre: `--force-prefers-reduced-motion`
+   revela os `Reveal` sem esperar, porque o `globals.css` tem esse fallback.)
+
+---
+
+### 🗓️ Sessão 28/08/2026 (parte 1) — Galeria da Confraria + SEO das imagens
+Pedido do Igor: aproveitar as fotos da Confraria que tinham ficado de fora e
+arrumar **nome de arquivo e alt de todas as imagens** para SEO.
+
+1. **A `/confraria` passou de 3 para 12 fotos** (viraram 16 na parte 2). O bloco "1 principal + 2
+   menores" virou **foto de destaque (3:2, largura inteira) + mosaico** em
+   `sm:columns-2 lg:columns-3` com `break-inside-avoid`: cada foto fica na
+   proporção em que foi tirada (nada de recorte em gente) e o `width`/`height`
+   real vai no `next/image`, o que também evita CLS. Os placeholders "AE" e a
+   chave `confrariaPage.soon` foram apagados (viraram código morto).
+2. **Script novo `prepara-fotos-confraria.mjs`** (raiz): guarda o original
+   renomeado em `../brand-originais/confraria/` e gera o `.webp` (máx. 1600px,
+   q82) em `public/confraria/`. Ele é a memória da curadoria.
+   - **Descartadas 7 das 19:** as **2 com marca d'água "GIT Ikeda"** (de novo:
+     são os melhores retratos dela; só entram se ela tiver o direito de uso),
+     1 print de story do Instagram (interface e @ sobrepostos), 2 cenas
+     repetidas, 1 segunda foto de cesta de camisetas e 1 de 960×1280 (a menor
+     do lote).
+   - A Andrea aparece em 4 das 12 (conferi rosto/roupa contra o retrato do
+     hero antes de nomeá-la no alt). **Terceiros continuam sem nome.**
+3. **SEO das imagens — nomes de arquivo.** Tudo em `public/` passou a ter nome
+   descritivo com as palavras-chave da marca:
+   `andrea-eboli-confraria-lets-be-roda-de-conversa.webp`,
+   `confraria-lets-be-foto-oficial-do-grupo.webp` etc.; e
+   `brand/andrea-banner.webp` → **`brand/andrea-eboli-retrato-2026.webp`**
+   (o original na pasta irmã acompanhou o nome).
+4. **SEO das imagens — alts.** Os 12 alts da Confraria são novos e descrevem a
+   cena + o contexto, nos 3 idiomas (`confrariaPage.photo*Alt`). Além disso:
+   - `BannerPhoto` virou **async** e lê `common.portraitAlt` (era o alt fixo
+     "Andrea Eboli"), então o retrato do hero e do `/sobre` acompanha o idioma.
+   - Logo do header ganhou `alt="Andrea Eboli"` (o `aria-label` do link
+     continua mandando na leitura de tela, então não duplica).
+   - Fallback da galeria do `/sobre` virou `aboutPage.galleryFallbackAlt`.
+   - **As thumbs de vídeo seguem com `alt=""` de propósito:** o título está do
+     lado no card e a imagem é do YouTube (`i.ytimg.com`) — pôr o título ali só
+     duplicaria a leitura sem ganho de indexação.
+   - Os alts das 40 fotos da galeria no Sanity foram conferidos e **já estavam
+     bons** (nomeiam Andrea Eboli + evento); não mexi.
+5. **Validado:** `tsc` e `eslint` limpos, **build estático de produção com as
+   156 páginas** (as 12 imagens saem com o basePath certo no HTML) e conferência
+   visual por screenshot headless em desktop e celular.
+   ⚠️ Para buildar local é preciso repetir o que o workflow faz — mover
+   `src/app/api`, `src/app/(studio)` e `src/proxy.ts` para fora e devolver
+   depois — e definir as variáveis **pelo PowerShell**: no Git Bash o MSYS
+   converte `/hub-andrea-eboli` em `C:/Program Files/Git/...`.
+
+---
+
+### 🗓️ Sessão 27/08/2026 — Fotos da Andrea + e-mail novo
 Ela mandou pelo WhatsApp uma pasta com **71 fotos** (`Downloads/andrea imagens`,
 com a subpasta `confraria/`) e o e-mail definitivo. Tudo já está no ar.
 
@@ -356,9 +465,8 @@ screenshot headless do Chrome).
    `/artigos-e-perguntas`; só mostra as fontes que existem, e nada aparece se
    houver só uma. Rótulos em `articleSources.*` (3 idiomas);
    `src/lib/articleSources.ts` normaliza artigo sem fonte como "original".
-   ⏭️ **Pendência:** os 3 artigos antigos estão sem `source`. Rodar
-   `npx sanity exec set-article-sources.mjs --with-user-token` (script já pronto na
-   raiz) ou marcar à mão no Studio — sem isso eles ficam todos em "Originais".
+   ✅ **RESOLVIDO** (conferido em 28/08/2026): os 5 artigos publicados têm
+   `source` preenchido. O script `set-article-sources.mjs` cumpriu o papel.
 
 ---
 

@@ -5,7 +5,7 @@ import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { videosListQuery } from "@/sanity/lib/queries";
 import { parseYouTubeId, thumbnailUrl } from "@/lib/youtube";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 type VideoItem = {
   title: string;
@@ -21,11 +21,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "libraries" });
-  return {
+  return pageMetadata({
     title: t("videos.name"),
     description: t("videos.desc"),
-    alternates: alternatesFor("/videos"),
-  };
+    path: "/videos",
+    locale,
+  });
 }
 
 export default async function Page({

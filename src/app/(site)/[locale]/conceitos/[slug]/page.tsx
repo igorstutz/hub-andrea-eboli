@@ -13,7 +13,7 @@ import JsonLd from "@/components/JsonLd";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { conceptBySlugQuery } from "@/sanity/lib/queries";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { localizedUrl, pageMetadata } from "@/lib/seo";
 
 // Export estático: pré-gera todos os conceitos publicados.
 export async function generateStaticParams() {
@@ -45,11 +45,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const c = await sanityFetch<CDetail>(conceptBySlugQuery, { locale, slug });
   if (!c) return {};
-  return {
+  return pageMetadata({
     title: c.title,
     description: c.shortDefinition,
-    alternates: alternatesFor(`/conceitos/${slug}`),
-  };
+    path: `/conceitos/${slug}`,
+    locale,
+  });
 }
 
 export default async function Page({

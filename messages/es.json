@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "siteTitle": "Andrea Eboli · Ser Poder",
+    "siteDescription": "Centro de conocimiento sobre liderazgo, neurociencia y poder consciente. El lenguaje para atravesar la distancia entre el éxito externo y la coherencia interna.",
+    "ogImageAlt": "Andrea Eboli, investigadora y creadora de la Estructura Consciente de Poder, junto a la firma Ser Poder"
+  },
   "nav": {
     "questions": "Preguntas",
     "concepts": "Conceptos",
@@ -54,7 +59,7 @@
     "vocabularyTitle": "El vocabulario Ser Poder",
     "vocabularyLead": "Cada idea de la tesis con un nombre propio.",
     "librariesTitle": "Las bibliotecas del hub",
-    "librariesLead": "Todo el contenido reunido por tipo: las preguntas que las personas hacen, el diccionario de la tesis, los patrones de comportamiento y los artículos que sostienen la investigación.",
+    "librariesLead": "Todo el contenido reunido por tipo: las preguntas que las personas hacen, el diccionario de la tesis y los artículos que sostienen la investigación.",
     "newsletterBadge": "Newsletter semanal",
     "newsletterTitle": "Notas sobre el Poder",
     "newsletterLead": "Observaciones sobre el comportamiento humano, la identidad y el poder consciente. Sin ruido.",
@@ -111,7 +116,8 @@
     "relatedArticles": "Artículos relacionados",
     "relatedVideos": "Vídeos relacionados",
     "empty": "Contenido próximamente.",
-    "backToHome": "Volver al inicio"
+    "backToHome": "Volver al inicio",
+    "portraitAlt": "Retrato de Andrea Eboli, investigadora y creadora de la Estructura Consciente de Poder"
   },
   "search": {
     "title": "Búsqueda",
@@ -170,7 +176,8 @@
     "contactCta": "Hablar con Andrea",
     "galleryLabel": "Galería",
     "galleryTitle": "Andrea en imágenes",
-    "gallerySoon": "Galería en preparación."
+    "gallerySoon": "Galería en preparación.",
+    "galleryFallbackAlt": "Andrea Eboli en uno de los escenarios, encuentros y bastidores registrados en la galería"
   },
   "articlesQuestionsPage": {
     "badge": "Artículos y Preguntas",
@@ -212,14 +219,26 @@
     "headline": "Donde la Estructura Consciente de Poder encuentra la vida real.",
     "photosLabel": "La Confraria en imágenes",
     "testimonialLabel": "Aprendizaje de un participante",
-    "soon": "Las fotos y los testimonios de la Confraria entran aquí pronto.",
     "cta": "Conoce la Confraria",
     "crossTitle": "¿Y los datos?",
     "crossBody": "La investigación ECP reúne las evidencias que sostienen el método.",
     "crossCta": "Conocer la investigación",
-    "photoConversaAlt": "Andrea Eboli conversando con participantes en un encuentro de la Confraria Let’s Be",
-    "photoGrupoAlt": "Participantes de la Confraria Let’s Be reunidos al final de un encuentro",
-    "photoEncontroAlt": "Participantes de la Confraria Let’s Be alrededor de la mesa durante un encuentro"
+    "photoRodaConversaAlt": "Andrea Eboli habla en una rueda de conversación de la Confraria Let’s Be, con sus notas del encuentro en la mano",
+    "photoGrupoOficialAlt": "Foto oficial del grupo de la Confraria Let’s Be, con los participantes en camiseta Let’s Be Better Humans",
+    "photoConduzindoAlt": "Andrea Eboli gesticula mientras conduce la conversación de un encuentro de la Confraria Let’s Be",
+    "photoGrupoAlt": "Participantes de la Confraria Let’s Be celebran juntos al final de un encuentro, en camiseta Let’s Be Better Humans",
+    "photoGrupoSalaoAlt": "Participantes de la Confraria Let’s Be reunidos de pie en el salón del encuentro, todos en camiseta Let’s Be Better Humans",
+    "photoMesaAlt": "Participantes de la Confraria Let’s Be conversan alrededor de la mesa larga en un encuentro nocturno",
+    "photoCamisetasGrupoAlt": "Grupo de la Confraria Let’s Be reunido frente al panel de árboles, con la mesa del encuentro al fondo",
+    "photoDuplaAlt": "Andrea Eboli junto a una participante de la Confraria Let’s Be, las dos en camiseta Let’s Be Better Humans",
+    "photoDuplaPainelAlt": "Dos participantes de la Confraria Let’s Be posan juntas frente al panel de árboles, en camiseta Let’s Be Better Humans",
+    "photoJantarAlt": "Participantes de la Confraria Let’s Be aplauden alrededor de la mesa durante la cena del encuentro",
+    "photoSelfieAlt": "Selfie de las participantes de la Confraria Let’s Be reunidas en la cena del encuentro",
+    "photoSelfieDuplaAlt": "Dos participantes de la Confraria Let’s Be se hacen una selfie frente al panel de árboles de la sala del encuentro",
+    "photoAbracoAlt": "Andrea Eboli abrazada a una participante de la Confraria Let’s Be durante un encuentro",
+    "photoSacolasAlt": "Participantes de la Confraria Let’s Be con las bolsas Let’s Be Real al final del encuentro",
+    "photoCamisetasAlt": "Camisetas Let’s Be Better Humans dobladas en una cesta de paja con las etiquetas Let’s Be, regalo del encuentro de la Confraria",
+    "photoCestaBrindeAlt": "Cesta de paja con las camisetas Let’s Be Better Humans y las etiquetas Let’s Be, el regalo entregado en la noche del encuentro de la Confraria"
   },
   "mediaPage": {
     "badge": "En los medios",

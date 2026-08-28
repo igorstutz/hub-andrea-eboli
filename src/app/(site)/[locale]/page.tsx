@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
 import HomeBanner from "@/components/HomeBanner";
+import JsonLd from "@/components/JsonLd";
 import LibraryIcon from "@/components/LibraryIcon";
 import NewsletterForm from "@/components/NewsletterForm";
+import {
+  SITE_URL,
+  alternatesFor,
+  languageTagFor,
+  localizedUrl,
+} from "@/lib/seo";
+import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import {
   questionsListQuery,
@@ -14,12 +23,31 @@ import {
 } from "@/sanity/lib/queries";
 import { parseYouTubeId, thumbnailUrl, formatDurationHuman } from "@/lib/youtube";
 
-const LIBRARIES = [
-  { key: "questions", href: "/perguntas", num: "01" },
-  { key: "concepts", href: "/conceitos", num: "02" },
-  { key: "cases", href: "/casos", num: "03" },
-  { key: "articles", href: "/artigos", num: "04" },
+// "Casos e Personagens" está fora da home por enquanto (pedido do Igor,
+// 28/08/2026): a flag esconde a seção de casos E o cartão na lista de
+// bibliotecas do fim da página. A rota /casos e o conteúdo continuam no ar;
+// voltar para true devolve os dois — e nesse caso vale reescrever
+// `home.librariesLead` nos 3 idiomas, que perdeu a menção aos "padrões de
+// comportamento" (a descrição de Casos) junto com o cartão.
+const SHOW_CASES: boolean = false;
+
+const ALL_LIBRARIES = [
+  { key: "questions", href: "/perguntas" },
+  { key: "concepts", href: "/conceitos" },
+  { key: "cases", href: "/casos" },
+  { key: "articles", href: "/artigos" },
 ] as const;
+
+// A numeração dos cartões vem da posição na lista, para não abrir buraco (01,
+// 02, 04) enquanto Casos está escondido.
+const LIBRARIES = ALL_LIBRARIES.filter(
+  (lib) => SHOW_CASES || lib.key !== "cases",
+).map((lib, i) => ({ ...lib, num: String(i + 1).padStart(2, "0") }));
+
+// Com 3 cartões a grade fecha em 3 colunas no desktop; com os 4 (Casos de
+// volta) ela volta a fechar 2 + 2.
+const LIBRARIES_GRID =
+  LIBRARIES.length === 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2";
 
 type QItem = { title: string; slug: string; answer?: string; topic?: { title: string } | null };
 type CItem = {
@@ -89,6 +117,17 @@ function SectionHeading({
   );
 }
 
+// A home é a página mais linkada do site e, até aqui, era a única sem canonical
+// e sem hreflang: as três versões competiam entre si no índice.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: alternatesFor("/", locale) };
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -99,6 +138,8 @@ export default async function HomePage({
   const t = await getTranslations("home");
   const tl = await getTranslations("libraries");
   const tk = await getTranslations("articleKinds");
+  const tm = await getTranslations("meta");
+  const ta = await getTranslations("aboutPage");
 
   // Conteúdo real das bibliotecas (datasets pequenos; fatiamos aqui).
   const [questions, concepts, cases, articles, videos] = await Promise.all([
@@ -114,8 +155,38 @@ export default async function HomePage({
   const dimensions = concepts.filter((c) => c.group === "dimension");
   const vocabulary = concepts.filter((c) => c.group === "vocabulary");
 
+  // Dados estruturados da home: quem é a autora e o que é este site. É o que
+  // buscadores e IAs leem para atribuir a tese a ela (o /sobre já declara a
+  // Person; aqui o @id é o mesmo, para as duas páginas falarem da mesma pessoa).
+  const homeLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: localizedUrl(locale, "/"),
+        name: "Andrea Eboli",
+        description: tm("siteDescription"),
+        inLanguage: languageTagFor(locale),
+        publisher: { "@id": `${SITE_URL}/#person` },
+      },
+      {
+        "@type": "Person",
+        "@id": `${SITE_URL}/#person`,
+        name: "Andrea Eboli",
+        url: localizedUrl(locale, "/sobre"),
+        jobTitle: ta("role"),
+        description: tm("siteDescription"),
+        image: `${SITE_URL}/brand/andrea-eboli-retrato-2026.webp`,
+        sameAs: SOCIAL_SAME_AS,
+      },
+    ],
+  };
+
   return (
     <>
+      <JsonLd data={homeLd} />
+
       {/* ============ BANNER ============ */}
       <HomeBanner />
 
@@ -451,7 +522,7 @@ export default async function HomePage({
       )}
 
       {/* ============ CASOS ============ */}
-      {cases.length > 0 && (
+      {SHOW_CASES && cases.length > 0 && (
         <section className="relative overflow-hidden bg-bone">
           <div className="blob animate-float absolute -right-20 top-10 h-80 w-80 bg-green-deep/8" />
           <div className="relative mx-auto max-w-6xl px-6 py-24">
@@ -573,7 +644,7 @@ export default async function HomePage({
             <p className="mt-4 max-w-2xl text-ink-soft">{t("librariesLead")}</p>
           </Reveal>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
+          <div className={`mt-14 grid gap-6 ${LIBRARIES_GRID}`}>
             {LIBRARIES.map(({ key, href, num }, i) => (
               <Reveal key={key} delay={i * 110}>
                 <Link

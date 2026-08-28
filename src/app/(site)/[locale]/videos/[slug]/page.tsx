@@ -15,7 +15,7 @@ import {
   formatDurationHuman,
   thumbnailUrl,
 } from "@/lib/youtube";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { localizedUrl, pageMetadata } from "@/lib/seo";
 
 type Chapter = { startTime: number; title: string };
 type RefItem = { title: string; slug: string };
@@ -56,11 +56,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const v = await sanityFetch<VideoDetail>(videoBySlugQuery, { locale, slug });
   if (!v) return {};
-  return {
+  return pageMetadata({
     title: v.metaTitle || v.title,
     description: v.metaDescription || v.directAnswer || v.summary,
-    alternates: alternatesFor(`/videos/${slug}`),
-  };
+    path: `/videos/${slug}`,
+    locale,
+  });
 }
 
 export default async function Page({

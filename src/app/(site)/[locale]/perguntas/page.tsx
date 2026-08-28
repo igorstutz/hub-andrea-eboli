@@ -4,7 +4,7 @@ import PageBanner from "@/components/PageBanner";
 import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { questionsListQuery } from "@/sanity/lib/queries";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 type QItem = {
   title: string;
@@ -20,11 +20,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "libraries" });
-  return {
+  return pageMetadata({
     title: t("questions.name"),
     description: t("questions.desc"),
-    alternates: alternatesFor("/perguntas"),
-  };
+    path: "/perguntas",
+    locale,
+  });
 }
 
 export default async function Page({

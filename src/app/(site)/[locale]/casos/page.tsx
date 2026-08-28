@@ -4,7 +4,7 @@ import PageBanner from "@/components/PageBanner";
 import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { casesListQuery } from "@/sanity/lib/queries";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 type CaseItem = { title: string; slug: string; description?: string };
 
@@ -15,11 +15,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "libraries" });
-  return {
+  return pageMetadata({
     title: t("cases.name"),
     description: t("cases.desc"),
-    alternates: alternatesFor("/casos"),
-  };
+    path: "/casos",
+    locale,
+  });
 }
 
 export default async function Page({

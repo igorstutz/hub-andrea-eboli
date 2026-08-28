@@ -4,7 +4,7 @@ import PageBanner from "@/components/PageBanner";
 import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { articlesListQuery } from "@/sanity/lib/queries";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 import {
   normalizeArticleSource,
   presentArticleSources,
@@ -26,11 +26,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "libraries" });
-  return {
+  return pageMetadata({
     title: t("articles.name"),
     description: t("articles.desc"),
-    alternates: alternatesFor("/artigos"),
-  };
+    path: "/artigos",
+    locale,
+  });
 }
 
 export default async function Page({

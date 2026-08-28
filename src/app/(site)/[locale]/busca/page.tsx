@@ -13,7 +13,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "search" });
   return {
     title: t("title"),
-    alternates: alternatesFor("/busca"),
+    alternates: alternatesFor("/busca", locale),
     robots: { index: false },
   };
 }

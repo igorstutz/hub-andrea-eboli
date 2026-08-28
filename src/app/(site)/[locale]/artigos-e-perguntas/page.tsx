@@ -6,7 +6,7 @@ import LibrarySearch from "@/components/LibrarySearch";
 import SectionOrderToggle from "@/components/SectionOrderToggle";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { questionsListQuery, articlesListQuery } from "@/sanity/lib/queries";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 import { ASK_QUESTION_URL } from "@/lib/askQuestion";
 import {
   normalizeArticleSource,
@@ -36,11 +36,12 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
   const tp = await getTranslations({ locale, namespace: "articlesQuestionsPage" });
-  return {
+  return pageMetadata({
     title: t("articlesQuestions"),
     description: tp("headline"),
-    alternates: alternatesFor("/artigos-e-perguntas"),
-  };
+    path: "/artigos-e-perguntas",
+    locale,
+  });
 }
 
 // Cabeçalho de cada bloco: título, CTA para a listagem completa e os dois

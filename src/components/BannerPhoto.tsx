@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { asset } from "@/lib/assetPath";
 
 // Foto editorial do banner — moldura RETANGULAR (o arco saiu a pedido da Andrea
@@ -10,15 +11,18 @@ import { asset } from "@/lib/assetPath";
 // inteiras. No projeto fica só a versão leve (.webp, 900x1200); o JPG original
 // está FORA do repositório, na pasta irmã `brand-originais/`. Se PHOTO_SRC for
 // null, cai no placeholder desenhado (monograma).
-const PHOTO_SRC: string | null = "/brand/andrea-banner.webp";
+const PHOTO_SRC: string | null = "/brand/andrea-eboli-retrato-2026.webp";
 
-export default function BannerPhoto({
+export default async function BannerPhoto({
   priority = false,
   className = "",
 }: {
   priority?: boolean;
   className?: string;
 }) {
+  // O alt vem do i18n (`common.portraitAlt`) para acompanhar o idioma da página.
+  const t = await getTranslations("common");
+
   return (
     <div className={`relative mx-auto w-full max-w-[22rem] ${className}`}>
       {/* bloco de cor deslocado atrás da foto (colagem editorial) */}
@@ -31,7 +35,7 @@ export default function BannerPhoto({
         {PHOTO_SRC ? (
           <Image
             src={asset(PHOTO_SRC)}
-            alt="Andrea Eboli"
+            alt={t("portraitAlt")}
             fill
             priority={priority}
             sizes="(max-width: 1024px) 80vw, 22rem"

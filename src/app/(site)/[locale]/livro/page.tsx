@@ -3,7 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import PageBanner from "@/components/PageBanner";
 import Reveal from "@/components/Reveal";
 import NewsletterForm from "@/components/NewsletterForm";
-import { alternatesFor } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -12,10 +12,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  return {
+  const tp = await getTranslations({ locale, namespace: "bookPage" });
+  return pageMetadata({
     title: t("book"),
-    alternates: alternatesFor("/livro"),
-  };
+    description: tp("headline"),
+    path: "/livro",
+    locale,
+  });
 }
 
 export default async function Page({

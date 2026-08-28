@@ -13,7 +13,7 @@ import JsonLd from "@/components/JsonLd";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { questionBySlugQuery } from "@/sanity/lib/queries";
-import { alternatesFor, localizedUrl } from "@/lib/seo";
+import { localizedUrl, pageMetadata } from "@/lib/seo";
 
 // Export estático: pré-gera todas as perguntas publicadas.
 export async function generateStaticParams() {
@@ -45,11 +45,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const q = await sanityFetch<QDetail>(questionBySlugQuery, { locale, slug });
   if (!q) return {};
-  return {
+  return pageMetadata({
     title: q.metaTitle || q.title,
     description: q.metaDescription || q.answer,
-    alternates: alternatesFor(`/perguntas/${slug}`),
-  };
+    path: `/perguntas/${slug}`,
+    locale,
+  });
 }
 
 export default async function Page({
