@@ -190,10 +190,44 @@ export default async function HomePage({
       {/* ============ BANNER ============ */}
       <HomeBanner />
 
-      {/* ============ PARA QUEM É — o filtro, antes da explicação ============
-          Texto da Andrea (31/08/2026). Vem ANTES da tese de propósito: separa
-          quem ela procura de quem procura autoajuda, e a tese só faz sentido
-          depois desse corte.
+      {/* ============ A TESE — o que é Ser Poder ============ */}
+      <section id="ser-poder" className="bg-cream">
+        <div className="mx-auto max-w-3xl px-6 py-24 md:py-28">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
+              {t("thesisBadge")}
+            </span>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 className="mt-6 text-4xl text-wine md:text-5xl">
+              {t("thesisTitle")}
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <div className="drop-cap mt-8">
+              <p className="text-xl leading-relaxed text-ink">{t("thesisP1")}</p>
+            </div>
+          </Reveal>
+          <Reveal delay={280}>
+            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP2")}</p>
+          </Reveal>
+          <Reveal delay={340}>
+            <p className="mt-6 border-l-2 border-wine pl-5 font-serif text-xl italic leading-relaxed text-green-deep">
+              {t("thesisP3")}
+            </p>
+          </Reveal>
+          <Reveal delay={400}>
+            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP4")}</p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============ PARA QUEM É — o filtro, depois da explicação ============
+          Texto da Andrea (31/08/2026). A ordem é decisão do Igor: primeiro a
+          tese explica o que é Ser Poder, e só então esta seção separa quem ela
+          procura de quem procura autoajuda. (Na primeira versão o filtro vinha
+          antes; ele pediu para inverter.)
 
           As quebras de linha são dela e são o conteúdo: a anáfora ("Para
           quem…") só funciona uma linha por vez. Por isso cada linha é um
@@ -274,39 +308,6 @@ export default async function HomePage({
                 </p>
               ))}
             </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ============ A TESE — o que é Ser Poder ============ */}
-      <section id="ser-poder" className="bg-cream">
-        <div className="mx-auto max-w-3xl px-6 py-24 md:py-28">
-          <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
-              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
-              {t("thesisBadge")}
-            </span>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 className="mt-6 text-4xl text-wine md:text-5xl">
-              {t("thesisTitle")}
-            </h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <div className="drop-cap mt-8">
-              <p className="text-xl leading-relaxed text-ink">{t("thesisP1")}</p>
-            </div>
-          </Reveal>
-          <Reveal delay={280}>
-            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP2")}</p>
-          </Reveal>
-          <Reveal delay={340}>
-            <p className="mt-6 border-l-2 border-wine pl-5 font-serif text-xl italic leading-relaxed text-green-deep">
-              {t("thesisP3")}
-            </p>
-          </Reveal>
-          <Reveal delay={400}>
-            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP4")}</p>
           </Reveal>
         </div>
       </section>
