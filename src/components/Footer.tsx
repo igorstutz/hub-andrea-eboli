@@ -10,10 +10,11 @@ const COL_A = [
   { key: "cases", href: "/casos" },
 ] as const;
 
-// "Na mídia" saiu (pedido de 19/08/2026) — a rota existe, mas não é linkada.
+// "Na mídia" voltou em 31/08/2026, junto com o menu do header.
 const COL_B = [
   { key: "research", href: "/pesquisa" },
   { key: "confraria", href: "/confraria" },
+  { key: "media", href: "/na-midia" },
   { key: "book", href: "/livro" },
   { key: "contact", href: "/contato" },
   { key: "search", href: "/busca" },

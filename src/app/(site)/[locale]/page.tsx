@@ -190,6 +190,94 @@ export default async function HomePage({
       {/* ============ BANNER ============ */}
       <HomeBanner />
 
+      {/* ============ PARA QUEM É — o filtro, antes da explicação ============
+          Texto da Andrea (31/08/2026). Vem ANTES da tese de propósito: separa
+          quem ela procura de quem procura autoajuda, e a tese só faz sentido
+          depois desse corte.
+
+          As quebras de linha são dela e são o conteúdo: a anáfora ("Para
+          quem…") só funciona uma linha por vez. Por isso cada linha é um
+          parágrafo, e não um bloco corrido. */}
+      <section id="para-quem" className="border-t border-ink/10 bg-bone">
+        <div className="mx-auto max-w-3xl px-6 py-24 md:py-28">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 rounded-full border border-green-deep/25 bg-green-deep/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-green-deep">
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-green-deep" />
+              {t("audienceBadge")}
+            </span>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 className="mt-6 text-4xl text-wine md:text-5xl">
+              {t("audienceTitle")}
+            </h2>
+          </Reveal>
+
+          {/* O que NÃO é */}
+          <Reveal delay={180}>
+            <div className="mt-10 space-y-1.5">
+              {(t.raw("audienceDenial") as string[]).map((line) => (
+                <p key={line} className="text-lg leading-relaxed text-muted">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Para quem é — sem marcador de lista nenhum, de propósito: um traço
+              antes de cada linha lê como travessão, e travessão é justamente o
+              que a Andrea pediu para tirar do site. Quem separa este bloco do
+              seguinte é o corpo maior e o filete acima. */}
+          <Reveal delay={240}>
+            <ul className="mt-10 space-y-5 border-t border-wine/15 pt-10">
+              {(t.raw("audienceAffirmation") as string[]).map((line) => (
+                <li key={line} className="text-xl leading-relaxed text-ink">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          {/* A virada: já conquistou por fora */}
+          <Reveal delay={300}>
+            <div className="mt-10 space-y-3">
+              {(t.raw("audiencePivot") as string[]).map((line) => (
+                <p key={line} className="leading-relaxed text-ink-soft">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* O próximo passo — o trecho que carrega a frase */}
+          <Reveal delay={360}>
+            <div className="mt-10 border-l-2 border-wine pl-5">
+              {(t.raw("audienceTurn") as string[]).map((line) => (
+                <p
+                  key={line}
+                  className="font-serif text-xl italic leading-relaxed text-green-deep"
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Fecho: não nasce da fraqueza */}
+          <Reveal delay={420}>
+            <div className="mt-12 space-y-3 border-t border-ink/10 pt-10">
+              {(t.raw("audienceClose") as string[]).map((line) => (
+                <p
+                  key={line}
+                  className="font-serif text-2xl leading-snug text-wine md:text-3xl"
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ============ A TESE — o que é Ser Poder ============ */}
       <section id="ser-poder" className="bg-cream">
         <div className="mx-auto max-w-3xl px-6 py-24 md:py-28">

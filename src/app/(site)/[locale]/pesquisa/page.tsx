@@ -1,27 +1,31 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import PageBanner from "@/components/PageBanner";
 import EvidenceIntro from "@/components/EvidenceIntro";
 import Reveal from "@/components/Reveal";
+import { RankedBars, GapBars } from "@/components/ResearchCharts";
 import { pageMetadata } from "@/lib/seo";
-import { asset } from "@/lib/assetPath";
+import {
+  POWER_IDEAS,
+  POWER_REFERENCE,
+  DECLARED_VS_LIVED,
+  FORCED_CHOICE,
+} from "@/lib/researchData";
 
 /* ------------------------------------------------------------------
    DADOS DA PESQUISA ECP (base: 403 respondentes).
 
-   Os números vêm do deck da pesquisa e do documento de análise de hipóteses
-   que a Andrea enviou. Os TEXTOS moram no i18n (`researchPage.*`), porque a
-   página é trilíngue; aqui ficam só as chaves e a estrutura.
+   Os números e a procedência de cada um vivem em `src/lib/researchData.ts`.
+   Os TEXTOS moram no i18n (`researchPage.*`), porque a página é trilíngue;
+   aqui ficam só a estrutura e a ordem.
 
    STATS       → os três percentuais de maior impacto.
    DIMENSIONS  → os dados lidos pelas três dimensões da ECP, que é o que liga
                  a pesquisa ao vocabulário do resto do site.
-   CHART_BY_LOCALE → o gráfico principal, desenhado na identidade do site por
-                 `gera-grafico-pesquisa.mjs`, um arquivo por idioma e COM A
-                 MARCA D'ÁGUA GRAVADA. Isso importa: marca d'água em CSS por
-                 cima é só atrito, quem quiser baixa a imagem original.
+   Os quatro gráficos são desenhados na página (ver `ResearchCharts.tsx`), em
+   ordem de argumento: o que chamam de poder → em quem pensam → o que declaram
+   contra o que vivem → o que escolhem quando a alternativa está na mesa.
    RESEARCH_URL → destino do botão "Conheça a pesquisa" (deck, PDF, página).
                  Enquanto for null o botão não aparece.
 ------------------------------------------------------------------- */
@@ -48,12 +52,6 @@ const DIMENSIONS = [
     num: "03",
   },
 ] as const;
-
-const CHART_BY_LOCALE: Record<string, string> = {
-  pt: "/pesquisa/pesquisa-ecp-o-que-e-poder-pt.webp",
-  en: "/pesquisa/pesquisa-ecp-o-que-e-poder-en.webp",
-  es: "/pesquisa/pesquisa-ecp-o-que-e-poder-es.webp",
-};
 
 const RESEARCH_URL: string | null = null;
 
@@ -82,6 +80,9 @@ export default async function Page({
   const t = await getTranslations("researchPage");
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
+
+  // Nota de rodapé comum aos quatro gráficos.
+  const note = t("chartNote");
 
   return (
     <>
@@ -167,43 +168,81 @@ export default async function Page({
         </div>
       </section>
 
-      {/* Gráfico principal + amostra e metodologia.
-          O gráfico ocupa a LARGURA INTEIRA: ele é o argumento da página, e
-          numa coluna estreita os rótulos das barras ficavam ilegíveis. A
-          metodologia desceu para baixo dele. */}
-      <section className="bg-cream">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+      {/* Os gráficos, em ordem de argumento. Coluna única e medida curta: cada
+          gráfico é uma leitura, não um painel de indicadores. */}
+      <section className="border-t border-ink/10 bg-cream">
+        <div className="mx-auto max-w-3xl px-6 py-20">
           <Reveal>
             <p className="kicker text-wine">{t("chartLabel")}</p>
-          </Reveal>
-          <Reveal delay={100}>
-            {/* A marca d'água está GRAVADA no arquivo. O select-none e o
-                draggable={false} abaixo são só atrito: não existe forma de
-                impedir a captura de uma imagem na web. */}
-            {/* No celular o gráfico não cabe legível: em vez de encolher os
-                rótulos até sumirem, ele mantém uma largura mínima e a caixa
-                rola na horizontal. */}
-            <div className="relative mt-5 select-none overflow-x-auto rounded-2xl border border-ink/10 bg-bone">
-              <Image
-                src={asset(CHART_BY_LOCALE[locale] ?? CHART_BY_LOCALE.pt)}
-                alt={t("chartAlt")}
-                width={1600}
-                height={1080}
-                sizes="(max-width: 760px) 760px, (max-width: 1152px) 100vw, 1104px"
-                draggable={false}
-                className="pointer-events-none w-full min-w-[760px] max-w-none"
-              />
-            </div>
-            {/* A caixa acima rola no celular: sem esta linha ninguém descobre. */}
-            <p className="mt-3 text-xs text-muted sm:hidden">{t("chartScrollHint")}</p>
+            <h2 className="mt-3 text-3xl text-green-deep md:text-4xl">
+              {t("chartsTitle")}
+            </h2>
+            <p className="mt-4 text-ink-soft">{t("chartsLead")}</p>
           </Reveal>
 
-          <div className="mt-12 grid gap-8 border-t border-ink/10 pt-10 md:grid-cols-[220px_1fr] md:gap-12">
-            <Reveal delay={200}>
+          <div className="mt-12 space-y-8">
+            <Reveal>
+              <RankedBars
+                groups={POWER_IDEAS}
+                t={t}
+                locale={locale}
+                title={t("chartIdeasTitle")}
+                subtitle={t("chartIdeasSubtitle")}
+                note={note}
+              />
+            </Reveal>
+
+            <Reveal>
+              <RankedBars
+                groups={POWER_REFERENCE}
+                t={t}
+                locale={locale}
+                title={t("chartRefTitle")}
+                subtitle={t("chartRefSubtitle")}
+                legend={[
+                  { tone: "external", label: t("refLegendOutside") },
+                  { tone: "internal", label: t("refLegendSelf") },
+                ]}
+                note={note}
+              />
+            </Reveal>
+
+            <Reveal>
+              <GapBars
+                rows={DECLARED_VS_LIVED}
+                t={t}
+                locale={locale}
+                title={t("chartGapTitle")}
+                subtitle={t("chartGapSubtitle")}
+                declaredLegend={t("chartGapDeclared")}
+                livedLegend={t("chartGapLived")}
+                note={note}
+              />
+            </Reveal>
+
+            <Reveal>
+              <RankedBars
+                groups={FORCED_CHOICE}
+                t={t}
+                locale={locale}
+                title={t("chartChoiceTitle")}
+                subtitle={t("chartChoiceSubtitle")}
+                legend={[
+                  { tone: "external", label: t("choiceLegendExternal") },
+                  { tone: "neutral", label: t("choiceLegendPartial") },
+                  { tone: "internal", label: t("choiceLegendTriad") },
+                ]}
+                note={note}
+              />
+            </Reveal>
+          </div>
+
+          <div className="mt-14 grid gap-8 border-t border-ink/10 pt-10 md:grid-cols-[200px_1fr] md:gap-10">
+            <Reveal>
               <p className="kicker text-wine">{t("methodologyLabel")}</p>
             </Reveal>
-            <Reveal delay={260}>
-              <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
+            <Reveal delay={80}>
+              <p className="text-sm leading-relaxed text-ink-soft">
                 {t("method")}
               </p>
 

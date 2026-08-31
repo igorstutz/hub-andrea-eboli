@@ -21,6 +21,19 @@ import { asset } from "@/lib/assetPath";
 ------------------------------------------------------------------- */
 type Photo = { src: string; altKey: string; w: number; h: number };
 
+/* 10 fotos (eram 16 até 31/08/2026). Saíram 6 a pedido da Andrea: cada uma
+   repetia o mesmo instante ou a mesma cena de outra que ficou, e duas ainda
+   tinham enquadramento ruim (ar-condicionado ocupando o terço de cima; rosto
+   desfocado tomando um terço do quadro). O porquê de cada corte, com o par
+   correspondente, está em `prepara-fotos-confraria.mjs`.
+
+   A ORDEM separa cenas parecidas. O que importa aqui: sobraram DUAS fotos
+   feitas diante do painel de árvores, e elas estão nas posições 2 e 7 da
+   galeria. Não é arbitrário: o mosaico é `columns`, que distribui os itens em
+   sequência pelas 3 colunas, então com 9 fotos a coluna 1 fica com 1-3, a 2
+   com 4-6 e a 3 com 7-9. As posições 2 e 7 caem em colunas E alturas
+   diferentes. Antes as três estavam em 2, 6 e 10 e apareciam lado a lado, na
+   mesma linha, parecendo a mesma foto três vezes. */
 const PHOTOS: Photo[] = [
   {
     src: "/confraria/andrea-eboli-confraria-lets-be-roda-de-conversa.webp",
@@ -35,14 +48,8 @@ const PHOTOS: Photo[] = [
     h: 1066,
   },
   {
-    src: "/confraria/confraria-lets-be-brinde-camisetas-na-cesta-de-palha.webp",
-    altKey: "photoCestaBrindeAlt",
-    w: 1066,
-    h: 1600,
-  },
-  {
-    src: "/confraria/andrea-eboli-confraria-lets-be-conduzindo-conversa.webp",
-    altKey: "photoConduzindoAlt",
+    src: "/confraria/andrea-eboli-confraria-lets-be-abraco-participante.webp",
+    altKey: "photoAbracoAlt",
     w: 1066,
     h: 1600,
   },
@@ -50,6 +57,12 @@ const PHOTOS: Photo[] = [
     src: "/confraria/confraria-lets-be-jantar-do-encontro.webp",
     altKey: "photoJantarAlt",
     w: 1200,
+    h: 1600,
+  },
+  {
+    src: "/confraria/andrea-eboli-confraria-lets-be-conduzindo-conversa.webp",
+    altKey: "photoConduzindoAlt",
+    w: 1066,
     h: 1600,
   },
   {
@@ -65,46 +78,10 @@ const PHOTOS: Photo[] = [
     h: 1600,
   },
   {
-    src: "/confraria/confraria-lets-be-selfie-participantes-jantar.webp",
-    altKey: "photoSelfieAlt",
-    w: 1600,
-    h: 1200,
-  },
-  {
-    src: "/confraria/confraria-lets-be-mesa-de-conversa-noturna.webp",
-    altKey: "photoMesaAlt",
-    w: 1200,
-    h: 1600,
-  },
-  {
-    src: "/confraria/confraria-lets-be-grupo-reunido-no-salao-do-encontro.webp",
-    altKey: "photoGrupoSalaoAlt",
-    w: 1200,
-    h: 1600,
-  },
-  {
-    src: "/confraria/andrea-eboli-confraria-lets-be-abraco-participante.webp",
-    altKey: "photoAbracoAlt",
-    w: 1066,
-    h: 1600,
-  },
-  {
     src: "/confraria/confraria-lets-be-dupla-de-participantes-no-painel-de-arvores.webp",
     altKey: "photoDuplaPainelAlt",
     w: 960,
     h: 1280,
-  },
-  {
-    src: "/confraria/confraria-lets-be-grupo-participantes-encontro.webp",
-    altKey: "photoGrupoAlt",
-    w: 1600,
-    h: 1066,
-  },
-  {
-    src: "/confraria/confraria-lets-be-participantes-tirando-selfie.webp",
-    altKey: "photoSelfieDuplaAlt",
-    w: 1200,
-    h: 1600,
   },
   {
     src: "/confraria/confraria-lets-be-participantes-sacolas-lets-be-real.webp",

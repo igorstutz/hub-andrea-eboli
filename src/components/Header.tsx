@@ -22,15 +22,17 @@ const LOGO_W = 900;
 const LOGO_H = 159;
 
 // Menu principal (ordem e rótulos definidos com a Andrea em 19/08/2026:
-// menos palavras para caber Pesquisa e Confraria). "Na mídia" saiu do menu —
-// a rota continua existindo, apenas oculta. A tese "Ser Poder" também saiu:
+// menos palavras para caber Pesquisa e Confraria). A tese "Ser Poder" saiu:
 // virou a própria home.
+// "Na mídia" VOLTOU em 31/08/2026 (pedido do Igor, começo da divulgação);
+// tinha saído em 19/08. Fica ao lado de Confraria, antes de Livro.
 const NAV = [
   { key: "about", href: "/sobre" },
   { key: "articlesQuestions", href: "/artigos-e-perguntas" },
   { key: "videos", href: "/videos" },
   { key: "research", href: "/pesquisa" },
   { key: "confraria", href: "/confraria" },
+  { key: "media", href: "/na-midia" },
   { key: "book", href: "/livro" },
   { key: "contact", href: "/contato" },
 ] as const;

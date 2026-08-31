@@ -20,7 +20,141 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 28/08/2026 (parte 3, MAIS RECENTE) — A /pesquisa saiu do placeholder
+### 🗓️ Sessão 31/08/2026 (MAIS RECENTE) — "Para quem é", 4 gráficos, corte de fotos e /na-midia reaberta
+Quatro pedidos do Igor numa mensagem só. Tudo feito e validado (`tsc`/`eslint`
+limpos, **build estático com as 156 páginas SEM nenhum aviso** e conferência
+visual por screenshot em desktop e celular, servindo o `out/` com o basePath).
+
+1. **Home: seção "Para quem é o Ser Poder?"** (`#para-quem`), logo depois do
+   banner e ANTES da tese — é o filtro que separa o público dela de quem
+   procura autoajuda. Texto é dela, colado inteiro.
+   - As quebras de linha dela são o conteúdo (a anáfora "Para quem…" só
+     funciona uma linha por vez), então cada linha é um parágrafo. Os textos são
+     **arrays** no i18n: `home.audienceDenial` (3), `audienceAffirmation` (4),
+     `audiencePivot` (3), `audienceTurn` (2), `audienceClose` (2), lidos com
+     `t.raw()`.
+   - **Sem marcador de lista, de propósito.** A primeira versão tinha um traço
+     antes de cada linha da anáfora e ficou lendo como travessão, exatamente o
+     que ela pediu para tirar do site. Quem separa os blocos é o corpo do texto
+     e um filete.
+   - O TÍTULO foi normalizado para "Para quem é o Ser Poder?" (ela escreveu
+     "SER PODER" em caixa alta) para casar com o `thesisTitle` logo abaixo,
+     "O que é Ser Poder?". **No corpo a caixa alta dela foi mantida**, porque é
+     lá que ela carrega o contraste TER PODER × SER PODER. Em en/es os dois
+     termos ficam em português (regra do projeto) com uma glosa curta.
+
+2. **/pesquisa: 1 gráfico virou 4, e eles deixaram de ser imagem.**
+   O Igor: "essa estética não bate com a minha". A causa era simples: o `.webp`
+   era desenhado em **Georgia + Helvetica**, e o site é **Fraunces + Inter**.
+   - Agora os gráficos são **HTML/CSS na página** (`src/components/ResearchCharts.tsx`),
+     então herdam a tipografia e a paleta reais, servem os 3 idiomas sem gerar
+     3 arquivos e **funcionam no celular sem rolagem horizontal** (rótulo em
+     cima, barra em largura cheia embaixo). Sumiram o `min-w-[760px]`, as chaves
+     `chartScrollHint` e `chartAlt`, os 3 `.webp` e o `gera-grafico-pesquisa.mjs`.
+   - **A procedência dos números migrou para `src/lib/researchData.ts`**, com o
+     número do `chartN.xml` do deck anotado em cada bloco. Ler esse arquivo
+     antes de mexer em qualquer percentual.
+   - **ESCALA: toda barra é lida sobre 100% da base.** Nada é esticado para
+     preencher o gráfico. Uma opção citada por 7,9% ocupa 7,9% da pista, e é
+     esse o argumento: as ideias de poder interno são um traço fino.
+   - 🔴 **Armadilha de cor resolvida com número, não com gosto:** vinho
+     `#41181e` com o verde-deep `#14312c` (o verde óbvio da marca) tem separação
+     de **ΔE 2,6 em deuteranopia** — as duas barras viram a mesma. Com o
+     **`green-soft` #2c5a49** vai a 15,1. O terceiro tom é o **`muted` #8b756a**;
+     os três juntos dão 12,1 no pior par. Validado com
+     `scripts/validate_palette.js` da skill `dataviz`.
+   - **Semântica da cor, que é o que não pode quebrar:** vinho = poder externo,
+     verde = poder interno, muted = uma dimensão só / caixa-preta. Por isso
+     "clareza profunda sobre quem é" e "inteligência social" (no gráfico de
+     escolha forçada) e "Outras respostas" (no de referência) **não são vinho**:
+     pintá-las de vinho diria ao leitor que são poder externo.
+   - Os 4 gráficos, em ordem de argumento: o que chamam de poder (P20) → em quem
+     pensam (a origem do 8,9%) → **o que declaram × o que vivem** (o achado
+     central) → o que escolhem com a alternativa na mesa.
+   - A marca d'água deixou de ser arquivo: a assinatura no pé de cada gráfico
+     entra em qualquer **captura de tela**, que agora é o único jeito de tirar o
+     gráfico de lá (não existe mais imagem para salvar com o botão direito).
+
+3. ✅ **O "9% e não 1%" do Igor estava certo, e os dois números existem.**
+   São perguntas diferentes:
+   - **8,9%** escolheram "Você mesmo(a)" na pergunta **FECHADA** (chart11 do
+     deck). É o número dela, e é o que a página publica agora em `stat3`.
+   - **1,0%** (4 de 403) escreveram o próprio nome na pergunta **ABERTA** P17.
+     Não foi descartado: virou a frase de contraste no subtítulo do gráfico de
+     referência, porque a distância entre os dois é o achado.
+   ⚠️ Existe outro 8,9% na página, sem relação: é "saber ler situações com
+   clareza" na P20. Coincidência de valor.
+
+4. **Fotos — as duas frentes que o Igor apontou.**
+   - **Confraria: 16 → 10.** Saíram 6, cada uma repetindo o mesmo instante de
+     outra que ficou (2ª cesta de camisetas, 2ª foto do grupo com os braços
+     erguidos, 2º grupo no painel de árvores, 2ª mesa do jantar, selfie sobre o
+     grupo das sacolas) e 2 delas também com enquadramento ruim (o
+     ar-condicionado ocupando o terço de cima; um rosto desfocado tomando um
+     terço do quadro). A 6ª saiu num segundo passe: era a **terceira** dupla
+     diante do painel de árvores, e no mosaico as três apareciam **lado a lado,
+     na mesma linha**. O porquê de cada corte, com o par correspondente, está em
+     `prepara-fotos-confraria.mjs`.
+     📌 **A ordem do array é funcional, não estética.** `columns` distribui em
+     sequência: com 9 fotos na galeria a coluna 1 fica com 1-3, a 2 com 4-6 e a
+     3 com 7-9. As duas fotos do painel de árvores estão nas posições **2 e 7**
+     para caírem em colunas e alturas diferentes. Mexer na ordem sem pensar
+     nisso devolve o problema.
+   - 🔴 **A "desconfiguração" do /sobre era um BUG DE LAYOUT, não foto ruim.**
+     A galeria forçava TODA foto em 3:4 com `fit("crop")` + `object-cover`. Nas
+     **9 fotos horizontais** isso jogava fora mais de 40% da imagem e **cortava
+     gente ao meio**: a foto de grupo na alameda de bandeiras da ONU (960×640,
+     cerca de 30 pessoas) virava um recorte central com as pontas serradas; a de
+     premiação (1320×969, 7 pessoas) sobravam 3. Agora é o mesmo **mosaico da
+     /confraria** e nenhuma foto é cortada — as 40 continuam publicadas.
+     A query passou a trazer `w`/`h` (`asset->metadata.dimensions`) para
+     reservar a altura e não causar CLS.
+     ⚠️ **Sem recorte, o `hotspot` do Studio deixa de valer** (ele só escolhe o
+     que sobra num corte). Troca consciente: nada cortado.
+     ⚠️ O mosaico é `columns`, então a leitura passou a ser **coluna a coluna**,
+     não linha a linha. A ordem editorial dela continua agrupada, mas quem
+     reordenar no Studio deve saber disso.
+
+5. **/na-midia voltou para a navegação** (menu, rodapé e sitemap), pedido do
+   Igor: "vamos começar o processo de divulgação em breve". Tinha saído em
+   19/08. O menu passou a 8 itens e ainda cabe no desktop.
+   - Para não devolver uma página em branco ao menu, **a lista virou real**:
+     `pressListQuery` lê os artigos cuja fonte é veículo EXTERNO
+     (`source in ["forbes","linkedin"]` com `sourceUrl`). `youtube` e `original`
+     ficam fora de propósito — o canal e os textos são dela, não imprensa.
+     Ela alimenta a página pelo mesmo lugar onde já publica, sem schema novo.
+   - Hoje há **1 item real** (o artigo da Forbes). O estado vazio continua para
+     quando a query não devolver nada. Fecha com CTA de imprensa para /contato.
+   - ⚠️ **A lista NÃO mostra data, de propósito.** O `publishedAt` de um artigo
+     importado é a data da IMPORTAÇÃO: no da Forbes está 06/08/2026, e a própria
+     URL do original diz 16/12/2025. Para ligar a data: corrigir o `publishedAt`
+     no Studio e devolver o bloco (está anotado no topo da página).
+
+6. 📌 **Lição de ferramenta (captura de tela):** `Page.captureScreenshot` com
+   `captureBeyondViewport` **travava** nas páginas altas (a /sobre com 40 fotos
+   passava de 30 megapixels com `deviceScaleFactor: 2`). O que funciona é rolar
+   até o seletor e capturar a **viewport pura**, sem clip. E o Next 16 prefetcha
+   todo `<Link>`, o que enche a fila de um `python -m http.server` (uma thread):
+   bloquear `*_rsc=*` por CDP resolve.
+
+**⏭️ O que ficou pendente desta rodada:**
+- **Crédito do instituto da pesquisa** continua sem resposta (o arquivo diz
+  "IGB" e "QExpress"; não sei qual é o instituto e qual é o painel, então
+  ninguém foi creditado).
+- `RESEARCH_URL` na /pesquisa segue `null` (o botão "Conheça a pesquisa" não
+  aparece); `TESTIMONIAL` e `CONFRARIA_URL` na /confraria também.
+- A `/na-midia` tem 1 item. Palcos e podcasts (NRF, SXSW, BrasaConnect, ONU,
+  Gerações Cast) aparecem nas fotos do /sobre mas não existem como documento no
+  Sanity.
+- **A foto de destaque da /confraria** (roda de conversa) tem uma cabeça
+  desfocada ocupando a faixa esquerda do quadro. Em largura inteira isso
+  aparece. Ficou porque é foto documental e a Andrea está bem enquadrada, mas é
+  candidata a troca se ela mandar outra.
+- Ainda **não foi publicado**: as mudanças estão só no repositório local.
+
+---
+
+### 🗓️ Sessão 28/08/2026 (parte 3) — A /pesquisa saiu do placeholder
 O Igor mandou os dois arquivos da Pesquisa ECP: o deck
 `Pesquisa IGB - (QExpress) (415_2026).pptx` e o
 `Analise de Hipoteses vs Pesquisa - ECP.docx` (ambos em `Downloads/`, FORA do

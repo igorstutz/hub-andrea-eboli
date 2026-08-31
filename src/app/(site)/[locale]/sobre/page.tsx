@@ -17,6 +17,9 @@ type GalleryPhoto = {
   caption?: string;
   image: ImageSource;
   lqip?: string;
+  /** Dimensões originais do arquivo, para reservar a altura da foto no mosaico. */
+  w?: number;
+  h?: number;
 };
 
 // Placeholders da galeria enquanto as fotos não sobem pelo Studio (Sobre Andrea
@@ -186,53 +189,65 @@ export default async function Page({
             )}
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
-            {gallery.length > 0
-              ? gallery.map((g) => (
-                  <figure key={g.key} className="group">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-green-darker">
-                      <Image
-                        src={urlFor(g.image)
-                          .width(900)
-                          .height(1200)
-                          .fit("crop")
-                          .auto("format")
-                          .url()}
-                        alt={g.alt ?? t("galleryFallbackAlt")}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        {...(g.lqip
-                          ? { placeholder: "blur" as const, blurDataURL: g.lqip }
-                          : {})}
-                        className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                      />
-                    </div>
-                    {g.caption && (
-                      <figcaption className="mt-3 text-sm leading-snug text-muted">
-                        {g.caption}
-                      </figcaption>
-                    )}
-                  </figure>
-                ))
-              : GALLERY_PLACEHOLDERS.map((p, i) => (
-                  <div
-                    key={i}
-                    aria-hidden
-                    className={`relative aspect-[3/4] overflow-hidden rounded-lg ${p.frame}`}
-                  >
-                    {p.mesh && (
-                      <div
-                        className={`${p.mesh} pointer-events-none absolute inset-0 opacity-40`}
-                      />
-                    )}
-                    <span
-                      className={`wordmark absolute inset-0 flex items-center justify-center text-5xl ${p.mono}`}
-                    >
-                      AE
-                    </span>
+          {/* Mosaico em colunas de altura livre: cada foto na proporção em que
+              foi tirada, como já é na /confraria.
+
+              ⚠️ Antes daqui a galeria forçava TODA foto em 3:4 com
+              `fit("crop")` + `object-cover`. Nas 9 fotos horizontais isso
+              jogava fora mais de 40% da imagem e cortava gente ao meio: uma
+              foto de grupo de 30 pessoas na alameda de bandeiras da ONU virava
+              um recorte central com as pontas serradas. Era o que a Andrea viu
+              como "fotos desconfiguradas" (31/08/2026).
+
+              Sem recorte, o `hotspot` do Studio deixa de valer (ele só serve
+              para escolher o que sobra num corte) — em troca, nada é cortado. */}
+          {gallery.length > 0 ? (
+            <div className="mt-10 gap-4 sm:columns-2 lg:columns-3 md:gap-5 [column-gap:1.25rem]">
+              {gallery.map((g) => (
+                <figure key={g.key} className="group mb-5 break-inside-avoid">
+                  <div className="overflow-hidden rounded-lg bg-green-darker">
+                    <Image
+                      src={urlFor(g.image).width(900).auto("format").url()}
+                      alt={g.alt ?? t("galleryFallbackAlt")}
+                      width={g.w ?? 900}
+                      height={g.h ?? 1200}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      {...(g.lqip
+                        ? { placeholder: "blur" as const, blurDataURL: g.lqip }
+                        : {})}
+                      className="w-full transition-transform duration-700 group-hover:scale-[1.03]"
+                    />
                   </div>
-                ))}
-          </div>
+                  {g.caption && (
+                    <figcaption className="mt-3 text-sm leading-snug text-muted">
+                      {g.caption}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+              {GALLERY_PLACEHOLDERS.map((p, i) => (
+                <div
+                  key={i}
+                  aria-hidden
+                  className={`relative aspect-[3/4] overflow-hidden rounded-lg ${p.frame}`}
+                >
+                  {p.mesh && (
+                    <div
+                      className={`${p.mesh} pointer-events-none absolute inset-0 opacity-40`}
+                    />
+                  )}
+                  <span
+                    className={`wordmark absolute inset-0 flex items-center justify-center text-5xl ${p.mono}`}
+                  >
+                    AE
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

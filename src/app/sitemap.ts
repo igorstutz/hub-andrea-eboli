@@ -15,8 +15,8 @@ const TYPE_TO_PATH: Record<string, string> = {
   video: "/videos",
 };
 
-// "/na-midia" saiu do sitemap junto com o menu (19/08/2026): a rota continua
-// existindo, mas fica fora da navegação e da indexação.
+// "/na-midia" voltou ao sitemap em 31/08/2026, junto com o menu: a divulgação
+// vai começar e a página precisa ser indexável.
 const STATIC_PATHS = [
   "/",
   "/sobre",
@@ -24,6 +24,7 @@ const STATIC_PATHS = [
   "/videos",
   "/pesquisa",
   "/confraria",
+  "/na-midia",
   "/livro",
   "/contato",
   "/perguntas",

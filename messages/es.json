@@ -67,7 +67,33 @@
     "newsletterPlaceholder": "tu@email.com",
     "newsletterOk": "¡Listo! Estás en la lista.",
     "newsletterError": "Algo salió mal. Inténtalo de nuevo.",
-    "sectionCta": "Explorar la biblioteca"
+    "sectionCta": "Explorar la biblioteca",
+    "audienceBadge": "Para quién es",
+    "audienceTitle": "¿Para quién es Ser Poder?",
+    "audienceDenial": [
+      "No es para quien cree que necesita ayuda.",
+      "Ni autoayuda.",
+      "Todo lo contrario."
+    ],
+    "audienceAffirmation": [
+      "Es para quien no la necesita.",
+      "Para quien es fuerte, competente y potente.",
+      "Para quien sabe decidir, conquistar, sostener, resolver y seguir adelante.",
+      "Para quien se volvió una referencia para los demás, pero todavía depende del cargo, del resultado, del reconocimiento, del control o de los papeles que ocupa para reconocer su propia potencia."
+    ],
+    "audiencePivot": [
+      "El SER PODER es para quien ya conquistó mucho por fuera y empezó a percibir que eso no garantiza poder por dentro.",
+      "No para renunciar a lo que conquistó.",
+      "Sino para dejar de depender de esas conquistas para saber quién es."
+    ],
+    "audienceTurn": [
+      "Porque quizá tu próximo paso no sea conquistar todavía más.",
+      "Sea dejar de necesitar todo lo que conquistaste para sentirte potente."
+    ],
+    "audienceClose": [
+      "El SER PODER no nace de la debilidad.",
+      "Nace cuando quien aprendió a dar cuenta de todo percibe que TER PODER, tener poder, no es lo mismo que SER PODER, ser poder."
+    ]
   },
   "libraries": {
     "questions": {
@@ -214,8 +240,8 @@
     "stat1Label": "coinciden en que es posible tener mucho poder externo y aun así no sentirse realizado.",
     "stat2Value": "72,2%",
     "stat2Label": "alternan entre períodos de entrega total y momentos de búsqueda de una pausa o reconexión.",
-    "stat3Value": "1%",
-    "stat3Label": "se citaron a sí mismas cuando se pidió el nombre de una persona poderosa.",
+    "stat3Value": "8,9%",
+    "stat3Label": "se eligieron a sí mismas cuando les preguntaron en quién piensan al imaginar a una persona poderosa.",
     "dimensionsLabel": "Los datos, dimensión por dimensión",
     "dimensionsLead": "La ECP lee el poder por tres dimensiones. La investigación muestra lo que pasa dentro de cada una de ellas.",
     "dimIdentityName": "Identidad",
@@ -228,9 +254,56 @@
     "dimMovementFact1": "59,6% dicen saber lo que necesitan hacer y aun así no actuar. El freno más citado es el miedo al conflicto, con 32,8%.",
     "dimMovementFact2": "52,8% sienten la vida más dirigida por las demandas externas que por las propias elecciones.",
     "dimensionsClose": "Y la búsqueda de un camino existe antes de que el método tenga nombre: 71,2% creen que una dirección práctica ayudaría a transformar la conciencia en cambio concreto, y 71,7% declaran mucho o total interés en un camino estructurado.",
-    "chartAlt": "Gráfico de la Investigación ECP: las cuatro ideas más asociadas al poder son externas, con control y decisión en 54,8%, mientras tener claridad sobre quién se es aparece con 15,4%.",
     "method": "Investigación cuantitativa en panel online, con 403 respondentes profesionalmente activos de 25 a 55 años, en todo Brasil. Recolección en 2026, con un margen de error aproximado de 4,9 puntos porcentuales. Las mujeres son el 59,6% de la muestra y la región Sudeste concentra el 64,3%.",
-    "chartScrollHint": "Arrastra para ver el gráfico completo."
+    "chartsTitle": "Los gráficos de la investigación",
+    "chartsLead": "Cuatro lecturas de los mismos 403 respondentes, en el orden en que se arma el argumento.",
+    "chartNote": "Base: 403 respondentes · Investigación ECP, 2026",
+    "chartIdeasTitle": "Lo que las personas llaman poder",
+    "chartIdeasSubtitle": "Ideas más asociadas al poder, con hasta tres respuestas por persona. Las cuatro de arriba son todas externas. Las cuatro que la ECP llama poder interno aparecen muy por debajo.",
+    "chartIdeasExternal": "Poder externo",
+    "chartIdeasInternal": "Poder interno",
+    "ideaControl": "Tener control o poder de decisión",
+    "ideaInfluence": "Tener influencia sobre otras personas",
+    "ideaMoney": "Tener dinero o recursos",
+    "ideaStatus": "Tener posición, cargo o estatus",
+    "ideaClarity": "Tener claridad sobre quién se es",
+    "ideaChoices": "Actuar desde las propias elecciones",
+    "ideaReading": "Saber leer las situaciones con claridad",
+    "ideaEmotional": "Poder sostenerse emocionalmente",
+    "chartRefTitle": "En quién piensan las personas cuando piensan en poder",
+    "chartRefSubtitle": "Respuesta única. Casi seis de cada diez piensan primero en alguien de gran visibilidad. Y en la pregunta abierta, donde había que escribir un nombre, apenas el 1% escribió el propio.",
+    "refPublic": "Una figura pública, de los medios o de gran visibilidad",
+    "refExecutive": "Un ejecutivo o emprendedor",
+    "refClose": "Alguien cercano, de la familia, del trabajo o del entorno",
+    "refYourself": "Usted mismo(a)",
+    "refOther": "Otras respuestas",
+    "chartGapTitle": "Lo que declaran y lo que viven",
+    "chartGapSubtitle": "En cada dimensión de la ECP la capacidad se declara alta. La pregunta siguiente, sobre lo que la persona vive, devuelve otro número. Esa distancia es lo que aborda el método.",
+    "chartGapDeclared": "Lo que declaran",
+    "chartGapLived": "Lo que viven",
+    "gapIdentityTitle": "Identidad",
+    "gapIdentityDeclared": "Tienen claridad sobre sus propios valores",
+    "gapIdentityLived": "Adaptan quiénes son para corresponder a lo que esperan de ellas",
+    "gapContextTitle": "Contexto",
+    "gapContextDeclared": "Perciben qué ambientes fortalecen o debilitan quiénes son",
+    "gapContextLived": "Se sienten frecuentemente capturadas por las urgencias de los demás",
+    "gapMovementTitle": "Movimiento",
+    "gapMovementDeclared": "Logran transformar la claridad en decisiones concretas",
+    "gapMovementLived": "Saben lo que necesitan hacer y aun así no actúan",
+    "gapFulfilmentTitle": "Poder y realización",
+    "gapFulfilmentDeclared": "Sienten que su propia fuerza viene de dentro",
+    "gapFulfilmentLived": "Todavía sienten ganas de conquistar poder externo",
+    "chartChoiceTitle": "Cuando la alternativa está sobre la mesa",
+    "chartChoiceSubtitle": "Elección forzada entre cuatro perfiles: cuál parece la persona más poderosa. El perfil que reúne las tres dimensiones de la ECP supera a la identidad aislada, pero el reconocimiento externo sigue adelante.",
+    "choiceRecognition": "Alguien con mucho reconocimiento público, influencia y recursos",
+    "choiceSocial": "Alguien con fuerte inteligencia social, que lee bien los ambientes",
+    "choiceTriad": "Alguien con claridad sobre sí, que lee el contexto y actúa de forma coherente",
+    "choiceIdentity": "Alguien con claridad profunda sobre quién es, sus valores y sus límites",
+    "refLegendOutside": "Alguien de fuera",
+    "refLegendSelf": "La propia persona",
+    "choiceLegendExternal": "Poder externo",
+    "choiceLegendPartial": "Una sola dimensión",
+    "choiceLegendTriad": "Las tres dimensiones juntas"
   },
   "confrariaPage": {
     "badge": "Confraria Let's Be",
@@ -245,19 +318,13 @@
     "photoRodaConversaAlt": "Andrea Eboli habla en una rueda de conversación de la Confraria Let’s Be, con sus notas del encuentro en la mano",
     "photoGrupoOficialAlt": "Foto oficial del grupo de la Confraria Let’s Be, con los participantes en camiseta Let’s Be Better Humans",
     "photoConduzindoAlt": "Andrea Eboli gesticula mientras conduce la conversación de un encuentro de la Confraria Let’s Be",
-    "photoGrupoAlt": "Participantes de la Confraria Let’s Be celebran juntos al final de un encuentro, en camiseta Let’s Be Better Humans",
-    "photoGrupoSalaoAlt": "Participantes de la Confraria Let’s Be reunidos de pie en el salón del encuentro, todos en camiseta Let’s Be Better Humans",
-    "photoMesaAlt": "Participantes de la Confraria Let’s Be conversan alrededor de la mesa larga en un encuentro nocturno",
     "photoCamisetasGrupoAlt": "Grupo de la Confraria Let’s Be reunido frente al panel de árboles, con la mesa del encuentro al fondo",
     "photoDuplaAlt": "Andrea Eboli junto a una participante de la Confraria Let’s Be, las dos en camiseta Let’s Be Better Humans",
     "photoDuplaPainelAlt": "Dos participantes de la Confraria Let’s Be posan juntas frente al panel de árboles, en camiseta Let’s Be Better Humans",
     "photoJantarAlt": "Participantes de la Confraria Let’s Be aplauden alrededor de la mesa durante la cena del encuentro",
-    "photoSelfieAlt": "Selfie de las participantes de la Confraria Let’s Be reunidas en la cena del encuentro",
-    "photoSelfieDuplaAlt": "Dos participantes de la Confraria Let’s Be se hacen una selfie frente al panel de árboles de la sala del encuentro",
     "photoAbracoAlt": "Andrea Eboli abrazada a una participante de la Confraria Let’s Be durante un encuentro",
     "photoSacolasAlt": "Participantes de la Confraria Let’s Be con las bolsas Let’s Be Real al final del encuentro",
-    "photoCamisetasAlt": "Camisetas Let’s Be Better Humans dobladas en una cesta de paja con las etiquetas Let’s Be, regalo del encuentro de la Confraria",
-    "photoCestaBrindeAlt": "Cesta de paja con las camisetas Let’s Be Better Humans y las etiquetas Let’s Be, el regalo entregado en la noche del encuentro de la Confraria"
+    "photoCamisetasAlt": "Camisetas Let’s Be Better Humans dobladas en una cesta de paja con las etiquetas Let’s Be, regalo del encuentro de la Confraria"
   },
   "mediaPage": {
     "badge": "En los medios",
@@ -265,7 +332,12 @@
     "recognitionTitle": "Reconocida por",
     "recognitionLead": "Instituciones y medios donde Andrea escribe, enseña y es referencia.",
     "pressTitle": "Apariciones y publicaciones",
-    "empty": "Nuevos materiales de prensa llegan pronto."
+    "empty": "Nuevos materiales de prensa llegan pronto.",
+    "readAtSource": "Leer el original",
+    "readAtHub": "Ver la versión en el hub",
+    "pressKitTitle": "Para prensa e invitaciones",
+    "pressKitBody": "Entrevistas, charlas, paneles y material de divulgación: hable directamente con el equipo.",
+    "pressKitCta": "Hablar con Andrea"
   },
   "bookPage": {
     "badge": "Libro",

@@ -68,13 +68,18 @@ export const aboutQuery = groq`
 
 // Só a galeria da página Sobre — os textos dela vivem nos messages/*.json.
 // Entradas sem imagem são descartadas (slot vazio no Studio não quebra o build).
+// `w`/`h` são as dimensões originais do arquivo: a galeria mostra cada foto na
+// proporção em que foi tirada, então precisa delas para reservar a altura certa
+// (sem isso a página pula enquanto as 40 imagens carregam).
 export const aboutGalleryQuery = groq`
 *[_type == "aboutPage"][0].gallery[defined(asset)]{
   "key": _key,
   "alt": coalesce(alt[$locale], alt.pt),
   "caption": coalesce(caption[$locale], caption.pt),
   "image": { "_type": "image", asset, hotspot, crop },
-  "lqip": asset->metadata.lqip
+  "lqip": asset->metadata.lqip,
+  "w": asset->metadata.dimensions.width,
+  "h": asset->metadata.dimensions.height
 }`;
 
 // ---------- Casos ----------
@@ -104,6 +109,23 @@ export const articlesListQuery = groq`
   "slug": slug.current,
   "kind": kind,
   "source": source,
+  "excerpt": coalesce(excerpt[$locale], excerpt.pt),
+  "publishedAt": publishedAt
+}`;
+
+// ---------- Na mídia ----------
+// Aparições em veículos de FORA: só artigos cuja fonte é uma publicação
+// externa e que têm o link de origem. `youtube` e `original` ficam fora de
+// propósito: o canal e os textos originais são dela, não imprensa.
+// Reaproveita o campo `source` do artigo, então a Andrea alimenta a /na-midia
+// pelo mesmo lugar onde já publica ("Importar de link" ou o campo Fonte).
+export const pressListQuery = groq`
+*[_type == "article" && source in ["forbes", "linkedin"] && defined(sourceUrl)]
+  | order(coalesce(publishedAt, _createdAt) desc){
+  "title": coalesce(title[$locale], title.pt),
+  "slug": slug.current,
+  "source": source,
+  "sourceUrl": sourceUrl,
   "excerpt": coalesce(excerpt[$locale], excerpt.pt),
   "publishedAt": publishedAt
 }`;
