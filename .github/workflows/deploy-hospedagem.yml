@@ -172,56 +172,77 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
+          # ⚠️ `set +e` OBRIGATÓRIO. O shell do Actions roda com `bash -e`, e a
+          # primeira sonda que falha mataria o passo — foi o que aconteceu na
+          # execução anterior, que morreu no primeiro curl e não reportou nada.
+          # Aqui a falha de uma sonda É o resultado, não um erro.
+          set +e
           U="$FTP_USER:$FTP_PASSWORD"
 
-          echo "=================== TLS ==================="
-          # --ssl-reqd exige AUTH TLS: se falhar, o servidor não oferece FTPS
-          # explícito e a senha trafega em claro em todo deploy.
-          curl --ssl-reqd --max-time 60 --user "$U" "ftp://$FTP_HOST/" -o com-tls.txt
-          echo "  exit com --ssl-reqd: $?"
-          curl --max-time 60 --user "$U" "ftp://$FTP_HOST/" -o sem-tls.txt
-          echo "  exit sem TLS:        $?"
+          # Dois hostnames. O certificado que a porta 21 apresenta é emitido
+          # SÓ para alvorada.nuvemidc.com (CN e único SAN, conferido de fora),
+          # então conectar como ftp.andreaeboli.com dá incompatibilidade de
+          # nome e o curl recusa, com razão. Testar os dois de uma vez evita
+          # uma ida e volta.
+          for H in "$FTP_HOST" alvorada.nuvemidc.com; do
+            echo "==================================================="
+            echo "  HOST: $H"
+            echo "==================================================="
 
-          echo
-          echo "============ LISTAGEM DA RAIZ DA CONTA ============"
-          for f in com-tls.txt sem-tls.txt; do
-            if [ -s "$f" ]; then
-              echo "--- $f ($(wc -l < "$f") linhas) ---"
-              cat "$f"
-              break
+            echo "--- TLS ---"
+            curl --ssl-reqd -s --max-time 60 --user "$U" "ftp://$H/" -o lista-tls.txt
+            echo "  exit com --ssl-reqd (0 = TLS ok e certificado válido): $?"
+            curl -s --max-time 60 --user "$U" "ftp://$H/" -o lista-plana.txt
+            echo "  exit sem TLS:                                         $?"
+
+            LISTA=""
+            [ -s lista-tls.txt ] && LISTA=$(cat lista-tls.txt)
+            [ -z "$LISTA" ] && [ -s lista-plana.txt ] && LISTA=$(cat lista-plana.txt)
+
+            if [ -z "$LISTA" ]; then
+              echo "  (nenhuma listagem, pulando as demais sondas deste host)"
+              continue
             fi
-          done
-          [ -s com-tls.txt ] || [ -s sem-tls.txt ] || echo "  (as duas listagens voltaram vazias)"
 
-          echo
-          echo "======= ONDE A CONTA ESTÁ ENRAIZADA ======="
-          # Se estes arquivos existem na raiz da conta, ela está em
-          # public_html, que é o document root do andreaeboli.com.
-          for alvo in .htaccess wp-config.php wp-login.php index.php; do
-            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$alvo" -o baixado 2>/dev/null; then
-              echo "  EXISTE   $alvo  ($(wc -c < baixado) bytes)"
+            echo
+            echo "--- conteúdo da raiz da conta ---"
+            echo "$LISTA"
+
+            echo
+            echo "--- onde a conta está enraizada ---"
+            # Se estes arquivos existem na raiz da conta, ela está em
+            # public_html, o document root do andreaeboli.com.
+            for alvo in .htaccess wp-config.php wp-login.php index.php; do
+              curl -sf --max-time 45 --user "$U" "ftp://$H/$alvo" -o baixado 2>/dev/null
+              if [ $? -eq 0 ]; then
+                echo "  EXISTE   $alvo  ($(wc -c < baixado) bytes)"
+              else
+                echo "  ausente  $alvo"
+              fi
+            done
+
+            echo
+            echo "--- primeiras linhas do .htaccess (identifica o WordPress) ---"
+            curl -sf --max-time 45 --user "$U" "ftp://$H/.htaccess" -o ht 2>/dev/null
+            if [ $? -eq 0 ]; then
+              head -5 ht | sed 's/^/    /'
             else
-              echo "  ausente  $alvo"
+              echo "    (não foi possível baixar)"
             fi
-          done
 
-          echo
-          echo "=== a primeira linha do .htaccess (identifica o WordPress) ==="
-          if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/.htaccess" -o ht 2>/dev/null; then
-            head -3 ht
-          else
-            echo "  (não foi possível baixar)"
-          fi
-
-          echo
-          echo "=== as pastas dos outros dois sites da conta ==="
-          for d in edroficinadesolucoes.com form.andreaeboli.com; do
-            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$d/" -o dir.txt 2>/dev/null; then
-              echo "  EXISTE   $d  ($(wc -l < dir.txt) entradas)"
-            else
-              echo "  ausente  $d"
-            fi
+            echo
+            echo "--- pastas dos outros dois sites da conta ---"
+            for d in edroficinadesolucoes.com form.andreaeboli.com; do
+              curl -sf --max-time 45 --user "$U" "ftp://$H/$d/" -o dir.txt 2>/dev/null
+              if [ $? -eq 0 ]; then
+                echo "  EXISTE   $d  ($(wc -l < dir.txt) entradas)"
+              else
+                echo "  ausente  $d"
+              fi
+            done
+            echo
           done
+          exit 0
 
       # ------------------------------------------------------------------
       # 1. SIMULAÇÃO — não escreve nada no servidor
