@@ -6,11 +6,14 @@
 # com a retirada do workflow do Pages.
 #
 # ⚠️ CONTEXTO DE SEGURANÇA DESTA CONTA cPANEL (medido em 02/09/2026):
-#   1. Existe um SEGUNDO site no ar na mesma conta: edroficinadesolucoes.com.
-#      O certificado AutoSSL cobre os dois domínios e traz
-#      `edroficinadesolucoes.com.andreaeboli.com`, assinatura de addon domain.
-#      AINDA NÃO SABEMOS se o document root dele fica dentro de public_html.
-#      Descobrir isso é o objetivo do modo `simulacao`.
+#   1. public_html tem TRÊS sites dentro, confirmado na tela Domínios do
+#      cPanel em 02/09/2026:
+#        andreaeboli.com            → /public_html          (o hub vai aqui)
+#        edroficinadesolucoes.com   → /public_html/edroficinadesolucoes.com
+#        form.andreaeboli.com       → /public_html/form.andreaeboli.com
+#      Os dois últimos estão NO AR e são de terceiros/outros projetos. Uma
+#      sincronização com exclusão em public_html apagaria os dois. É por isso
+#      que a lista `exclude` do passo de envio não é opcional.
 #   2. O e-mail de andreaeboli.com está nesta mesma hospedagem (o MX aponta
 #      para o próprio domínio) e o Maildir mora dentro de /home/andreaeb.
 #   Por isso a conta de FTP tem de ser ESCOPADA em public_html: é a defesa que
@@ -175,12 +178,24 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
-          # Precisamos saber o que existe em public_html HOJE, para achar o
-          # document root do outro site da conta antes de qualquer passo que
-          # escreva ou apague.
-          echo "=== conteúdo da raiz da conta de FTP (deve ser public_html) ==="
-          curl --ssl-reqd -s --max-time 90 --user "$FTP_USER:$FTP_PASSWORD" \
-            "ftp://$FTP_HOST/" || echo "(a listagem falhou)"
+          echo "=== conteúdo da raiz da conta de FTP (tem de ser public_html) ==="
+          LISTA=$(curl --ssl-reqd -s --max-time 90 --user "$FTP_USER:$FTP_PASSWORD" "ftp://$FTP_HOST/" || true)
+          echo "$LISTA"
+
+          # Guarda de sanidade. A conta TEM de estar escopada em public_html, e
+          # as pastas dos outros dois sites da conta têm de aparecer aqui. Se
+          # não aparecerem, ou a conta aponta para outro diretório (e o deploy
+          # iria para o lugar errado) ou algo mudou de lugar no servidor. Nos
+          # dois casos é para parar e reavaliar, não seguir para o envio.
+          echo
+          echo "=== conferência do diretório ==="
+          for esperado in wp-config.php edroficinadesolucoes.com form.andreaeboli.com; do
+            if echo "$LISTA" | grep -q "$esperado"; then
+              echo "  ok       encontrado: $esperado"
+            else
+              echo "  ATENÇÃO  NÃO encontrado: $esperado"
+            fi
+          done
 
       # ------------------------------------------------------------------
       # 2. ENVIAR ARQUIVOS — o WordPress continua servindo o site
@@ -202,15 +217,20 @@ jobs:
           state-name: .deploy-sync-state.json
           timeout: 120000
           log-level: standard
-          # ⚠️ REVISAR DEPOIS DA SIMULAÇÃO: se o document root do
-          # edroficinadesolucoes.com estiver dentro de public_html, o nome da
-          # pasta dele TEM de entrar nesta lista.
+          # ⚠️ NÃO REDUZIR ESTA LISTA. As duas primeiras entradas são os
+          # document roots dos OUTROS DOIS SITES no ar dentro de public_html
+          # (ver o cabeçalho do arquivo). Sem elas, o deploy os apaga.
+          # As linhas wp-* preservam o WordPress de andreaeboli.com até o
+          # corte estar confirmado, para o modo `reverter` ter para onde
+          # voltar.
           exclude: |
+            edroficinadesolucoes.com/**
+            form.andreaeboli.com/**
+            cgi-bin/**
+            .well-known/**
             **/.git*
             **/.git*/**
             **/node_modules/**
-            cgi-bin/**
-            .well-known/**
             wp-admin/**
             wp-includes/**
             wp-content/**
