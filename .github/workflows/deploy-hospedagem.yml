@@ -55,9 +55,10 @@ on:
       modo:
         description: "Passo do deploy (ver o cabeçalho do arquivo)"
         required: true
-        default: simulacao
+        default: diagnostico
         type: choice
         options:
+          - diagnostico
           - simulacao
           - enviar-arquivos
           - ativar
@@ -81,23 +82,23 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         with:
           node-version: 24
           cache: npm
 
       - name: Instalar dependências
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         run: npm ci
 
       # Hospedagem estática não tem servidor: saem as rotas de API, o Studio
       # embutido e o middleware de idioma.
       - name: Remover partes server-only
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
 
       - name: Build estático
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         run: npm run build
         env:
           STATIC_EXPORT: "1"
@@ -109,7 +110,7 @@ jobs:
           NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
 
       - name: Montar o .htaccess e a raiz
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         run: |
           mkdir -p ativacao
           cp deploy/htaccess ativacao/.htaccess
@@ -137,7 +138,7 @@ jobs:
           rm -f out/.htaccess out/index.html
 
       - name: Conferir o artefato
-        if: inputs.modo != 'reverter'
+        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
         run: |
           echo "arquivos: $(find out -type f | wc -l)  ·  tamanho: $(du -sh out | cut -f1)"
           test -f out/404.html || { echo "ERRO: 404.html ausente"; exit 1; }
@@ -152,6 +153,79 @@ jobs:
           grep -q "${{ env.SITE_URL }}/pt/sobre/" out/pt/sobre/index.html \
             || { echo "ERRO: canonical não aponta para ${{ env.SITE_URL }}"; exit 1; }
           echo "artefato conferido"
+
+      # ------------------------------------------------------------------
+      # 0. DIAGNÓSTICO — não escreve nada. Só descobre onde a conta está
+      #    enraizada e se o TLS funciona.
+      # ------------------------------------------------------------------
+      # Existe porque a primeira simulação autenticou ("230 OK. Current
+      # restricted directory is /") mas a listagem voltou vazia, e a action
+      # registrou "Connected (No encryption)". Sem saber em QUE diretório a
+      # conta está, enviar arquivo é chute.
+      #
+      # ⚠️ Sem `curl -v` de propósito: o modo verboso do curl imprime o
+      # comando PASS com a senha em claro no log do Actions.
+      - name: Diagnóstico do FTP
+        if: inputs.modo == 'diagnostico'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          U="$FTP_USER:$FTP_PASSWORD"
+
+          echo "=================== TLS ==================="
+          # --ssl-reqd exige AUTH TLS: se falhar, o servidor não oferece FTPS
+          # explícito e a senha trafega em claro em todo deploy.
+          curl --ssl-reqd --max-time 60 --user "$U" "ftp://$FTP_HOST/" -o com-tls.txt
+          echo "  exit com --ssl-reqd: $?"
+          curl --max-time 60 --user "$U" "ftp://$FTP_HOST/" -o sem-tls.txt
+          echo "  exit sem TLS:        $?"
+
+          echo
+          echo "============ LISTAGEM DA RAIZ DA CONTA ============"
+          for f in com-tls.txt sem-tls.txt; do
+            if [ -s "$f" ]; then
+              echo "--- $f ($(wc -l < "$f") linhas) ---"
+              cat "$f"
+              break
+            fi
+          done
+          [ -s com-tls.txt ] || [ -s sem-tls.txt ] || echo "  (as duas listagens voltaram vazias)"
+
+          echo
+          echo "======= ONDE A CONTA ESTÁ ENRAIZADA ======="
+          # Se estes arquivos existem na raiz da conta, ela está em
+          # public_html, que é o document root do andreaeboli.com.
+          for alvo in .htaccess wp-config.php wp-login.php index.php; do
+            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$alvo" -o "baixado" 2>/dev/null; then
+              printf "  EXISTE   %-16s %s bytes
+" "$alvo" "$(wc -c < baixado)"
+            else
+              printf "  ausente  %-16s
+" "$alvo"
+            fi
+          done
+
+          echo
+          echo "=== a primeira linha do .htaccess (identifica o WordPress) ==="
+          if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/.htaccess" -o ht 2>/dev/null; then
+            head -3 ht
+          else
+            echo "  (não foi possível baixar)"
+          fi
+
+          echo
+          echo "=== as pastas dos outros dois sites da conta ==="
+          for d in edroficinadesolucoes.com form.andreaeboli.com; do
+            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$d/" -o "dir.txt" 2>/dev/null; then
+              printf "  EXISTE   %-28s (%s entradas)
+" "$d" "$(wc -l < dir.txt)"
+            else
+              printf "  ausente  %-28s
+" "$d"
+            fi
+          done
 
       # ------------------------------------------------------------------
       # 1. SIMULAÇÃO — não escreve nada no servidor
