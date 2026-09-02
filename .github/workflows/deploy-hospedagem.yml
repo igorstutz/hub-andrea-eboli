@@ -198,12 +198,10 @@ jobs:
           # Se estes arquivos existem na raiz da conta, ela está em
           # public_html, que é o document root do andreaeboli.com.
           for alvo in .htaccess wp-config.php wp-login.php index.php; do
-            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$alvo" -o "baixado" 2>/dev/null; then
-              printf "  EXISTE   %-16s %s bytes
-" "$alvo" "$(wc -c < baixado)"
+            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$alvo" -o baixado 2>/dev/null; then
+              echo "  EXISTE   $alvo  ($(wc -c < baixado) bytes)"
             else
-              printf "  ausente  %-16s
-" "$alvo"
+              echo "  ausente  $alvo"
             fi
           done
 
@@ -218,12 +216,10 @@ jobs:
           echo
           echo "=== as pastas dos outros dois sites da conta ==="
           for d in edroficinadesolucoes.com form.andreaeboli.com; do
-            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$d/" -o "dir.txt" 2>/dev/null; then
-              printf "  EXISTE   %-28s (%s entradas)
-" "$d" "$(wc -l < dir.txt)"
+            if curl -sf --max-time 45 --user "$U" "ftp://$FTP_HOST/$d/" -o dir.txt 2>/dev/null; then
+              echo "  EXISTE   $d  ($(wc -l < dir.txt) entradas)"
             else
-              printf "  ausente  %-28s
-" "$d"
+              echo "  ausente  $d"
             fi
           done
 
