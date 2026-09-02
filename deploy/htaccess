@@ -1,0 +1,129 @@
+# .htaccess do hub Andrea Eboli — hospedagem cPanel/LiteSpeed (nuvemHospedagem)
+#
+# ⚠️ ESTE ARQUIVO É COPIADO PARA out/.htaccess PELO WORKFLOW DE DEPLOY.
+# Ele precisa fazer parte do artefato enviado, e não ser posto à mão no
+# servidor: o deploy sincroniza `out/` com `public_html` apagando o que sobra,
+# então um .htaccess criado à mão seria removido no deploy seguinte e levaria
+# embora a raiz, os redirects e a página 404 de uma vez.
+#
+# Não vale nada no GitHub Pages (que ignora .htaccess). É inofensivo lá.
+
+# ----------------------------------------------------------------------
+# Índice de diretório
+# ----------------------------------------------------------------------
+# Cada rota do export é um diretório com index.html dentro (efeito do
+# `trailingSlash: true` no next.config.ts).
+DirectoryIndex index.html
+
+# `-Indexes`: 577 diretórios do export NÃO têm index.html (são pastas de
+# payload do Next e de assets). Sem isto, /brand/ e /confraria/ viram listagem
+# pública de arquivos.
+#
+# `-MultiViews`: cada rota tem `index.html` e `index.txt` lado a lado. Com
+# MultiViews ligado o Apache negocia a extensão e /pt/sobre poderia servir o
+# .txt em vez do .html.
+Options -Indexes -MultiViews
+
+# Mantém o 301 automático de /pt/sobre para /pt/sobre/, que é a URL canônica
+# que o HTML declara.
+DirectorySlash On
+
+# ----------------------------------------------------------------------
+# Página de erro
+# ----------------------------------------------------------------------
+# O export gera out/404.html. Sem esta linha o visitante recebe a tela de erro
+# crua do LiteSpeed em vez da página 404 do site.
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # --------------------------------------------------------------------
+  # Renovação do SSL — PRIMEIRA REGRA, antes de qualquer outra
+  # --------------------------------------------------------------------
+  # O AutoSSL do cPanel valida o domínio buscando um arquivo em
+  # /.well-known/acme-challenge/. Se qualquer regra abaixo interceptar esse
+  # caminho, o certificado deixa de renovar e o site cai em aviso de segurança
+  # na data da expiração. Esta regra encerra o processamento para ele.
+  RewriteRule ^\.well-known/ - [L]
+
+  # --------------------------------------------------------------------
+  # HTTPS
+  # --------------------------------------------------------------------
+  # O SSL já está ativo no domínio, mas a força de HTTPS morava no .htaccess do
+  # WordPress e sai junto com ele. Sem isto, http:// passa a servir o site em
+  # texto claro.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # --------------------------------------------------------------------
+  # Raiz do domínio → português
+  # --------------------------------------------------------------------
+  # O site não tem página na raiz: o conteúdo vive em /pt, /en e /es.
+  #
+  # ⚠️ NÃO usar `Redirect 301 / /pt/`: o prefixo "/" casa também com "/pt/", e
+  # o resultado é /pt/pt/pt/... até o navegador desistir. O ^/?$ abaixo casa
+  # exclusivamente a raiz.
+  RewriteRule ^/?$ /pt/ [R=301,L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Arquivos que não devem ser servidos
+# ----------------------------------------------------------------------
+# A action de FTP guarda o estado da sincronização incremental DENTRO do
+# diretório publicado. Sem esta regra, qualquer pessoa baixa esse arquivo e
+# recebe a árvore completa do site, com todos os caminhos e hashes.
+<FilesMatch "^\.deploy-sync-state\.json$">
+  Require all denied
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# Cache
+# ----------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # Os arquivos de /_next/static/ têm hash no nome: quando o conteúdo muda, o
+  # nome muda. Podem ser cacheados para sempre.
+  <IfModule mod_setenvif.c>
+    SetEnvIf Request_URI "^/_next/static/" LONG_CACHE=1
+  </IfModule>
+  Header set Cache-Control "public, max-age=31536000, immutable" env=LONG_CACHE
+
+  # O HTML NÃO pode ser cacheado de forma longa. O conteúdo vem do Sanity no
+  # momento do build: quando a Andrea publica no Studio e o site é
+  # republicado, o mesmo caminho passa a ter conteúdo novo. Com cache longo o
+  # visitante continuaria vendo a versão antiga.
+  <FilesMatch "\.(html|txt|xml|json)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  # As fontes e imagens de public/ não têm hash no nome, então cache moderado.
+  <FilesMatch "\.(woff2?|ttf|eot|otf|jpe?g|png|gif|webp|avif|svg|ico)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Tipos de conteúdo
+# ----------------------------------------------------------------------
+# Defensivo: no LiteSpeed testado nenhum destes foi obrigatório, mas declarar
+# custa nada e um Content-Type errado em .woff2 ou .webp é o tipo de falha que
+# só aparece no navegador de outra pessoa.
+<IfModule mod_mime.c>
+  AddType image/webp                  .webp
+  AddType image/avif                  .avif
+  AddType image/svg+xml               .svg
+  AddType font/woff2                  .woff2
+  AddType font/woff                   .woff
+  AddType application/manifest+json   .webmanifest
+  AddCharset UTF-8                    .html .txt .xml .json .css .js
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Compressão
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
+    text/javascript application/javascript application/json \
+    application/xml application/rss+xml image/svg+xml
+</IfModule>

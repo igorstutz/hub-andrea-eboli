@@ -1,0 +1,206 @@
+# Publica o hub na hospedagem própria (cPanel/LiteSpeed na nuvemHospedagem).
+#
+# CONVIVE com o deploy.yml do GitHub Pages de propósito: enquanto a
+# migração não estiver validada, o site do Pages continua no ar como está.
+# Por isso aqui NÃO há `on: push` nem `schedule` — só disparo manual. O cron
+# entra depois do corte, junto com a retirada do workflow do Pages.
+#
+# ⚠️ CONTEXTO DE SEGURANÇA DESTA CONTA cPANEL (medido em 02/09/2026):
+#   1. Existe um SEGUNDO site no ar na mesma conta: edroficinadesolucoes.com.
+#      O certificado AutoSSL cobre os dois domínios e traz
+#      `edroficinadesolucoes.com.andreaeboli.com`, assinatura de addon domain.
+#   2. O e-mail de andreaeboli.com está nesta mesma hospedagem (o MX aponta
+#      para o próprio domínio), e o Maildir mora dentro de /home/andreaeb.
+#   Consequência: o FTP deste deploy tem de usar uma conta ESCOPADA no
+#   diretório de destino. Se usar o usuário mestre `andreaeb`, o FTP abre em
+#   /home/andreaeb e uma sincronização com exclusão apaga e-mail e o outro
+#   site. `server-dir` é a última linha de defesa, não a primeira: a conta
+#   escopada é a primeira.
+
+name: Deploy (hospedagem própria)
+
+on:
+  workflow_dispatch:
+    inputs:
+      destino:
+        description: "Onde publicar"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging # subdomínio de validação, com noindex
+          - producao # a raiz de andreaeboli.com
+      simulacao:
+        description: "Simulação (dry-run): lista o que subiria, sem enviar nada"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  # ⚠️ SEM cancel-in-progress. Upload por FTP não é atômico: cancelar no meio
+  # deixa o site com HTML novo pedindo chunk antigo. Melhor esperar a fila.
+  group: deploy-hospedagem
+  cancel-in-progress: false
+
+jobs:
+  build-e-publica:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      # Hospedagem estática não tem servidor: saem as rotas de API, o Studio
+      # embutido e o middleware de idioma.
+      - name: Remover partes server-only
+        run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
+
+      - name: Definir o destino
+        id: alvo
+        run: |
+          if [ "${{ inputs.destino }}" = "producao" ]; then
+            echo "site_url=https://andreaeboli.com"     >> "$GITHUB_OUTPUT"
+          else
+            echo "site_url=https://hub.andreaeboli.com" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build estático
+        run: npm run build
+        env:
+          STATIC_EXPORT: "1"
+          NEXT_PUBLIC_SITE_URL: ${{ steps.alvo.outputs.site_url }}
+          # VAZIO: o site vive na RAIZ do domínio, não dentro do caminho de um
+          # repositório. O next.config.ts distingue "não definida" de
+          # "definida como vazia" — trocar aquele bloco por `||` faz o site
+          # subir inteiro apontando para /hub-andrea-eboli e quebra tudo.
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_SANITY_PROJECT_ID: 52ssivbg
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
+
+      # O .htaccess vem do repositório (deploy/htaccess), revisável em code
+      # review, e entra no artefato. Não pode ser criado à mão no servidor: a
+      # sincronização com exclusão o apagaria no deploy seguinte, levando a
+      # raiz, os redirects e a página 404 junto.
+      - name: Instalar .htaccess e a raiz do domínio
+        run: |
+          cp deploy/htaccess out/.htaccess
+
+          # A raiz redireciona para /pt/ pelo .htaccess (regra de servidor).
+          # Este index.html é rede de proteção para o caso de o .htaccess não
+          # ser aplicado: sem ele a raiz cairia em listagem de diretório.
+          cat > out/index.html <<EOF
+          <!doctype html>
+          <html lang="pt-BR">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=./pt/" />
+              <link rel="canonical" href="${{ steps.alvo.outputs.site_url }}/pt/" />
+              <title>Andrea Eboli</title>
+            </head>
+            <body>
+              <p><a href="./pt/">Continuar para o site</a></p>
+            </body>
+          </html>
+          EOF
+
+      # O staging não pode ser indexado: seria uma segunda cópia do site
+      # competindo com o domínio, que é exatamente o problema que a migração
+      # existe para resolver.
+      - name: Blindar o staging contra indexação
+        if: inputs.destino == 'staging'
+        run: |
+          cat >> out/.htaccess <<'EOF'
+
+          # ---- staging: fora do índice ----
+          <IfModule mod_headers.c>
+            Header set X-Robots-Tag "noindex, nofollow, noarchive"
+          </IfModule>
+          EOF
+          printf 'User-agent: *\nDisallow: /\n' > out/robots.txt
+
+      - name: Conferir o artefato antes de enviar
+        run: |
+          echo "arquivos: $(find out -type f | wc -l)"
+          echo "tamanho:  $(du -sh out | cut -f1)"
+          test -f out/.htaccess || { echo "ERRO: .htaccess ausente"; exit 1; }
+          test -f out/404.html  || { echo "ERRO: 404.html ausente";  exit 1; }
+          test -f out/index.html || { echo "ERRO: index.html ausente"; exit 1; }
+          # O basePath antigo não pode ter sobrado em lugar nenhum.
+          if grep -rlq "hub-andrea-eboli" out --include='*.html' --include='*.txt' --include='*.xml' --include='*.js'; then
+            echo "ERRO: ainda há referência a /hub-andrea-eboli no artefato:"
+            grep -rl "hub-andrea-eboli" out --include='*.html' --include='*.txt' --include='*.xml' --include='*.js' | head -5
+            exit 1
+          fi
+          # E a URL do destino tem de estar assada no canonical.
+          grep -q '${{ steps.alvo.outputs.site_url }}/pt/sobre/' out/pt/sobre/index.html \
+            || { echo "ERRO: canonical não aponta para o destino"; exit 1; }
+          echo "artefato conferido para ${{ steps.alvo.outputs.site_url }}"
+
+      # ------------------------------------------------------------------
+      # Envio
+      # ------------------------------------------------------------------
+      # ⚠️ `server-dir: ./` DE PROPÓSITO, nos dois destinos. Cada conta de FTP
+      # é criada no cPanel JÁ ESCOPADA no diretório do seu destino, então a
+      # raiz que a conta enxerga É o destino. É a defesa que não depende de eu
+      # escrever o caminho certo: mesmo um `server-dir` errado não consegue
+      # escapar do diretório da conta. Escopo por caminho aqui seria a defesa
+      # mais fraca, porque um erro de digitação passaria a valer.
+      #
+      # STAGING usa um par de credenciais SEPARADO do de produção. Assim um
+      # disparo com o destino errado não tem como alcançar public_html.
+      - name: Enviar por FTPS (staging)
+        if: inputs.destino == 'staging'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER_STAGING }}
+          password: ${{ secrets.FTP_PASSWORD_STAGING }}
+          protocol: ftps
+          local-dir: ./out/
+          server-dir: ./
+          dry-run: ${{ inputs.simulacao }}
+          state-name: .deploy-sync-state.json
+          timeout: 120000
+          log-level: standard
+
+      - name: Enviar por FTPS (produção)
+        if: inputs.destino == 'producao'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # ⚠️ `ftps`, não `ftp`. O padrão da action é FTP puro, que manda a
+          # senha do cPanel em texto claro na rede a cada deploy.
+          protocol: ftps
+          local-dir: ./out/
+          server-dir: ./
+          dry-run: ${{ inputs.simulacao }}
+          # O arquivo de estado fica no diretório servido e seria público; o
+          # .htaccess nega o acesso a ele.
+          state-name: .deploy-sync-state.json
+          timeout: 120000
+          log-level: standard
+          # ⚠️ PREENCHER ANTES DO PRIMEIRO ENVIO REAL EM PRODUÇÃO.
+          # O outro site da conta (edroficinadesolucoes.com) é um addon domain,
+          # e no cPanel o document root de um addon costuma ficar DENTRO de
+          # public_html. Se estiver, a sincronização com exclusão o apagaria.
+          # A primeira execução em produção tem de ser com simulacao=true: o
+          # log lista a árvore e mostra onde ele mora. O que aparecer ali entra
+          # nesta lista.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            cgi-bin/**
+            .well-known/**
+            hub/**

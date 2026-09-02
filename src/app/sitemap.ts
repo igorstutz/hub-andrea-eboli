@@ -35,6 +35,27 @@ const STATIC_PATHS = [
 
 type Doc = { _type: string; slug: string; _updatedAt: string };
 
+/**
+ * Barra final, para o sitemap casar com a URL que o servidor realmente serve.
+ *
+ * O export usa `trailingSlash: true`, então cada rota vive em
+ * `pt/sobre/index.html` e o Next já escreve o canonical COM barra
+ * (`.../pt/sobre/`). O `localizedUrl` devolve SEM barra, o que era invisível
+ * no canonical (o Next normaliza) mas ficava cru no sitemap: as 50 entradas
+ * apontavam para uma URL que responde 301 para a versão com barra. Sitemap
+ * cheio de redirecionamento é desperdício de rastreio e divergência do
+ * canonical.
+ *
+ * Não mexer no `localizedUrl` de propósito: ele alimenta o canonical e o
+ * hreflang, que já saem corretos.
+ */
+const comBarra = (url: string): string => (url.endsWith("/") ? url : `${url}/`);
+
+const alternatesComBarra = (path: string): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(languageAlternates(path)).map(([k, v]) => [k, comBarra(v)]),
+  );
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let docs: Doc[] = [];
   try {
@@ -48,8 +69,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Páginas fixas, em todos os idiomas configurados
   for (const path of STATIC_PATHS) {
     entries.push({
-      url: localizedUrl(routing.defaultLocale, path),
-      alternates: { languages: languageAlternates(path) },
+      url: comBarra(localizedUrl(routing.defaultLocale, path)),
+      alternates: { languages: alternatesComBarra(path) },
     });
   }
 
@@ -59,9 +80,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!base) continue;
     const path = `${base}/${doc.slug}`;
     entries.push({
-      url: localizedUrl(routing.defaultLocale, path),
+      url: comBarra(localizedUrl(routing.defaultLocale, path)),
       lastModified: doc._updatedAt,
-      alternates: { languages: languageAlternates(path) },
+      alternates: { languages: alternatesComBarra(path) },
     });
   }
 
