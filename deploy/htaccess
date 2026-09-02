@@ -13,7 +13,19 @@
 # ----------------------------------------------------------------------
 # Cada rota do export é um diretório com index.html dentro (efeito do
 # `trailingSlash: true` no next.config.ts).
-DirectoryIndex index.html
+#
+# 🔴 `index.php` PRECISA estar na lista, e o motivo foi aprendido derrubando um
+# site de verdade. Este .htaccess vive na raiz de public_html e é HERDADO pelos
+# subdiretórios — inclusive pelos document roots dos outros dois sites da conta
+# (edroficinadesolucoes.com e form.andreaeboli.com) e por /wp-admin/. Com
+# `DirectoryIndex index.html` sozinho, todo diretório que só tem index.php
+# passou a responder 403: o edroficinadesolucoes.com saiu do ar e o wp-admin
+# ficou inacessível.
+#
+# `index.html` vem primeiro, então nas rotas do hub nada muda. E a raiz do
+# domínio não volta para o WordPress porque a RewriteRule mais abaixo
+# redireciona "/" para /pt/ antes de o DirectoryIndex ser consultado.
+DirectoryIndex index.html index.php
 
 # `-Indexes`: 577 diretórios do export NÃO têm index.html (são pastas de
 # payload do Next e de assets). Sem isto, /brand/ e /confraria/ viram listagem

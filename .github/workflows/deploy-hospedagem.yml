@@ -355,8 +355,16 @@ jobs:
 
           # Guarda o .htaccess atual como .htaccess.wordpress no próprio
           # servidor, que é o que o modo `reverter` usa para devolver o site.
+          #
+          # ⚠️ SÓ NA PRIMEIRA VEZ. Sem esta checagem o passo não é idempotente:
+          # rodar `ativar` de novo (para corrigir o .htaccess, por exemplo)
+          # sobrescreveria a cópia de segurança com o .htaccess DO HUB, e o
+          # `reverter` deixaria de ter para onde voltar.
           if curl --ssl-reqd -sf --max-time 90 --user "$U" \
-               "ftp://$FTP_HOST/.htaccess" -o htaccess-wordpress-atual; then
+               "ftp://$FTP_HOST/.htaccess.wordpress" -o backup-existente 2>/dev/null; then
+            echo "→ cópia de segurança já existe no servidor ($(wc -c < backup-existente) bytes); preservada"
+          elif curl --ssl-reqd -sf --max-time 90 --user "$U" \
+                 "ftp://$FTP_HOST/.htaccess" -o htaccess-wordpress-atual; then
             echo "→ .htaccess do WordPress lido ($(wc -c < htaccess-wordpress-atual) bytes)"
             curl --ssl-reqd -sf --max-time 90 --user "$U" \
               -T htaccess-wordpress-atual "ftp://$FTP_HOST/.htaccess.wordpress"
