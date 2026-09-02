@@ -14,6 +14,15 @@
 #      Os dois últimos estão NO AR e são de terceiros/outros projetos. Uma
 #      sincronização com exclusão em public_html apagaria os dois. É por isso
 #      que a lista `exclude` do passo de envio não é opcional.
+#      Há também uma pasta `andreaeboli.com/` solta em public_html, sobra de
+#      uma conta de FTP criada e apagada em 02/09/2026 (o cPanel sugere criar
+#      `public_html/<domínio>/<login>` por padrão). Não é document root de
+#      nada e também está excluída.
+#   1b. O FTP_HOST TEM de ser `alvorada.nuvemidc.com`. A porta 21 apresenta
+#      certificado emitido só para esse nome (CN e único SAN), então conectar
+#      como `ftp.andreaeboli.com` falha a verificação de TLS e o deploy cai
+#      para conexão sem criptografia, com a senha em claro. Medido: exit 0 com
+#      --ssl-reqd em alvorada, exit 60 no outro nome.
 #   2. O e-mail de andreaeboli.com está nesta mesma hospedagem (o MX aponta
 #      para o próprio domínio) e o Maildir mora dentro de /home/andreaeb.
 #   Por isso a conta de FTP tem de ser ESCOPADA em public_html: é a defesa que
@@ -317,6 +326,7 @@ jobs:
           exclude: |
             edroficinadesolucoes.com/**
             form.andreaeboli.com/**
+            andreaeboli.com/**
             cgi-bin/**
             .well-known/**
             **/.git*
