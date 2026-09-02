@@ -1,109 +1,126 @@
-# Publica o hub na hospedagem própria (cPanel/LiteSpeed na nuvemHospedagem).
+# Publica o hub em andreaeboli.com (cPanel/LiteSpeed na nuvemHospedagem).
 #
-# CONVIVE com o deploy.yml do GitHub Pages de propósito: enquanto a
-# migração não estiver validada, o site do Pages continua no ar como está.
-# Por isso aqui NÃO há `on: push` nem `schedule` — só disparo manual. O cron
-# entra depois do corte, junto com a retirada do workflow do Pages.
+# CONVIVE com o deploy.yml do GitHub Pages de propósito: enquanto a migração
+# não estiver concluída, o site do Pages continua no ar. Por isso aqui não há
+# `on: push` nem `schedule` — só disparo manual. O cron entra no fim, junto
+# com a retirada do workflow do Pages.
 #
 # ⚠️ CONTEXTO DE SEGURANÇA DESTA CONTA cPANEL (medido em 02/09/2026):
 #   1. Existe um SEGUNDO site no ar na mesma conta: edroficinadesolucoes.com.
 #      O certificado AutoSSL cobre os dois domínios e traz
 #      `edroficinadesolucoes.com.andreaeboli.com`, assinatura de addon domain.
+#      AINDA NÃO SABEMOS se o document root dele fica dentro de public_html.
+#      Descobrir isso é o objetivo do modo `simulacao`.
 #   2. O e-mail de andreaeboli.com está nesta mesma hospedagem (o MX aponta
-#      para o próprio domínio), e o Maildir mora dentro de /home/andreaeb.
-#   Consequência: o FTP deste deploy tem de usar uma conta ESCOPADA no
-#   diretório de destino. Se usar o usuário mestre `andreaeb`, o FTP abre em
-#   /home/andreaeb e uma sincronização com exclusão apaga e-mail e o outro
-#   site. `server-dir` é a última linha de defesa, não a primeira: a conta
-#   escopada é a primeira.
+#      para o próprio domínio) e o Maildir mora dentro de /home/andreaeb.
+#   Por isso a conta de FTP tem de ser ESCOPADA em public_html: é a defesa que
+#   não depende de eu escrever o caminho certo. Com o usuário mestre
+#   `andreaeb` o FTP abre em /home/andreaeb, e um erro alcança o e-mail e o
+#   outro site.
+#
+# ─────────────────────────────────────────────────────────────────────────
+# POR QUE O DEPLOY É EM PASSOS
+#
+# O destino tem um WordPress no ar. Quem decide o que responde na raiz não é a
+# quantidade de arquivos: é o `.htaccess` (as regras do WP mandam tudo para
+# index.php) e o DirectoryIndex. Ou seja, **subir os arquivos do hub não troca
+# o site** — quem troca é o `.htaccess`.
+#
+# Isso é uma vantagem, e o desenho abaixo a explora: o corte passa a ser a
+# publicação de DOIS arquivos, e voltar atrás também. Não é preciso apagar
+# nada em massa para descobrir se funcionou.
+#
+#   1. simulacao        → não escreve nada. Lista o que subiria e a árvore do
+#                         servidor, para achar o outro site da conta.
+#   2. enviar-arquivos  → sobe o hub inteiro MENOS o .htaccess e a raiz.
+#                         O WordPress continua servindo o site; o visitante
+#                         não vê diferença nenhuma.
+#   3. ativar           → publica só o .htaccess e o index.html da raiz.
+#                         O hub assume na hora, e o passo guarda o .htaccess
+#                         do WordPress no servidor antes de sobrescrever.
+#   4. reverter         → devolve o .htaccess do WordPress. Segundos.
+#
+# A remoção dos arquivos do WordPress fica para DEPOIS de o hub estar
+# confirmado no ar, é feita à parte e não por este workflow.
+# ─────────────────────────────────────────────────────────────────────────
 
-name: Deploy (hospedagem própria)
+name: Deploy (andreaeboli.com)
 
 on:
   workflow_dispatch:
     inputs:
-      destino:
-        description: "Onde publicar"
+      modo:
+        description: "Passo do deploy (ver o cabeçalho do arquivo)"
         required: true
-        default: staging
+        default: simulacao
         type: choice
         options:
-          - staging # subdomínio de validação, com noindex
-          - producao # a raiz de andreaeboli.com
-      simulacao:
-        description: "Simulação (dry-run): lista o que subiria, sem enviar nada"
-        required: true
-        default: true
-        type: boolean
+          - simulacao
+          - enviar-arquivos
+          - ativar
+          - reverter
 
 concurrency:
   # ⚠️ SEM cancel-in-progress. Upload por FTP não é atômico: cancelar no meio
-  # deixa o site com HTML novo pedindo chunk antigo. Melhor esperar a fila.
-  group: deploy-hospedagem
+  # deixa o site com HTML novo pedindo chunk que não subiu.
+  group: deploy-andreaeboli
   cancel-in-progress: false
 
+env:
+  SITE_URL: https://andreaeboli.com
+
 jobs:
-  build-e-publica:
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
+        if: inputs.modo != 'reverter'
         with:
           node-version: 24
           cache: npm
 
       - name: Instalar dependências
+        if: inputs.modo != 'reverter'
         run: npm ci
 
       # Hospedagem estática não tem servidor: saem as rotas de API, o Studio
       # embutido e o middleware de idioma.
       - name: Remover partes server-only
+        if: inputs.modo != 'reverter'
         run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
 
-      - name: Definir o destino
-        id: alvo
-        run: |
-          if [ "${{ inputs.destino }}" = "producao" ]; then
-            echo "site_url=https://andreaeboli.com"     >> "$GITHUB_OUTPUT"
-          else
-            echo "site_url=https://hub.andreaeboli.com" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Build estático
+        if: inputs.modo != 'reverter'
         run: npm run build
         env:
           STATIC_EXPORT: "1"
-          NEXT_PUBLIC_SITE_URL: ${{ steps.alvo.outputs.site_url }}
-          # VAZIO: o site vive na RAIZ do domínio, não dentro do caminho de um
-          # repositório. O next.config.ts distingue "não definida" de
-          # "definida como vazia" — trocar aquele bloco por `||` faz o site
-          # subir inteiro apontando para /hub-andrea-eboli e quebra tudo.
-          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
+          # NÃO definir NEXT_PUBLIC_BASE_PATH: o padrão do next.config.ts é
+          # vazio, que é o correto para um site na raiz do domínio.
           NEXT_PUBLIC_SANITY_PROJECT_ID: 52ssivbg
           NEXT_PUBLIC_SANITY_DATASET: production
           NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
 
-      # O .htaccess vem do repositório (deploy/htaccess), revisável em code
-      # review, e entra no artefato. Não pode ser criado à mão no servidor: a
-      # sincronização com exclusão o apagaria no deploy seguinte, levando a
-      # raiz, os redirects e a página 404 junto.
-      - name: Instalar .htaccess e a raiz do domínio
+      - name: Montar o .htaccess e a raiz
+        if: inputs.modo != 'reverter'
         run: |
-          cp deploy/htaccess out/.htaccess
+          mkdir -p ativacao
+          cp deploy/htaccess ativacao/.htaccess
 
-          # A raiz redireciona para /pt/ pelo .htaccess (regra de servidor).
-          # Este index.html é rede de proteção para o caso de o .htaccess não
-          # ser aplicado: sem ele a raiz cairia em listagem de diretório.
-          cat > out/index.html <<EOF
+          # A raiz redireciona para /pt/ pela regra de servidor no .htaccess.
+          # Este index.html é rede de proteção: se o .htaccess não valer, sem
+          # ele a raiz cai em listagem de diretório.
+          cat > ativacao/index.html <<EOF
           <!doctype html>
           <html lang="pt-BR">
             <head>
               <meta charset="utf-8" />
               <meta http-equiv="refresh" content="0; url=./pt/" />
-              <link rel="canonical" href="${{ steps.alvo.outputs.site_url }}/pt/" />
+              <link rel="canonical" href="${{ env.SITE_URL }}/pt/" />
               <title>Andrea Eboli</title>
             </head>
             <body>
@@ -112,95 +129,163 @@ jobs:
           </html>
           EOF
 
-      # O staging não pode ser indexado: seria uma segunda cópia do site
-      # competindo com o domínio, que é exatamente o problema que a migração
-      # existe para resolver.
-      - name: Blindar o staging contra indexação
-        if: inputs.destino == 'staging'
-        run: |
-          cat >> out/.htaccess <<'EOF'
+          # Os dois arquivos que fazem a troca saem do envio em massa: sobem
+          # no modo `ativar`, deliberadamente.
+          rm -f out/.htaccess out/index.html
 
-          # ---- staging: fora do índice ----
-          <IfModule mod_headers.c>
-            Header set X-Robots-Tag "noindex, nofollow, noarchive"
-          </IfModule>
-          EOF
-          printf 'User-agent: *\nDisallow: /\n' > out/robots.txt
-
-      - name: Conferir o artefato antes de enviar
+      - name: Conferir o artefato
+        if: inputs.modo != 'reverter'
         run: |
-          echo "arquivos: $(find out -type f | wc -l)"
-          echo "tamanho:  $(du -sh out | cut -f1)"
-          test -f out/.htaccess || { echo "ERRO: .htaccess ausente"; exit 1; }
-          test -f out/404.html  || { echo "ERRO: 404.html ausente";  exit 1; }
-          test -f out/index.html || { echo "ERRO: index.html ausente"; exit 1; }
-          # O basePath antigo não pode ter sobrado em lugar nenhum.
-          if grep -rlq "hub-andrea-eboli" out --include='*.html' --include='*.txt' --include='*.xml' --include='*.js'; then
-            echo "ERRO: ainda há referência a /hub-andrea-eboli no artefato:"
-            grep -rl "hub-andrea-eboli" out --include='*.html' --include='*.txt' --include='*.xml' --include='*.js' | head -5
+          echo "arquivos: $(find out -type f | wc -l)  ·  tamanho: $(du -sh out | cut -f1)"
+          test -f out/404.html || { echo "ERRO: 404.html ausente"; exit 1; }
+          test -f ativacao/.htaccess || { echo "ERRO: .htaccess ausente"; exit 1; }
+          # O basePath antigo não pode ter sobrado: era a falha que subia meio
+          # site prefixado com o build passando verde.
+          if grep -rlq "hub-andrea-eboli" out; then
+            echo "ERRO: ainda há referência a /hub-andrea-eboli:"
+            grep -rl "hub-andrea-eboli" out | head -5
             exit 1
           fi
-          # E a URL do destino tem de estar assada no canonical.
-          grep -q '${{ steps.alvo.outputs.site_url }}/pt/sobre/' out/pt/sobre/index.html \
-            || { echo "ERRO: canonical não aponta para o destino"; exit 1; }
-          echo "artefato conferido para ${{ steps.alvo.outputs.site_url }}"
+          grep -q "${{ env.SITE_URL }}/pt/sobre/" out/pt/sobre/index.html \
+            || { echo "ERRO: canonical não aponta para ${{ env.SITE_URL }}"; exit 1; }
+          echo "artefato conferido"
 
       # ------------------------------------------------------------------
-      # Envio
+      # 1. SIMULAÇÃO — não escreve nada no servidor
       # ------------------------------------------------------------------
-      # ⚠️ `server-dir: ./` DE PROPÓSITO, nos dois destinos. Cada conta de FTP
-      # é criada no cPanel JÁ ESCOPADA no diretório do seu destino, então a
-      # raiz que a conta enxerga É o destino. É a defesa que não depende de eu
-      # escrever o caminho certo: mesmo um `server-dir` errado não consegue
-      # escapar do diretório da conta. Escopo por caminho aqui seria a defesa
-      # mais fraca, porque um erro de digitação passaria a valer.
-      #
-      # STAGING usa um par de credenciais SEPARADO do de produção. Assim um
-      # disparo com o destino errado não tem como alcançar public_html.
-      - name: Enviar por FTPS (staging)
-        if: inputs.destino == 'staging'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER_STAGING }}
-          password: ${{ secrets.FTP_PASSWORD_STAGING }}
-          protocol: ftps
-          local-dir: ./out/
-          server-dir: ./
-          dry-run: ${{ inputs.simulacao }}
-          state-name: .deploy-sync-state.json
-          timeout: 120000
-          log-level: standard
-
-      - name: Enviar por FTPS (produção)
-        if: inputs.destino == 'producao'
+      - name: Simulação do envio
+        if: inputs.modo == 'simulacao'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # ⚠️ `ftps`, não `ftp`. O padrão da action é FTP puro, que manda a
-          # senha do cPanel em texto claro na rede a cada deploy.
           protocol: ftps
           local-dir: ./out/
           server-dir: ./
-          dry-run: ${{ inputs.simulacao }}
-          # O arquivo de estado fica no diretório servido e seria público; o
-          # .htaccess nega o acesso a ele.
+          dry-run: true
+          state-name: .deploy-sync-state.json
+          timeout: 120000
+          log-level: verbose
+
+      - name: Listar a árvore do servidor
+        if: inputs.modo == 'simulacao'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          # Precisamos saber o que existe em public_html HOJE, para achar o
+          # document root do outro site da conta antes de qualquer passo que
+          # escreva ou apague.
+          echo "=== conteúdo da raiz da conta de FTP (deve ser public_html) ==="
+          curl --ssl-reqd -s --max-time 90 --user "$FTP_USER:$FTP_PASSWORD" \
+            "ftp://$FTP_HOST/" || echo "(a listagem falhou)"
+
+      # ------------------------------------------------------------------
+      # 2. ENVIAR ARQUIVOS — o WordPress continua servindo o site
+      # ------------------------------------------------------------------
+      - name: Enviar o hub, sem trocar o site
+        if: inputs.modo == 'enviar-arquivos'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # ⚠️ `ftps`, não `ftp`: o padrão da action manda a senha do cPanel
+          # em texto claro na rede a cada deploy.
+          protocol: ftps
+          local-dir: ./out/
+          # A conta é escopada em public_html, então "./" já é o destino.
+          server-dir: ./
+          dry-run: false
           state-name: .deploy-sync-state.json
           timeout: 120000
           log-level: standard
-          # ⚠️ PREENCHER ANTES DO PRIMEIRO ENVIO REAL EM PRODUÇÃO.
-          # O outro site da conta (edroficinadesolucoes.com) é um addon domain,
-          # e no cPanel o document root de um addon costuma ficar DENTRO de
-          # public_html. Se estiver, a sincronização com exclusão o apagaria.
-          # A primeira execução em produção tem de ser com simulacao=true: o
-          # log lista a árvore e mostra onde ele mora. O que aparecer ali entra
-          # nesta lista.
+          # ⚠️ REVISAR DEPOIS DA SIMULAÇÃO: se o document root do
+          # edroficinadesolucoes.com estiver dentro de public_html, o nome da
+          # pasta dele TEM de entrar nesta lista.
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             cgi-bin/**
             .well-known/**
-            hub/**
+            wp-admin/**
+            wp-includes/**
+            wp-content/**
+            wp-*.php
+            xmlrpc.php
+            index.php
+            .htaccess
+
+      # ------------------------------------------------------------------
+      # 3. ATIVAR — a troca, dois arquivos
+      # ------------------------------------------------------------------
+      - name: Guardar o .htaccess do WordPress e ativar o hub
+        if: inputs.modo == 'ativar'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -e
+          U="$FTP_USER:$FTP_PASSWORD"
+
+          # Guarda o .htaccess atual como .htaccess.wordpress no próprio
+          # servidor, que é o que o modo `reverter` usa para devolver o site.
+          if curl --ssl-reqd -sf --max-time 90 --user "$U" \
+               "ftp://$FTP_HOST/.htaccess" -o htaccess-wordpress-atual; then
+            echo "→ .htaccess do WordPress lido ($(wc -c < htaccess-wordpress-atual) bytes)"
+            curl --ssl-reqd -sf --max-time 90 --user "$U" \
+              -T htaccess-wordpress-atual "ftp://$FTP_HOST/.htaccess.wordpress"
+            echo "→ cópia de segurança gravada no servidor: .htaccess.wordpress"
+          else
+            echo "→ não havia .htaccess no servidor; seguindo"
+          fi
+
+          # A TROCA. Daqui em diante a raiz é o hub.
+          curl --ssl-reqd -sf --max-time 90 --user "$U" \
+            -T ativacao/index.html "ftp://$FTP_HOST/index.html"
+          curl --ssl-reqd -sf --max-time 90 --user "$U" \
+            -T ativacao/.htaccess "ftp://$FTP_HOST/.htaccess"
+          echo "→ hub ATIVO em ${{ env.SITE_URL }}"
+
+      - name: Conferir o site no ar
+        if: inputs.modo == 'ativar'
+        run: |
+          sleep 15
+          for u in "/pt/" "/pt/pesquisa/" "/pt/confraria/" "/en/" "/es/" "/uma-url-que-nao-existe/"; do
+            printf "  %-28s HTTP %s\n" "$u" \
+              "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}$u")"
+          done
+          printf "  %-28s HTTP %s -> %s\n" "/ (raiz)" \
+            "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}/")" \
+            "$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${{ env.SITE_URL }}/")"
+          echo "  título servido na raiz:"
+          curl -sL --max-time 30 "${{ env.SITE_URL }}/" | grep -oiE "<title>[^<]{0,70}" | head -1
+
+      # ------------------------------------------------------------------
+      # 4. REVERTER — devolve o WordPress em segundos
+      # ------------------------------------------------------------------
+      - name: Reverter para o WordPress
+        if: inputs.modo == 'reverter'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -e
+          U="$FTP_USER:$FTP_PASSWORD"
+          curl --ssl-reqd -sf --max-time 90 --user "$U" \
+            "ftp://$FTP_HOST/.htaccess.wordpress" -o htaccess-wordpress
+          test -s htaccess-wordpress || { echo "ERRO: cópia de segurança ausente ou vazia"; exit 1; }
+          curl --ssl-reqd -sf --max-time 90 --user "$U" \
+            -T htaccess-wordpress "ftp://$FTP_HOST/.htaccess"
+          # Sai o index.html do hub para o index.php do WordPress voltar a
+          # responder na raiz.
+          curl --ssl-reqd -s --max-time 90 --user "$U" \
+            -Q "-DELE /index.html" "ftp://$FTP_HOST/" || true
+          echo "→ WordPress devolvido. Título servido na raiz:"
+          sleep 15
+          curl -sL --max-time 30 "${{ env.SITE_URL }}" | grep -oiE "<title>[^<]{0,70}" | head -1
