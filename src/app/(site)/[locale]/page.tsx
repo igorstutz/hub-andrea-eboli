@@ -4,7 +4,6 @@ import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
 import HomeBanner from "@/components/HomeBanner";
 import JsonLd from "@/components/JsonLd";
-import LibraryIcon from "@/components/LibraryIcon";
 import NewsletterForm from "@/components/NewsletterForm";
 import {
   SITE_URL,
@@ -24,30 +23,14 @@ import {
 import { parseYouTubeId, thumbnailUrl, formatDurationHuman } from "@/lib/youtube";
 
 // "Casos e Personagens" está fora da home por enquanto (pedido do Igor,
-// 28/08/2026): a flag esconde a seção de casos E o cartão na lista de
-// bibliotecas do fim da página. A rota /casos e o conteúdo continuam no ar;
-// voltar para true devolve os dois — e nesse caso vale reescrever
-// `home.librariesLead` nos 3 idiomas, que perdeu a menção aos "padrões de
-// comportamento" (a descrição de Casos) junto com o cartão.
+// 28/08/2026): a flag esconde a seção de casos. A rota /casos e o conteúdo
+// continuam no ar; voltar para true devolve a seção.
+//
+// A seção "As bibliotecas do hub", que ficava no fim da página e tinha um
+// cartão governado por esta mesma flag, saiu inteira em 04/09/2026 (pedido do
+// Igor). As rotas /perguntas, /conceitos e /artigos continuam existindo e
+// linkadas pelo rodapé; o que saiu foi só o bloco de vitrine na home.
 const SHOW_CASES: boolean = false;
-
-const ALL_LIBRARIES = [
-  { key: "questions", href: "/perguntas" },
-  { key: "concepts", href: "/conceitos" },
-  { key: "cases", href: "/casos" },
-  { key: "articles", href: "/artigos" },
-] as const;
-
-// A numeração dos cartões vem da posição na lista, para não abrir buraco (01,
-// 02, 04) enquanto Casos está escondido.
-const LIBRARIES = ALL_LIBRARIES.filter(
-  (lib) => SHOW_CASES || lib.key !== "cases",
-).map((lib, i) => ({ ...lib, num: String(i + 1).padStart(2, "0") }));
-
-// Com 3 cartões a grade fecha em 3 colunas no desktop; com os 4 (Casos de
-// volta) ela volta a fechar 2 + 2.
-const LIBRARIES_GRID =
-  LIBRARIES.length === 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2";
 
 type QItem = { title: string; slug: string; answer?: string; topic?: { title: string } | null };
 type CItem = {
@@ -718,75 +701,6 @@ export default async function HomePage({
           </div>
         </section>
       )}
-
-      {/* ============ BIBLIOTECAS ============
-          A pedido da Andrea (19/08/2026) as bibliotecas saíram do topo e vivem
-          aqui no fim, como referência para as outras abas. */}
-      <section id="bibliotecas" className="border-t border-ink/10 bg-bone">
-        <div className="mx-auto max-w-6xl px-6 py-24">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl text-wine md:text-4xl">
-              {t("librariesTitle")}
-            </h2>
-          </Reveal>
-          <Reveal delay={120}>
-            <p className="mt-4 max-w-2xl text-ink-soft">{t("librariesLead")}</p>
-          </Reveal>
-
-          <div className={`mt-14 grid gap-6 ${LIBRARIES_GRID}`}>
-            {LIBRARIES.map(({ key, href, num }, i) => (
-              <Reveal key={key} delay={i * 110}>
-                <Link
-                  href={href}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/10 bg-cream p-8 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_40px_90px_-40px_rgba(65,24,30,0.45)]"
-                >
-                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-green-deep/10 blur-2xl" />
-                  </div>
-                  <div className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-wine-soft to-green-deep transition-transform duration-500 group-hover:scale-x-100" />
-
-                  <div className="relative flex items-start justify-between">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-wine/20 bg-wine/5 text-wine transition-all duration-500 group-hover:border-transparent group-hover:bg-green-deep group-hover:text-cream">
-                      <LibraryIcon name={key} className="h-6 w-6" />
-                    </span>
-                    <span className="font-serif text-4xl italic leading-none text-green-deep/35 transition-colors duration-500 group-hover:text-green-deep">
-                      {num}
-                    </span>
-                  </div>
-
-                  <span className="relative mt-7 inline-flex w-fit items-center rounded-full bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-wine-soft transition-colors duration-500 group-hover:bg-green-deep/10 group-hover:text-green-deep">
-                    {tl(`${key}.badge`)}
-                  </span>
-
-                  <h3 className="relative mt-4 text-2xl text-wine">
-                    {tl(`${key}.name`)}
-                  </h3>
-                  <p className="relative mt-2 flex-1 text-sm text-ink-soft">
-                    {tl(`${key}.desc`)}
-                  </p>
-
-                  <span className="relative mt-6 flex items-center gap-2 text-green-deep">
-                    <span className="h-px w-6 bg-green-deep transition-all duration-500 group-hover:w-9" />
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4 -translate-x-1 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
-                      aria-hidden
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m13 6 6 6-6 6" />
-                    </svg>
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ============ NEWSLETTER ============ */}
       <section className="relative overflow-hidden bg-green-deep text-cream">
