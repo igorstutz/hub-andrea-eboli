@@ -118,8 +118,16 @@ outra url. Queria algo como https://andreaeboli.com/pt/admin".
    e-mail+senha); ninguém compartilha login. Convite:
    `npx sanity users invite <email> --role editor` ou pelo
    sanity.io/manage/project/52ssivbg → Members.
-   ⏭️ Falta o e-mail da Andrea. E vale revisar o token do robô, que tem
-   permissão de escrita e não é mais usado.
+   ✅ **09/09: a Andrea foi convidada** (`andreaeboli2018@gmail.com`) como
+   **Administrator**. 🔴 Não foi escolha de generosidade: **o plano atual só
+   oferece `administrator`, `blueprints-deployer` e `viewer` para pessoas** —
+   não existe `editor` para convidar (o "Editor" do robô é papel de TOKEN, não
+   de usuário). Como `viewer` não publica nada, administrator é o único papel
+   que faz o painel servir para ela. O papel Editor (edita conteúdo sem mexer
+   em configuração, membros ou tokens) exige plano pago; se um dia subir o
+   plano, é o caso de rebaixar o acesso dela.
+   ⏭️ Vale revisar o token do robô `seed-temporario`, que tem permissão de
+   escrita e não é mais usado.
 
 **⏭️ Pendências pequenas desta rodada:**
 - **O `robots.txt` no ar ainda diz `Disallow: /studio`.** O `ativar` só
