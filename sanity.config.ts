@@ -32,15 +32,20 @@ function ehStudioEmbutidoLocal(): boolean {
 
 export default defineConfig({
   /**
-   * O caminho do painel — o mesmo no `npm run dev` e no ar.
+   * O caminho do painel — /admin no `npm run dev` e no ar.
    *
-   * ⚠️ Esta chave vale para o Studio EMBUTIDO no Next (localhost:3000/admin).
-   * O `sanity build` NÃO a lê: ele resolve o base path por
-   * `SANITY_STUDIO_BASEPATH` ou por `project.basePath` do sanity.cli.ts
-   * (ver `determineBasePath` no @sanity/cli). Quem cuida disso é o
-   * `build-painel.mjs`, que define a variável. Manter os dois em /admin.
+   * 🔴 POR QUE ISTO É CONDICIONAL, e não `basePath: "/admin"` direto:
+   * quem monta o caminho final é `joinBasePath(rootPath, config.basePath)`,
+   * dentro do `sanity`. No painel publicado o `rootPath` já é "/admin" (vem do
+   * `SANITY_STUDIO_BASEPATH` que o `build-painel.mjs` define, porque o
+   * `sanity build` NÃO lê esta chave), então declarar "/admin" aqui também
+   * fazia a URL virar `/admin/admin` depois do login. No Studio embutido no
+   * Next não há `rootPath`, e sem esta chave o painel cairia na raiz do site.
+   *
+   * A variável só existe no bundle do `sanity build` — o Vite a injeta lá e
+   * ela é `undefined` no build do Next. É o que separa os dois casos.
    */
-  basePath: "/admin",
+  basePath: process.env.SANITY_STUDIO_BASEPATH ? undefined : "/admin",
   projectId,
   dataset,
   schema,
