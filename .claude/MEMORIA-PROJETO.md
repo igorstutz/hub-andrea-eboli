@@ -90,13 +90,22 @@ outra url. Queria algo como https://andreaeboli.com/pt/admin".
    📌 `eslint.config.mjs` precisou ignorar `dist-painel/**`: com 9 MB de bundle
    minificado o eslint morre com um stack trace do V8, sem mensagem.
 
-**⏭️ Para publicar (nesta ordem, e o repositório precisa estar commitado):**
-   1. workflow **`enviar-painel`** — sobe o painel para `/admin`;
-   2. workflow **`ativar`** — republica o `.htaccess` com as regras novas (o
-      `.htaccess` só sobe nesse modo). Sem o passo 2, `/admin/` abre mas F5 em
-      tela interna dá 404.
-   Depois: rodar `npx sanity deploy` para o painel de reserva também sair do
-   erro de ambiente.
+6. ✅ **PUBLICADO em 09/09/2026** (commit `ecf6594`): rodados os modos
+   `enviar-painel` e `ativar`, nessa ordem — o `.htaccess` só sobe no
+   `ativar`, e sem ele o F5 dentro do painel dá 404. Conferido no ar:
+   `/admin/`, `/admin/structure` e `/admin/vision` em 200, `/pt/admin`
+   redireciona 301 para `/admin/`, o site segue de pé, e **o painel aberto no
+   Chrome headless mostra a tela de login do Sanity** — o erro de ambiente
+   acabou. A cópia de segurança do `.htaccess` do WordPress foi preservada
+   (863 bytes), como manda a guarda de idempotência do passo.
+
+**⏭️ Pendências pequenas desta rodada:**
+- **O `robots.txt` no ar ainda diz `Disallow: /studio`.** O `ativar` só
+  republica `.htaccess` e o `index.html` da raiz; o `robots.txt` novo (com
+  `/admin`) entra no próximo **`enviar-arquivos`**. Sem urgência: o HTML do
+  painel já traz `<meta name="robots" content="noindex">`.
+- **O painel de reserva (`andreaeboli.sanity.studio`) continua com o erro de
+  ambiente.** Para consertar: `npx sanity deploy`.
 
 ---
 
