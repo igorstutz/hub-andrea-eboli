@@ -99,6 +99,28 @@ outra url. Queria algo como https://andreaeboli.com/pt/admin".
    acabou. A cópia de segurança do `.htaccess` do WordPress foi preservada
    (863 bytes), como manda a guarda de idempotência do passo.
 
+7. 🔴 **Armadilha do basePath, achada com o painel já no ar: a URL virava
+   `/admin/admin` depois do login.** Quem monta o caminho final é
+   `joinBasePath(rootPath, config.basePath)`, dentro do pacote `sanity`
+   (`node_modules/sanity/lib/index.js`). No painel publicado o `rootPath` já é
+   `/admin` (vem do `SANITY_STUDIO_BASEPATH`), então declarar `/admin` também
+   no `sanity.config.ts` **soma os dois**. A chave virou condicional: só existe
+   quando a variável do build NÃO existe, que é o caso do Studio embutido no
+   Next (sem ela o painel cairia na raiz do site). Conferido no bundle
+   publicado: `{basePath:void 0,projectId:…}`.
+   📌 E, de quebra: `**/admin/admin**` dentro de um comentário `/* */` **fecha
+   o comentário** no `*/`. Foi o que quebrou o `tsc` na primeira tentativa.
+
+8. 👤 **Quem entra no painel:** o projeto tem **2 membros** — Igor Fonseca
+   (Administrator) e `seed-temporario (Robot)` com papel **Editor**, resquício
+   do seed. **A Andrea ainda NÃO é membro**, então o painel só abre com a conta
+   do Igor. Cada pessoa entra com a PRÓPRIA conta (Google, GitHub ou
+   e-mail+senha); ninguém compartilha login. Convite:
+   `npx sanity users invite <email> --role editor` ou pelo
+   sanity.io/manage/project/52ssivbg → Members.
+   ⏭️ Falta o e-mail da Andrea. E vale revisar o token do robô, que tem
+   permissão de escrita e não é mais usado.
+
 **⏭️ Pendências pequenas desta rodada:**
 - **O `robots.txt` no ar ainda diz `Disallow: /studio`.** O `ativar` só
   republica `.htaccess` e o `index.html` da raiz; o `robots.txt` novo (com
