@@ -5,7 +5,7 @@ import { routing } from "./i18n/routing";
 export default createMiddleware(routing);
 
 export const config = {
-  // Roda em todas as rotas, exceto API, internos do Next, o Studio do Sanity
+  // Roda em todas as rotas, exceto API, internos do Next, o painel do Sanity
   // e arquivos estáticos (com extensão).
-  matcher: ["/((?!api|_next|_vercel|studio|.*\\..*).*)"],
+  matcher: ["/((?!api|_next|_vercel|admin|.*\\..*).*)"],
 };

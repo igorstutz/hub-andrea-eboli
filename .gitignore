@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sanity — artefatos de build do painel (`node build-painel.mjs`)
+/dist
+/dist-painel
+/.sanity

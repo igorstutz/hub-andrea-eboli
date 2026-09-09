@@ -52,6 +52,17 @@
 #                         do WordPress no servidor antes de sobrescrever.
 #   4. reverter         → devolve o .htaccess do WordPress. Segundos.
 #
+#   5. enviar-painel    → publica o PAINEL (Sanity Studio) em /admin. É um
+#                         passo à parte de propósito: o painel é um bundle de
+#                         ~9 MB que só muda quando o schema muda, enquanto o
+#                         site é republicado toda vez que a Andrea publica um
+#                         texto. Sincronizações separadas (cada uma com seu
+#                         arquivo de estado) mantêm o deploy de conteúdo leve
+#                         e tiram o painel do raio de alcance dele.
+#                         ⚠️ Por isso `admin/**` está na lista `exclude` do
+#                         envio do site: sem isso, o primeiro republish do
+#                         site apagaria o painel inteiro.
+#
 # A remoção dos arquivos do WordPress fica para DEPOIS de o hub estar
 # confirmado no ar, é feita à parte e não por este workflow.
 # ─────────────────────────────────────────────────────────────────────────
@@ -72,6 +83,7 @@ on:
           - enviar-arquivos
           - ativar
           - reverter
+          - enviar-painel
 
 concurrency:
   # ⚠️ SEM cancel-in-progress. Upload por FTP não é atômico: cancelar no meio
@@ -92,6 +104,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        # (vale para os quatro modos que buildam algo, painel incluído)
         with:
           node-version: 24
           cache: npm
@@ -103,11 +116,11 @@ jobs:
       # Hospedagem estática não tem servidor: saem as rotas de API, o Studio
       # embutido e o middleware de idioma.
       - name: Remover partes server-only
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
         run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
 
       - name: Build estático
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
         run: npm run build
         env:
           STATIC_EXPORT: "1"
@@ -119,7 +132,7 @@ jobs:
           NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
 
       - name: Montar o .htaccess e a raiz
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
         run: |
           mkdir -p ativacao
           cp deploy/htaccess ativacao/.htaccess
@@ -147,7 +160,7 @@ jobs:
           rm -f out/.htaccess out/index.html
 
       - name: Conferir o artefato
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
         run: |
           echo "arquivos: $(find out -type f | wc -l)  ·  tamanho: $(du -sh out | cut -f1)"
           test -f out/404.html || { echo "ERRO: 404.html ausente"; exit 1; }
@@ -317,13 +330,17 @@ jobs:
           state-name: .deploy-sync-state.json
           timeout: 120000
           log-level: standard
-          # ⚠️ NÃO REDUZIR ESTA LISTA. As duas primeiras entradas são os
-          # document roots dos OUTROS DOIS SITES no ar dentro de public_html
-          # (ver o cabeçalho do arquivo). Sem elas, o deploy os apaga.
+          # ⚠️ NÃO REDUZIR ESTA LISTA. `admin/**` é o painel do Sanity, que
+          # tem deploy próprio (modo `enviar-painel`) e não existe em `out/`:
+          # sem a linha, esta sincronização o apagaria por completo. As duas
+          # seguintes são os document roots dos OUTROS DOIS SITES no ar dentro
+          # de public_html (ver o cabeçalho do arquivo). Sem elas, o deploy os
+          # apaga.
           # As linhas wp-* preservam o WordPress de andreaeboli.com até o
           # corte estar confirmado, para o modo `reverter` ter para onde
           # voltar.
           exclude: |
+            admin/**
             edroficinadesolucoes.com/**
             form.andreaeboli.com/**
             andreaeboli.com/**
@@ -339,6 +356,47 @@ jobs:
             xmlrpc.php
             index.php
             .htaccess
+
+      # ------------------------------------------------------------------
+      # 5. ENVIAR-PAINEL — o Sanity Studio em andreaeboli.com/admin
+      # ------------------------------------------------------------------
+      # O Studio é uma SPA: index.html + bundles com hash. Não precisa de
+      # servidor Node, e por isso cabe nesta hospedagem estática — é o que
+      # tira o painel da Andrea de um domínio de terceiro.
+      #
+      # Quem reescreve as URLs internas (/admin/structure/…) para o index.html
+      # é o .htaccess, que sobe no modo `ativar`.
+      - name: Buildar o painel
+        if: inputs.modo == 'enviar-painel'
+        run: node build-painel.mjs
+
+      - name: Enviar o painel
+        if: inputs.modo == 'enviar-painel'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist-painel/
+          server-dir: ./admin/
+          dry-run: false
+          # ⚠️ Arquivo de estado PRÓPRIO. Com o mesmo nome do envio do site, uma
+          # sincronização enxergaria a árvore da outra e sairia apagando.
+          state-name: .deploy-painel-state.json
+          timeout: 120000
+          log-level: standard
+
+      - name: Conferir o painel no ar
+        if: inputs.modo == 'enviar-painel'
+        run: |
+          sleep 15
+          echo "  /admin/           HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}/admin/")"
+          # Uma URL interna da SPA, que NÃO existe como arquivo: mede a regra
+          # de reescrita do .htaccess, não a existência do bundle.
+          echo "  /admin/structure  HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}/admin/structure")"
+          echo "  base path servido:"
+          curl -sL --max-time 30 "${{ env.SITE_URL }}/admin/" | grep -o '/admin/static/[a-zA-Z0-9._-]*' | sort -u | head -3
 
       # ------------------------------------------------------------------
       # 3. ATIVAR — a troca, dois arquivos

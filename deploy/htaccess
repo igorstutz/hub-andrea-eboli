@@ -70,6 +70,27 @@ ErrorDocument 404 /404.html
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
   # --------------------------------------------------------------------
+  # O painel (Sanity Studio) em /admin
+  # --------------------------------------------------------------------
+  # O painel é uma SPA: UM index.html que desenha todas as telas no navegador.
+  # As URLs internas dele (/admin/structure/article;abc123, /admin/vision, …)
+  # NÃO existem como arquivo no servidor — sem a regra abaixo, recarregar a
+  # página com F5 dentro do painel devolve 404, e é a primeira coisa que
+  # alguém faz.
+  #
+  # As duas condições de arquivo/diretório vêm antes de propósito: enquanto o
+  # caminho existir de verdade (o index.html, os bundles de /admin/static/),
+  # o servidor entrega o arquivo e nada é reescrito.
+  RewriteCond %{REQUEST_URI} ^/admin(/|$)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /admin/index.html [L]
+
+  # Atalho para quem digitar o painel com o idioma na frente. O painel é um só
+  # e tem idioma próprio, então não faz parte do /pt /en /es do site.
+  RewriteRule ^(pt|en|es)/admin/?$ /admin/ [R=301,L]
+
+  # --------------------------------------------------------------------
   # Raiz do domínio → português
   # --------------------------------------------------------------------
   # O site não tem página na raiz: o conteúdo vive em /pt, /en e /es.
@@ -86,7 +107,11 @@ ErrorDocument 404 /404.html
 # A action de FTP guarda o estado da sincronização incremental DENTRO do
 # diretório publicado. Sem esta regra, qualquer pessoa baixa esse arquivo e
 # recebe a árvore completa do site, com todos os caminhos e hashes.
-<FilesMatch "^\.deploy-sync-state\.json$">
+#
+# São dois: `.deploy-sync-state.json` (o site, na raiz) e
+# `.deploy-painel-state.json` (o painel, em /admin). O padrão cobre os dois e
+# o próximo que aparecer.
+<FilesMatch "^\.deploy-[a-z-]+-state\.json$">
   Require all denied
 </FilesMatch>
 
@@ -98,6 +123,10 @@ ErrorDocument 404 /404.html
   # nome muda. Podem ser cacheados para sempre.
   <IfModule mod_setenvif.c>
     SetEnvIf Request_URI "^/_next/static/" LONG_CACHE=1
+    # Os bundles do painel também têm hash no nome (pane2-RcSanCwq.js).
+    # Só .js e .css: os favicons de /admin/static/ não têm hash e caem na
+    # regra de imagens mais abaixo.
+    SetEnvIf Request_URI "^/admin/static/.+\.(js|css)$" LONG_CACHE=1
   </IfModule>
   Header set Cache-Control "public, max-age=31536000, immutable" env=LONG_CACHE
 

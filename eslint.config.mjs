@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Saída do `node build-painel.mjs` (o Studio buildado). São ~9 MB de
+    // bundle minificado: sem esta linha o eslint tenta analisar tudo e morre
+    // sem mensagem, com um stack trace do V8.
+    "dist-painel/**",
+    "dist/**",
+    ".sanity/**",
   ]),
 ]);
 

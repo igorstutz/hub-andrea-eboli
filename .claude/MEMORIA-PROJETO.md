@@ -16,11 +16,91 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 - **projectId:** `52ssivbg`
 - **dataset:** `production`
 - **apiVersion:** `2024-10-01`
-- **Studio:** embutido no Next em `/studio` (ver `sanity.config.ts`).
+- **Painel (Studio):** **https://andreaeboli.com/admin** — é o endereço que a
+  Andrea usa. No `npm run dev` é o mesmo caminho: `localhost:3000/admin`.
+  Reserva: `https://andreaeboli.sanity.studio` (`npx sanity deploy`).
+- ⚠️ **projectId e dataset estão FIXOS em `src/sanity/env.ts`**, não só em
+  variável de ambiente. O Vite da Sanity só injeta `SANITY_STUDIO_*`, então
+  ler `NEXT_PUBLIC_*` no bundle do painel devolve `undefined` (ver a sessão de
+  09/09 abaixo).
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 31/08/2026 (MAIS RECENTE) — "Para quem é", 4 gráficos, corte de fotos e /na-midia reaberta
+### 🗓️ Sessão 09/09/2026 (MAIS RECENTE) — O painel saiu de um domínio de terceiro e veio para andreaeboli.com/admin
+O Igor: "não consigo acessar o painel. Não vejo sentido acessar isso por uma
+outra url. Queria algo como https://andreaeboli.com/pt/admin".
+
+1. 🔴 **O "não consigo acessar" NÃO era login — era um bug de build que
+   derrubava o painel na inicialização.** `src/sanity/env.ts` lia
+   `process.env.NEXT_PUBLIC_SANITY_DATASET` com um `assertValue` em volta. Isso
+   funciona no build do Next, mas o `sanity build`/`sanity deploy` empacotam com
+   **Vite**, que só injeta variáveis com prefixo `SANITY_STUDIO_` e troca a
+   expressão `process.env` inteira por `{}`. Medido no bundle que estava em
+   `dist/`: `var Ele={}` e logo abaixo `Ele.NEXT_PUBLIC_SANITY_DATASET` — ou
+   seja, o painel abria e morria em "Variável de ambiente ausente", **com o
+   build passando verde**.
+   Correção: `env.ts` agora tem os valores do projeto escritos no arquivo
+   (`52ssivbg` / `production`), com a variável de ambiente ainda tendo
+   precedência. Não é segredo — projectId e dataset já saem no HTML de toda
+   página do site.
+   📌 O `build-painel.mjs` **confere isso no fim do build**: se o projectId não
+   aparecer em nenhum bundle, ele falha em vez de entregar um painel morto.
+
+2. **O painel agora é servido pela própria hospedagem, em `/admin`.**
+   O Studio é uma SPA (um index.html + bundles com hash): não precisa de
+   servidor Node e cabe na mesma hospedagem estática do site. Não havia motivo
+   para ele morar em `andreaeboli.sanity.studio`.
+   - **`build-painel.mjs`** (raiz) é o único jeito certo de buildar.
+     🔴 O `sanity build` **NÃO lê o `basePath` do `sanity.config.ts`** (essa
+     chave vale só para o Studio embutido no Next): ele resolve por
+     `SANITY_STUDIO_BASEPATH` ou por `project.basePath` do `sanity.cli.ts`
+     (`determineBasePath`, no @sanity/cli). Sem a variável, o build sai
+     apontando para `/static/...` e o painel abre em tela branca.
+     ⚠️ E **não** dá para pôr `project.basePath` no `sanity.cli.ts`: aquilo vale
+     também para o `sanity deploy`, e quebraria o painel de reserva, que é
+     servido na raiz.
+   - **`deploy/htaccess`** ganhou a reescrita da SPA (`/admin/qualquer-coisa`
+     que não exista como arquivo → `/admin/index.html`), sem a qual **F5 dentro
+     do painel dá 404**; o atalho `/(pt|en|es)/admin` → `/admin`; e cache longo
+     para `/admin/static/*.js|css`.
+   - **Workflow ganhou o modo `enviar-painel`**, com sincronização e arquivo de
+     estado PRÓPRIOS (`.deploy-painel-state.json`). É separado de propósito: o
+     painel são ~9 MB que só mudam quando o schema muda, enquanto o site é
+     republicado a cada texto que ela publica.
+     🔴 Por isso **`admin/**` entrou na lista `exclude` do envio do site** —
+     sem essa linha, o primeiro republish do site apagaria o painel inteiro.
+   - **CORS:** `https://andreaeboli.com` foi liberado no projeto Sanity com
+     credenciais (`npx sanity cors add … --credentials`). Sem isso o painel
+     carrega e não consegue logar nem ler nada.
+
+3. **`/studio` virou `/admin` também no dev** (`src/app/(studio)/admin/…`,
+   `basePath` do `sanity.config.ts`, matcher do `src/proxy.ts`, `robots.ts`).
+   Um caminho só, local e publicado.
+
+4. **A ferramenta "Importar de link" agora aparece SÓ no `npm run dev`.** A
+   regra era negativa (esconder em `*.sanity.studio`) e o painel em
+   andreaeboli.com passaria a exibir um botão que chama `/api/...` inexistente.
+   Virou positiva: só em localhost. Um destino novo nasce sem a ferramenta.
+
+5. **Validado:** `tsc` e `eslint` limpos; build do painel com o script
+   (30 bundles, base path certo); painel servido em `localhost:3333/admin`
+   (origem já liberada no CORS) e **aberto no Chrome headless: a tela de login
+   do Sanity renderiza**, sem erro de ambiente; deep link `/admin/structure`
+   servido pelo fallback; e no dev `/admin` responde 200 com o Studio.
+   📌 `eslint.config.mjs` precisou ignorar `dist-painel/**`: com 9 MB de bundle
+   minificado o eslint morre com um stack trace do V8, sem mensagem.
+
+**⏭️ Para publicar (nesta ordem, e o repositório precisa estar commitado):**
+   1. workflow **`enviar-painel`** — sobe o painel para `/admin`;
+   2. workflow **`ativar`** — republica o `.htaccess` com as regras novas (o
+      `.htaccess` só sobe nesse modo). Sem o passo 2, `/admin/` abre mas F5 em
+      tela interna dá 404.
+   Depois: rodar `npx sanity deploy` para o painel de reserva também sair do
+   erro de ambiente.
+
+---
+
+### 🗓️ Sessão 31/08/2026 — "Para quem é", 4 gráficos, corte de fotos e /na-midia reaberta
 Quatro pedidos do Igor numa mensagem só. Tudo feito e validado (`tsc`/`eslint`
 limpos, **build estático com as 156 páginas SEM nenhum aviso** e conferência
 visual por screenshot em desktop e celular, servindo o `out/` com o basePath).

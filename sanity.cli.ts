@@ -35,23 +35,44 @@ export default defineCliConfig({
   /**
    * Endereço do Studio hospedado pela Sanity: https://andreaeboli.sanity.studio
    *
-   * É o painel que a ANDREA usa. Existe porque o site é um export estático:
-   * o workflow de deploy apaga `src/app/(studio)` antes de buildar, então
-   * `/studio` não existe em andreaeboli.com nem existiria em hospedagem
-   * estática nenhuma. O Studio embutido continua valendo no `npm run dev`.
+   * ⚠️ HOJE ISTO É RESERVA, NÃO O PAINEL PRINCIPAL. O painel da Andrea é
+   * https://andreaeboli.com/admin — o mesmo Studio, buildado por
+   * `build-painel.mjs` e publicado junto com o site (ver o modo
+   * `enviar-painel` no workflow de deploy). Ter os dois custa pouco e o
+   * hospedado serve de porta dos fundos se o domínio sair do ar.
    *
-   * Publicar/atualizar: `npx sanity deploy`. Sem esta chave o comando pergunta
-   * o hostname interativamente a cada vez.
+   * Publicar/atualizar o hospedado: `npx sanity deploy`. Sem esta chave o
+   * comando pergunta o hostname interativamente a cada vez.
    *
-   * ⚠️ Depois de qualquer mudança de schema em `src/sanity/schemaTypes`, é
-   * preciso rodar `npx sanity deploy` de novo — senão o painel dela continua
-   * com os campos antigos.
+   * ⚠️ Depois de qualquer mudança de schema em `src/sanity/schemaTypes` os
+   * DOIS ficam desatualizados: rodar `node build-painel.mjs` + o modo
+   * `enviar-painel` (o de andreaeboli.com) e `npx sanity deploy` (o de
+   * reserva). Senão o painel continua com os campos antigos.
+   *
+   * ⚠️ NÃO ACRESCENTAR `project: { basePath: "/admin" }` AQUI. O
+   * `determineBasePath` do @sanity/cli lê esta chave tanto no `sanity build`
+   * quanto no `sanity deploy`, e o Studio hospedado é servido na RAIZ de
+   * andreaeboli.sanity.studio: com um basePath configurado ele passaria a
+   * pedir /admin/static/... e quebraria. O base path do painel de
+   * andreaeboli.com entra pela variável SANITY_STUDIO_BASEPATH, que só o
+   * `build-painel.mjs` define.
    */
   studioHost: "andreaeboli",
 
-  /** Fixa a aplicação criada no primeiro deploy, senão o CLI pergunta o id a
-   *  cada `sanity deploy`. */
   deployment: {
+    /** Fixa a aplicação criada no primeiro deploy, senão o CLI pergunta o id a
+     *  cada `sanity deploy`. */
     appId: "i3toatvg5g5vt5r9wvqhatlj",
+
+    /**
+     * O painel fica na versão do Studio que foi buildada e testada aqui.
+     *
+     * Com auto updates ligado, o bundle é puxado do CDN da Sanity em tempo de
+     * execução e a versão do Studio muda sozinha — inclusive no painel que a
+     * Andrea usa todo dia, sem ninguém ter aberto para conferir. Como o painel
+     * é publicado por nós (`node build-painel.mjs`), atualizar é subir de
+     * versão o pacote `sanity` e buildar de novo.
+     */
+    autoUpdates: false,
   },
 });
