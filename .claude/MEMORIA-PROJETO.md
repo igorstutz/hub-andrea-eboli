@@ -129,6 +129,24 @@ outra url. Queria algo como https://andreaeboli.com/pt/admin".
    ⏭️ Vale revisar o token do robô `seed-temporario`, que tem permissão de
    escrita e não é mais usado.
 
+9. 🔴 **MEDIDO: o `yt-dlp` NÃO funciona em servidor.** O Igor pediu para
+   hospedar as rotas de API para a Andrea gerar conteúdo sozinha. Antes de
+   escolher host, rodei os argumentos exatos de `src/lib/transcribe.ts` num
+   runner do GitHub (IP Azure = mesmo tipo de IP de Render/Fly/Vercel/cPanel),
+   com um vídeo real dela (`ytAoYc-UBWQ`):
+   `ERROR: [youtube] Sign in to confirm you're not a bot.`
+   **Não é limitação de plano de hospedagem** — é o YouTube barrando IP de
+   datacenter. Funciona na máquina do Igor porque ela tem IP residencial.
+   Consequência de projeto: hospedar as rotas exige **trocar a fonte da
+   transcrição** (serviço de transcrição com proxy residencial, ou a API
+   oficial do YouTube com OAuth do canal dela, que só cobre os vídeos DELA);
+   o `yt-dlp` fica como caminho local. E, sem `yt-dlp`/`ffmpeg`, some a
+   exigência de container — hospedagem com Node simples passa a servir.
+   ⚠️ Junto disso: a guarda atual do endpoint é `NEXT_PUBLIC_INGEST_API_SECRET`,
+   **visível no bundle do navegador**. Serve em localhost; em endpoint público
+   vira "qualquer um gasta os créditos da Anthropic". Trocar por validação do
+   token do Sanity de quem chama (perguntar ao Sanity quem é e se é membro).
+
 **⏭️ Pendências pequenas desta rodada:**
 - **O `robots.txt` no ar ainda diz `Disallow: /studio`.** O `ativar` só
   republica `.htaccess` e o `index.html` da raiz; o `robots.txt` novo (com
