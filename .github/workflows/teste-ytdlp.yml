@@ -1,0 +1,51 @@
+# ⚠️ WORKFLOW TEMPORARIO — medicao, nao faz parte do produto.
+#
+# Pergunta: o YouTube entrega legenda para um IP de datacenter? E o que decide
+# se as rotas de ingestao podem sair da maquina do Igor e continuar buscando a
+# transcricao sozinhas. Runner do GitHub = IP Azure, o mesmo tipo de IP de
+# Render, Fly e Vercel.
+#
+# Roda exatamente os argumentos de src/lib/transcribe.ts. Apagar depois.
+name: Teste yt-dlp (temporario)
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: "ID do video"
+        required: true
+        default: ytAoYc-UBWQ
+
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Instalar yt-dlp
+        run: |
+          python -m pip install -U yt-dlp --quiet
+          python -m yt_dlp --version
+
+      - name: Buscar legenda (mesmos argumentos do app)
+        run: |
+          set +e
+          mkdir -p saida
+          python -m yt_dlp \
+            --write-subs --write-auto-subs \
+            --sub-langs "pt,pt-BR,pt-PT,en,en-US,es,es-419" \
+            --sub-format json3 --skip-download --no-warnings \
+            -o "saida/%(id)s.%(ext)s" \
+            "https://www.youtube.com/watch?v=${{ inputs.video }}" 2>&1 | tee log.txt
+          echo "--------------------------------------------"
+          echo "exit do yt-dlp: ${PIPESTATUS[0]}"
+          echo "--- arquivos gerados ---"
+          ls -la saida/ || echo "  (nenhum)"
+          echo "--- veredito ---"
+          if ls saida/*.json3 >/dev/null 2>&1; then
+            echo "OK: legenda baixada de IP de datacenter"
+            head -c 300 saida/*.json3
+          else
+            echo "FALHOU: nenhuma legenda"
+            grep -iE "sign in|bot|blocked|403|429|unavailable" log.txt | head -5
+          fi
+          exit 0
