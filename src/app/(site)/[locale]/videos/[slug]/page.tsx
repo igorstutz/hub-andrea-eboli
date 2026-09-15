@@ -84,7 +84,10 @@ export default async function Page({
     : null;
   const durationLabel = formatDurationHuman(v.durationSeconds);
 
-  const faqItems = (v.relatedQuestions ?? []).filter((q) => q.answer);
+  // `q?.` e não `q.`: cinto e suspensório com o `[defined(@->)]` da query.
+  // Uma referência solta aqui não devolve página quebrada — devolve BUILD
+  // quebrado, e o site inteiro para de poder ser republicado.
+  const faqItems = (v.relatedQuestions ?? []).filter((q) => q?.answer);
 
   // ---- JSON-LD (VideoObject + WebPage/Speakable + Breadcrumb + FAQPage) ----
   const graph: Record<string, unknown>[] = [];

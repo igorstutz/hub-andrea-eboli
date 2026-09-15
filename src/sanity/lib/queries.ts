@@ -6,6 +6,23 @@ import { groq } from "next-sanity";
 */
 
 // ---------- Perguntas ----------
+/**
+ * ⚠️ REFERÊNCIA DE ARRAY SEMPRE COM `[defined(@->)]->`, NUNCA `[]->`.
+ *
+ * Quando o documento apontado deixa de existir — alguém despublicou ou apagou
+ * no Studio — o GROQ devolve `null` DENTRO do array, e a página quebra ao ler
+ * um campo desse null. Não é erro de página: é erro de PRERENDER, então o
+ * `npm run build` inteiro falha e o site para de poder ser republicado.
+ *
+ * Aconteceu de verdade em 15/09/2026: uma pergunta apagada deixou o vídeo
+ * "vulnerabilidade-e-fraqueza..." com uma referência solta e o build morreu em
+ * `Cannot read properties of null (reading 'answer')` — com 4 das 5 referências
+ * daquele vídeo perfeitamente válidas.
+ *
+ * `[defined(@->)]` descarta o que não resolve antes de dereferenciar. O
+ * conteúdo some da página (que é o certo: ele não existe mais), o build passa,
+ * e quem edita no Studio não derruba a publicação sem saber.
+ */
 export const questionsListQuery = groq`
 *[_type == "question" && defined(slug.current)] | order(_createdAt desc){
   "title": coalesce(title[$locale], title.pt),
@@ -22,8 +39,8 @@ export const questionBySlugQuery = groq`
   "answer": coalesce(answer[$locale], answer.pt),
   "body": coalesce(body[$locale], body.pt),
   "topic": topic->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
-  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
-  "relatedQuestions": relatedQuestions[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedConcepts": relatedConcepts[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedQuestions": relatedQuestions[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "metaTitle": coalesce(seo.metaTitle[$locale], seo.metaTitle.pt),
   "metaDescription": coalesce(seo.metaDescription[$locale], seo.metaDescription.pt)
 }`;
@@ -46,7 +63,7 @@ export const conceptBySlugQuery = groq`
   "slug": slug.current,
   "shortDefinition": coalesce(shortDefinition[$locale], shortDefinition.pt),
   "fullDefinition": coalesce(fullDefinition[$locale], fullDefinition.pt),
-  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedConcepts": relatedConcepts[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   // O conceito é o pilar: tudo no hub que referencia este conceito, por tipo.
   "referencedByConcepts": *[_type == "concept" && references(^._id) && defined(slug.current)]{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "relatedQuestions": *[_type == "question" && references(^._id) && defined(slug.current)] | order(_createdAt desc){ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
@@ -96,8 +113,8 @@ export const caseBySlugQuery = groq`
   "slug": slug.current,
   "description": coalesce(description[$locale], description.pt),
   "pattern": coalesce(pattern[$locale], pattern.pt),
-  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
-  "relatedQuestions": relatedQuestions[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedConcepts": relatedConcepts[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedQuestions": relatedQuestions[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "metaTitle": coalesce(seo.metaTitle[$locale], seo.metaTitle.pt),
   "metaDescription": coalesce(seo.metaDescription[$locale], seo.metaDescription.pt)
 }`;
@@ -139,7 +156,7 @@ export const articleBySlugQuery = groq`
   "body": coalesce(body[$locale], body.pt),
   "publishedAt": publishedAt,
   "pdfUrl": pdf.asset->url,
-  "relatedConcepts": relatedConcepts[]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
+  "relatedConcepts": relatedConcepts[defined(@->)]->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
   "metaTitle": coalesce(seo.metaTitle[$locale], seo.metaTitle.pt),
   "metaDescription": coalesce(seo.metaDescription[$locale], seo.metaDescription.pt)
 }`;
@@ -168,12 +185,12 @@ export const videoBySlugQuery = groq`
   "chapters": chapters[]{ startTime, title },
   "transcript": coalesce(transcript[$locale], transcript.pt),
   "topic": topic->{ "title": coalesce(title[$locale], title.pt), "slug": slug.current },
-  "relatedQuestions": relatedQuestions[]->{
+  "relatedQuestions": relatedQuestions[defined(@->)]->{
     "title": coalesce(title[$locale], title.pt),
     "slug": slug.current,
     "answer": coalesce(answer[$locale], answer.pt)
   },
-  "relatedConcepts": relatedConcepts[]->{
+  "relatedConcepts": relatedConcepts[defined(@->)]->{
     "title": coalesce(title[$locale], title.pt),
     "slug": slug.current,
     "shortDefinition": coalesce(shortDefinition[$locale], shortDefinition.pt)
