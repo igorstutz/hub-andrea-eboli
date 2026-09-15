@@ -77,6 +77,24 @@ function atributo(html, regex) {
   return m ? decodeHtml(m[1]) : "";
 }
 
+const INLINE = "span|time|strong|em|b|i|a|small";
+
+/**
+ * Elementos inline vizinhos ganham um espaço entre si.
+ *
+ * As pastilhas de metadados são `<span>` e `<time>` encostados, separados
+ * visualmente só por CSS. Convertidos crus, saíam
+ * `Artigo15 de janeiro de 2026·1 min de leitura` — que uma pessoa decifra e um
+ * agente lê como se "Artigo15" fosse uma palavra e a data começasse no meio
+ * dela. O espaço não muda nada no HTML que a pessoa vê; só existe aqui.
+ */
+function separaInlinesColados(html) {
+  return html.replace(
+    new RegExp(`</(${INLINE})>(?=<(?:${INLINE})[\\s>])`, "gi"),
+    "</$1> ",
+  );
+}
+
 /**
  * Lê de uma página buildada tudo o que o markdown e o índice precisam.
  * Os padrões são tolerantes à ordem dos atributos, que o Next não garante.
@@ -90,7 +108,7 @@ function lePagina(html) {
     if (lang && href) alternates[lang] = href;
   }
 
-  const main = conteudoDe(html, "main");
+  const main = separaInlinesColados(conteudoDe(html, "main"));
   const h1 = conteudoDe(main, "h1")
     .replace(/<[^>]+>/g, "")
     .trim();
