@@ -24,6 +24,29 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
   ler `NEXT_PUBLIC_*` no bundle do painel devolve `undefined` (ver a sessão de
   09/09 abaixo).
 
+## ⏭️ TAREFAS DO IGOR (decisões que só ele pode dar)
+
+> Pendentes desde 09/09/2026. Sem elas a ingestão continua rodando só no
+> `npm run dev` da máquina dele.
+
+1. **Ver no cPanel se existe "Setup Node.js App"** (ou "Aplicativo Node.js").
+   Se existir, as rotas de `/api/ingest` rodam na hospedagem que ele já paga —
+   mesmo domínio, sem CORS, custo zero. Se não, vai para um container pequeno.
+2. **Escolher de onde vem a transcrição do YouTube** (o `yt-dlp` NÃO funciona
+   em servidor — ver a medição na sessão de 09/09):
+   - **A (recomendado):** serviço de transcrição com proxy residencial —
+     funciona para qualquer vídeo, inclusive podcasts em que ela é convidada.
+     Custo pequeno. *Comparar os serviços e apresentar preço ANTES de assinar.*
+   - **B:** API oficial do YouTube com OAuth da conta dela — grátis, mas só
+     cobre os vídeos do canal dela.
+
+Com as duas respostas, o resto é trabalho de código: hospedar as rotas, trocar
+a fonte da transcrição, pôr autenticação de verdade no endpoint (hoje a guarda
+é uma variável `NEXT_PUBLIC_*` visível no bundle) e apontar o painel para lá.
+
+3. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
+   escrita e não é mais usado. É um comando, quando ele quiser.
+
 ## Estado atual / onde paramos
 
 ### 🗓️ Sessão 09/09/2026 (MAIS RECENTE) — O painel saiu de um domínio de terceiro e veio para andreaeboli.com/admin
