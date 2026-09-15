@@ -70,6 +70,37 @@ ErrorDocument 404 /404.html
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
   # --------------------------------------------------------------------
+  # Markdown por negociação de conteúdo (acceptmarkdown.com)
+  # --------------------------------------------------------------------
+  # Quem pedir `Accept: text/markdown` recebe o `index.md` que o
+  # `gera-artefatos-agentes.mjs` escreveu ao lado de cada `index.html`: a mesma
+  # página sem menu, rodapé nem script. Navegador nenhum manda esse tipo, então
+  # gente continua recebendo HTML.
+  #
+  # ⚠️ O padrão casa SÓ com as rotas de conteúdo (/pt/, /en/, /es/). Deixar
+  # solto pegaria /admin/ — o painel é uma SPA e passaria a servir markdown
+  # para a própria requisição dela.
+  #
+  # Só reescreve se o arquivo existir de verdade: numa rota sem `.md` a
+  # requisição segue para o HTML em vez de virar 404.
+  RewriteCond %{HTTP_ACCEPT} text/markdown [NC]
+  RewriteCond %{DOCUMENT_ROOT}/$1index.md -f
+  RewriteRule ^((?:pt|en|es)/(?:[^?]*/)?)$ /$1index.md [L]
+
+  # 406 quando o cliente exige um tipo que esta rota não sabe produzir — é o
+  # 3º critério do acceptmarkdown.com. As negações cobrem quem aceita qualquer
+  # coisa (`*/*`, `text/*`) e quem não mandou `Accept` nenhum: esses continuam
+  # recebendo HTML. Restrito às rotas de conteúdo pelo mesmo motivo da regra
+  # acima.
+  RewriteCond %{HTTP_ACCEPT} !^$
+  RewriteCond %{HTTP_ACCEPT} !\*/\*
+  RewriteCond %{HTTP_ACCEPT} !text/\*
+  RewriteCond %{HTTP_ACCEPT} !text/html [NC]
+  RewriteCond %{HTTP_ACCEPT} !text/markdown [NC]
+  RewriteCond %{HTTP_ACCEPT} !application/xhtml [NC]
+  RewriteRule ^((?:pt|en|es)/(?:[^?]*/)?)$ - [R=406,L]
+
+  # --------------------------------------------------------------------
   # O painel (Sanity Studio) em /admin
   # --------------------------------------------------------------------
   # O painel é uma SPA: UM index.html que desenha todas as telas no navegador.
@@ -138,6 +169,19 @@ ErrorDocument 404 /404.html
     Header set Cache-Control "public, max-age=0, must-revalidate"
   </FilesMatch>
 
+  # `Vary: Accept` — 2º critério do acceptmarkdown.com. A MESMA URL responde
+  # HTML ou markdown conforme o `Accept`, então quem cacheia precisa saber que
+  # o cabeçalho faz parte da chave. Sem isto, o primeiro a entrar no cache é
+  # servido a todo mundo: agente recebendo HTML, ou pior, pessoa recebendo
+  # markdown cru.
+  #
+  # `append` e não `merge`: `merge` é mais recente no mod_headers e não vale
+  # arriscar o .htaccess inteiro em 500 por uma diretiva não reconhecida. Nada
+  # mais neste arquivo define `Vary`, então não há duplicata a evitar.
+  <FilesMatch "\.(html|md)$">
+    Header append Vary "Accept"
+  </FilesMatch>
+
   # As fontes e imagens de public/ não têm hash no nome, então cache moderado.
   <FilesMatch "\.(woff2?|ttf|eot|otf|jpe?g|png|gif|webp|avif|svg|ico)$">
     Header set Cache-Control "public, max-age=604800"
@@ -151,6 +195,11 @@ ErrorDocument 404 /404.html
 # custa nada e um Content-Type errado em .woff2 ou .webp é o tipo de falha que
 # só aparece no navegador de outra pessoa.
 <IfModule mod_mime.c>
+  # O markdown servido por negociação. Sem o charset, acento sai quebrado em
+  # cliente que assume Latin-1.
+  AddType text/markdown               .md
+  AddCharset UTF-8                    .md
+
   AddType image/webp                  .webp
   AddType image/avif                  .avif
   AddType image/svg+xml               .svg
@@ -166,5 +215,5 @@ ErrorDocument 404 /404.html
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
     text/javascript application/javascript application/json \
-    application/xml application/rss+xml image/svg+xml
+    application/xml application/rss+xml image/svg+xml text/markdown
 </IfModule>

@@ -131,6 +131,12 @@ jobs:
           NEXT_PUBLIC_SANITY_DATASET: production
           NEXT_PUBLIC_SANITY_API_VERSION: "2024-10-01"
 
+      # O markdown de cada rota, o llms.txt e a 404 da marca. Roda DEPOIS do
+      # build porque parte do `out/` pronto — ver o cabeçalho do script.
+      - name: Gerar os artefatos para agentes de IA
+        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        run: node gera-artefatos-agentes.mjs
+
       - name: Montar o .htaccess e a raiz
         if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
         run: |
@@ -174,6 +180,13 @@ jobs:
           fi
           grep -q "${{ env.SITE_URL }}/pt/sobre/" out/pt/sobre/index.html \
             || { echo "ERRO: canonical não aponta para ${{ env.SITE_URL }}"; exit 1; }
+          # Artefatos para agentes. Sem eles o .htaccess passa a apontar para
+          # arquivos que não existem e a negociação de markdown cai em 404.
+          test -f out/llms.txt || { echo "ERRO: llms.txt ausente"; exit 1; }
+          test -f out/llms-full.txt || { echo "ERRO: llms-full.txt ausente"; exit 1; }
+          test -f out/pt/sobre/index.md || { echo "ERRO: markdown das rotas ausente"; exit 1; }
+          grep -q "llms.txt" out/404.html || { echo "ERRO: 404 sem as referências para agentes"; exit 1; }
+          echo "markdown das rotas: $(find out -name index.md | wc -l) arquivos"
           echo "artefato conferido"
 
       # ------------------------------------------------------------------
@@ -451,6 +464,15 @@ jobs:
             "$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${{ env.SITE_URL }}/")"
           echo "  título servido na raiz:"
           curl -sL --max-time 30 "${{ env.SITE_URL }}/" | grep -oiE "<title>[^<]{0,70}" | head -1
+
+      # Relatório de prontidão para agentes de IA. NÃO derruba o deploy de
+      # propósito: um dos itens é o bloqueio do ClaudeBot, que é regra de
+      # servidor da hospedagem e não se resolve por aqui — deixá-lo reprovar
+      # pintaria de vermelho todo deploy por algo que este repositório não
+      # controla. O relatório fica no log para ser lido.
+      - name: Prontidão para agentes de IA
+        if: inputs.modo == 'ativar'
+        run: node verifica-agentes.mjs || true
 
       # ------------------------------------------------------------------
       # 4. REVERTER — devolve o WordPress em segundos

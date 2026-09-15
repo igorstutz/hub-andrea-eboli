@@ -49,6 +49,92 @@ a fonte da transcrição, pôr autenticação de verdade no endpoint (hoje a gua
 
 ## Estado atual / onde paramos
 
+### 🗓️ Sessão 15/09/2026 (MAIS RECENTE) — O site ficou legível para agentes de IA (e o build voltou a funcionar)
+O Igor trouxe uma auditoria de "agent readiness" (54/100) e pediu para conferir.
+Conferi item por item batendo no site no ar: a auditoria está certa no
+essencial, e num ponto é generosa demais.
+
+1. 🔴 **BUILD QUEBRADO — achado por acaso, e era urgente.** Ao buildar local
+   para testar, o export morreu em
+   `TypeError: Cannot read properties of null (reading 'answer')` na página
+   `/pt/videos/vulnerabilidade-e-fraqueza-.../`. Causa: `relatedQuestions[]->`
+   devolve **null DENTRO do array** quando o documento apontado não existe
+   mais, e alguém apagou/despublicou uma pergunta no Studio. 4 das 5
+   referências daquele vídeo estavam perfeitas; a 5ª derrubava o site inteiro.
+   ⚠️ **Não é erro de página, é erro de PRERENDER**: o `npm run build` falha e
+   o site para de poder ser republicado. Com a Andrea publicando sozinha desde
+   09/09, isso ia acontecer de novo.
+   **Correção:** as 8 referências de array em `queries.ts` passaram de `[]->`
+   para **`[defined(@->)]->`** (validado contra o dataset: 1 null a menos), e o
+   filtro do vídeo virou `q?.answer`. Há uma nota no topo de `queries.ts`.
+   📌 **Regra:** em GROQ, array de referência é SEMPRE `[defined(@->)]->`.
+
+2. ✅ **O bloqueio de bot é real, e é da HOSPEDAGEM, não do código.** Medido:
+   User-Agent contendo `claudebot` (sem distinção de maiúsculas) recebe
+   **HTTP 429, corpo vazio, do LiteSpeed**. GPTBot, ChatGPT-User,
+   Google-Extended, PerplexityBot e Bytespider recebem 200.
+   🔎 O detalhe que entrega o desenho da regra: para o ClaudeBot o
+   `/robots.txt` responde **200** e todo o resto (inclusive imagens) responde
+   **429** — é "deixa ler o robots, nega o conteúdo".
+   ⚠️ Nosso `.htaccess` não tem nenhuma regra de User-Agent. **Só resolve com
+   ticket na nuvemHospedagem** — o texto pronto está no histórico da conversa
+   e a tarefa está na lista do Igor no topo deste arquivo.
+
+3. **`gera-artefatos-agentes.mjs` (novo)** — roda depois do `npm run build`,
+   sobre o `out/`, e produz:
+   - **`index.md` ao lado de cada `index.html`** (153 páginas, 51 por idioma):
+     o `<main>` convertido com **turndown** (a única dependência nova, de
+     build). Sai sem menu, rodapé, script, `nav` e sem qualquer elemento
+     `aria-hidden` — que é o próprio site declarando "isto não é conteúdo"
+     (era de lá que vinha a marca d'água "Poder" no topo de todo markdown).
+     Links viram absolutos e ganham separador quando estão colados no HTML.
+   - **`llms.txt`** (formato llmstxt.org, 53 links) com a seção **"Quando usar
+     este site"** escrita à mão: os termos autorais (ECP, Ter Poder/Ser Poder,
+     o Pêndulo) e — igualmente importante — **quando NÃO citar** o site. Sem
+     percentuais de propósito: o número muda conforme o recorte da pergunta.
+   - **`llms-full.txt`** (324 KB, o corpus em português).
+   - **`404.html` da marca**, nos 3 idiomas. A que estava no ar era a de
+     fábrica do Next, **em inglês** ("404: This page could not be found.").
+     Traz links para gente e um bloco markdown com sitemap e llms.txt.
+     📌 Escrita à mão porque o projeto tem DOIS layouts raiz em grupos de rota
+     (`(site)/[locale]` e `(studio)`) e um `not-found.tsx` no topo do `app/`
+     não teria layout raiz.
+   🔴 **Por que parte do HTML buildado e não do Sanity:** são 156 páginas de 17
+   modelos. Gerar da fonte exigiria manter duas versões em sincronia para
+   sempre; lendo o `<main>` pronto, o markdown é por construção a mesma página.
+
+4. **`deploy/htaccess`: negociação de markdown** (acceptmarkdown.com), com os
+   4 critérios: serve `.md` para `Accept: text/markdown`, `Vary: Accept`,
+   **406** para tipo que a rota não produz, e q-values na prática.
+   ⚠️ O padrão casa **só** com `/pt/`, `/en/` e `/es/` — solto pegaria
+   `/admin/` e o painel passaria a receber markdown nas próprias requisições.
+   ⚠️ `Header append Vary` e não `merge`: `merge` é mais recente no mod_headers
+   e não vale arriscar o .htaccess inteiro em 500.
+
+5. **`robots.ts`**: os 15 agentes de IA agora são nomeados explicitamente (o
+   `*` já bastava; a lista é declaração de intenção num hub de GEO) e o
+   `Disallow` velho de `/studio` virou `/admin`.
+
+6. **`verifica-agentes.mjs` (novo)** — o "teste" deste projeto: prova os 19
+   critérios contra o site NO AR e sai com erro se algum essencial falhar.
+   Metade das regras mora no `.htaccess` e na hospedagem, então teste unitário
+   passaria verde com o site fora do ar.
+   📌 Rodado ANTES do deploy como baseline: **9/19**. Ele achou dois falsos
+   positivos meus, já corrigidos: `Vary: Accept-Encoding` contém a palavra
+   "accept" e passava como se fosse `Vary: Accept`.
+   No workflow ele roda no modo `ativar` com `|| true` — **de propósito**: o
+   bloqueio do ClaudeBot é da hospedagem e pintaria de vermelho todo deploy.
+
+7. 📌 **Armadilha de ambiente (custou dois builds):** `Remove-Item .next` com
+   `-ErrorAction SilentlyContinue` **falha calada** quando o OneDrive está
+   segurando a pasta, e o build seguinte type-checa tipos velhos e morre em
+   `Type 'Route' does not satisfy the constraint '/[locale]'`. Sempre conferir
+   com `Test-Path .next` depois de apagar. E mover as partes server-only para
+   **fora** do projeto (o scratchpad), não para uma pasta interna: o tsconfig
+   varre a raiz e passa a type-checar o que devia estar escondido.
+
+---
+
 ### 🗓️ Sessão 09/09/2026 (MAIS RECENTE) — O painel saiu de um domínio de terceiro e veio para andreaeboli.com/admin
 O Igor: "não consigo acessar o painel. Não vejo sentido acessar isso por uma
 outra url. Queria algo como https://andreaeboli.com/pt/admin".
