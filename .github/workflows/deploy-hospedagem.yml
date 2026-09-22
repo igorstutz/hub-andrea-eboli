@@ -167,7 +167,12 @@ jobs:
           URL="https://52ssivbg.api.sanity.io/v2024-10-01/data/query/production?query=$(jq -rn --arg q "$Q" '$q|@uri')"
           RESP=$(curl -sf --max-time 60 "$URL") || { echo "ATENÇÃO: o Sanity não respondeu; deploy segue por precaução"; echo "pular=false" >> "$GITHUB_OUTPUT"; echo "versao=desconhecida-$(date -u +%Y%m%dT%H%M%SZ)" >> "$GITHUB_OUTPUT"; exit 0; }
           VERSAO=$(echo "$RESP" | jq -r '"\(.result.ultima)|\(.result.total)"')
-          NO_AR=$(curl -s --max-time 60 "${{ env.SITE_URL }}/content-version.txt?t=$(date +%s)" | tr -d '\r\n' || true)
+          # ⚠️ `-sf`, não `-s`: sem o -f o curl imprime o CORPO das respostas de
+          # erro, e como o site serve uma 404 caprichada, NO_AR receberia o
+          # HTML inteiro da página de erro em vez de uma string vazia. Não
+          # mudaria a decisão (HTML != versão → republica), mas encheria o log
+          # e esconderia a causa real. Com -f, um 404 devolve vazio.
+          NO_AR=$(curl -sf --max-time 60 "${{ env.SITE_URL }}/content-version.txt?t=$(date +%s)" | tr -d '\r\n' || true)
           echo "  conteúdo publicado no Sanity: $VERSAO"
           echo "  versão que está no ar:        ${NO_AR:-(nenhuma)}"
           echo "versao=$VERSAO" >> "$GITHUB_OUTPUT"

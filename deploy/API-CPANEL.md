@@ -106,6 +106,41 @@ https://andreaeboli.com/admin → o item **"Importar de link"** aparece no menu
 superior. Ao abrir, a ferramenta sonda o `/api/ingest/health` e mostra na tela
 se o serviço está fora ou sem chave.
 
+## Depois de publicar no painel: o site se republica sozinho
+
+O site é estático, então publicar um documento no painel não põe a página no
+ar por si só. Desde 22/09/2026 o workflow **roda a cada 30 minutos**: o job
+`verificar` compara a data da última publicação e o total de documentos
+publicados no Sanity com o `content-version.txt` que o último deploy deixou
+em https://andreaeboli.com/content-version.txt. Se mudou, o modo
+`enviar-arquivos` roda inteiro (uns 20 min); se não, o run termina em
+segundos. Latência máxima até a página nova aparecer: **meia hora + o tempo
+do deploy**. Nenhuma ação manual.
+
+### Opcional: disparar na hora (webhook do Sanity)
+
+O workflow também aceita `repository_dispatch` do tipo `sanity-publish`. Para
+o Sanity chamá-lo a cada publicação, é preciso um token do GitHub, que só o
+Igor pode criar:
+
+1. GitHub → Settings → Developer settings → **Fine-grained personal access
+   tokens** → Generate. Repositório: só `igorstutz/hub-andrea-eboli`.
+   Permissões: **Actions: Read and write** (mais nada). Validade: a maior
+   possível; anotar a data para renovar.
+2. Sanity → https://www.sanity.io/manage/project/52ssivbg/api → **Webhooks →
+   Create webhook**:
+   - URL: `https://api.github.com/repos/igorstutz/hub-andrea-eboli/dispatches`
+   - Dataset: `production` · Trigger on: **Create, Update, Delete**
+   - Filter: `!(_id in path("drafts.**")) && _type != "aiSettings"`
+   - Projection: `{"event_type": "sanity-publish"}`
+   - HTTP method: POST · Headers: `Authorization: Bearer <token>` e
+     `Accept: application/vnd.github+json`
+3. Publicar qualquer coisa e conferir em GitHub → Actions se apareceu um run
+   com evento `repository_dispatch`.
+
+O `concurrency` do workflow faz o debounce: várias publicações seguidas viram
+no máximo um deploy rodando e um na fila.
+
 ## Como o serviço se protege
 
 - **Sessão do Sanity, não segredo.** A ferramenta manda o token de sessão do
