@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { useClient } from "sanity";
+import { useClient, useWorkspace, type SanityClient } from "sanity";
 import {
   SOURCE_LABEL,
   SOURCE_TARGETS,
@@ -18,9 +18,75 @@ import {
 //
 // Fontes de TEXTO costumam barrar robô (403) ou devolver muro de login; por isso
 // o texto extraído aparece num campo EDITÁVEL, que a editora pode colar/corrigir.
+//
+// ONDE ESTÁ O SERVIÇO. No `npm run dev` são as rotas do Next em /api. No painel
+// publicado (andreaeboli.com/admin) é o serviço Node do cPanel, montado no
+// MESMO domínio em /api — por isso o padrão é um caminho relativo, sem CORS.
+// O `build-painel.mjs` grava a variável no bundle (só as SANITY_STUDIO_* passam
+// pelo Vite da Sanity); no build do Next ela não existe e vale o padrão.
+//
+// COMO A FERRAMENTA SE AUTENTICA. Não há segredo no navegador. Ela repassa ao
+// serviço o token de sessão que o próprio Studio já usa (`client.config().token`;
+// a Sanity o guarda no localStorage depois do login), e o serviço pergunta à
+// Sanity quem é o dono do token (ver src/lib/ingest/auth.ts).
 
 const API_VERSION = "2024-10-01";
-const INGEST_SECRET = process.env.NEXT_PUBLIC_INGEST_API_SECRET;
+const API_BASE = (process.env.SANITY_STUDIO_INGEST_API_URL || "/api").replace(
+  /\/+$/,
+  "",
+);
+
+function api(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
+function readStoredToken(projectId: string): string | null {
+  try {
+    const raw = window.localStorage.getItem(`__studio_auth_token_${projectId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { token?: string };
+    return typeof parsed.token === "string" ? parsed.token : null;
+  } catch {
+    return null;
+  }
+}
+
+// Cabeçalhos de uma chamada ao serviço: JSON + a sessão do Studio. Lido a cada
+// chamada (e não uma vez), porque o token pode ser renovado durante a sessão.
+function apiHeaders(client: SanityClient): Record<string, string> {
+  const cfg = client.config();
+  const token = cfg.token ?? (cfg.projectId ? readStoredToken(cfg.projectId) : null);
+  return {
+    "content-type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// Mensagem para os erros que o serviço devolve de forma padronizada.
+function authMessage(status: number, data: { message?: string } | null): string | null {
+  if (status === 401) {
+    return "Sua sessão no painel não foi reconhecida pelo serviço. Saia e entre de novo no painel.";
+  }
+  if (status === 403) {
+    return data?.message || "Seu papel neste projeto não pode importar conteúdo.";
+  }
+  if (status === 503) {
+    return data?.message || "O serviço não conseguiu confirmar sua sessão. Tente de novo.";
+  }
+  return null;
+}
+
+type ServiceHealth = {
+  ok: boolean;
+  build?: string;
+  anthropic?: boolean;
+  transcript?: { provider?: string; whisper?: boolean };
+};
+
+type ServiceState =
+  | { status: "checking" }
+  | { status: "online"; health: ServiceHealth }
+  | { status: "offline"; detail: string };
 
 type Chapter = { startTime: number; title: string };
 
@@ -75,9 +141,12 @@ const TARGET_LABEL: Record<IngestTarget, string> = {
   video: "Resumo + vídeo (página de vídeo)",
 };
 
-function intentHref(id: string, type: string): string {
+// Link para abrir um rascunho no editor. O `basePath` vem do workspace
+// ("/admin" tanto no dev quanto no painel publicado) — antes estava fixo em
+// "/studio", caminho que deixou de existir em 09/09/2026.
+function intentHref(basePath: string, id: string, type: string): string {
   const baseId = id.replace(/^drafts\./, "");
-  return `/studio/intent/edit/id=${baseId};type=${type}/`;
+  return `${basePath.replace(/\/+$/, "")}/intent/edit/id=${baseId};type=${type}/`;
 }
 
 // Estilos inline (evita dependência de @sanity/ui).
@@ -148,6 +217,31 @@ const s: Record<string, CSSProperties> = {
 
 export default function IngestTool() {
   const client = useClient({ apiVersion: API_VERSION });
+  const { basePath } = useWorkspace();
+
+  // O serviço está de pé? Uma sondagem ao abrir a ferramenta, para a Andrea
+  // ver o motivo na tela quando algo estiver fora (e não um "Falha de rede").
+  const [service, setService] = useState<ServiceState>({ status: "checking" });
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    fetch(api("/ingest/health"), { signal: controller.signal })
+      .then(async (res) => {
+        const health = (await res.json().catch(() => null)) as ServiceHealth | null;
+        if (!active) return;
+        if (res.ok && health?.ok) setService({ status: "online", health });
+        else setService({ status: "offline", detail: `HTTP ${res.status}` });
+      })
+      .catch(() => {
+        if (active) setService({ status: "offline", detail: "sem resposta" });
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
 
   const [url, setUrl] = useState("");
   const [inspecting, setInspecting] = useState(false);
@@ -215,21 +309,24 @@ export default function IngestTool() {
     try {
       const endpoint =
         detected === "youtube"
-          ? "/api/ingest/youtube/inspect"
-          : "/api/ingest/web/inspect";
+          ? api("/ingest/youtube/inspect")
+          : api("/ingest/web/inspect");
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: apiHeaders(client),
         body: JSON.stringify({ url }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
         setInspectError(
-          data?.error === "invalid_url"
-            ? "Link inválido."
-            : data?.error === "not_found"
-              ? "Conteúdo não encontrado."
-              : "Não foi possível ler este link.",
+          authMessage(res.status, data) ??
+            (data?.error === "invalid_url"
+              ? "Link inválido."
+              : data?.error === "not_found"
+                ? "Conteúdo não encontrado."
+                : data?.message
+                  ? `Não foi possível ler este link: ${data.message}`
+                  : "Não foi possível ler este link."),
         );
         return;
       }
@@ -247,7 +344,7 @@ export default function IngestTool() {
     } finally {
       setInspecting(false);
     }
-  }, [url]);
+  }, [client, url]);
 
   // Limpa tudo para começar uma nova importação do zero.
   const handleReset = useCallback(() => {
@@ -269,18 +366,17 @@ export default function IngestTool() {
     setTranscribing(true);
     setTranscribeError(null);
     try {
-      const res = await fetch("/api/ingest/youtube/transcribe", {
+      const res = await fetch(api("/ingest/youtube/transcribe"), {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(INGEST_SECRET ? { "x-ingest-secret": INGEST_SECRET } : {}),
-        },
+        headers: apiHeaders(client),
         body: JSON.stringify({ url: yt.url }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
         setTranscribeError(
-          data?.message || "Falha ao transcrever o áudio. Tente de novo.",
+          authMessage(res.status, data) ??
+            data?.message ??
+            "Falha ao transcrever o áudio. Tente de novo.",
         );
         return;
       }
@@ -302,7 +398,7 @@ export default function IngestTool() {
     } finally {
       setTranscribing(false);
     }
-  }, [yt]);
+  }, [client, yt]);
 
   const handleGenerate = useCallback(async () => {
     if (!source) return;
@@ -310,12 +406,9 @@ export default function IngestTool() {
     setGenerateError(null);
     setCreated([]);
     try {
-      const res = await fetch("/api/ingest/generate", {
+      const res = await fetch(api("/ingest/generate"), {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(INGEST_SECRET ? { "x-ingest-secret": INGEST_SECRET } : {}),
-        },
+        headers: apiHeaders(client),
         body: JSON.stringify({
           url: yt?.url ?? web?.url ?? url.trim(),
           material,
@@ -333,10 +426,12 @@ export default function IngestTool() {
           directions: directions.trim() || undefined,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
         setGenerateError(
-          data?.message || "Falha ao gerar o conteúdo. Tente de novo.",
+          authMessage(res.status, data) ??
+            data?.message ??
+            "Falha ao gerar o conteúdo. Tente de novo.",
         );
         return;
       }
@@ -393,7 +488,8 @@ export default function IngestTool() {
   // Fonte de texto sem material suficiente não gera nada que preste.
   const needsPastedText =
     Boolean(web) && material.trim().length < (web?.minUsableText ?? 400);
-  const ready = Boolean(source) && anyTarget && !needsPastedText;
+  const serviceOnline = service.status === "online";
+  const ready = serviceOnline && Boolean(source) && anyTarget && !needsPastedText;
 
   const toggle =
     (key: IngestTarget) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,6 +513,22 @@ export default function IngestTool() {
         “Conceitos”.
       </p>
 
+      {/* Estado do serviço */}
+      {service.status === "offline" && (
+        <div style={{ ...s.error, marginBottom: 20 }}>
+          <strong>O serviço de importação não está respondendo</strong> (
+          {service.detail}). Sem ele, esta ferramenta não consegue ler links nem
+          gerar rascunhos. Avise quem cuida do site; o restante do painel segue
+          funcionando normalmente.
+        </div>
+      )}
+      {service.status === "online" && service.health.anthropic === false && (
+        <div style={{ ...s.warn, marginBottom: 20 }}>
+          O serviço está de pé, mas <strong>sem a chave da Anthropic</strong>{" "}
+          configurada. Dá para ler links, mas não para gerar rascunhos.
+        </div>
+      )}
+
       {/* Etapa 1 — URL */}
       <div style={s.card}>
         <div style={s.label}>1. Link</div>
@@ -427,19 +539,23 @@ export default function IngestTool() {
             onChange={(e) => setUrl(e.currentTarget.value)}
             placeholder="YouTube, Forbes ou LinkedIn — cole o link aqui"
             onKeyDown={(e) => {
-              if (e.key === "Enter" && url.trim()) handleInspect();
+              if (e.key === "Enter" && url.trim() && serviceOnline) handleInspect();
             }}
           />
           <button
             style={{
               ...s.btn,
-              ...(!url.trim() || inspecting ? s.btnDisabled : {}),
+              ...(!url.trim() || inspecting || !serviceOnline ? s.btnDisabled : {}),
               whiteSpace: "nowrap",
             }}
-            disabled={!url.trim() || inspecting}
+            disabled={!url.trim() || inspecting || !serviceOnline}
             onClick={handleInspect}
           >
-            {inspecting ? "Buscando…" : "Buscar"}
+            {inspecting
+              ? "Buscando…"
+              : service.status === "checking"
+                ? "Conectando…"
+                : "Buscar"}
           </button>
         </div>
         {inspectError && (
@@ -705,7 +821,7 @@ export default function IngestTool() {
                 {TYPE_LABEL[item.type] ?? item.type}
               </span>
               <a
-                href={intentHref(item.id, item.type)}
+                href={intentHref(basePath, item.id, item.type)}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ flex: 1, color: "#1a5e2c", fontSize: 14 }}

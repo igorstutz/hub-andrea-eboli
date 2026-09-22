@@ -1,13 +1,26 @@
 // Transcrição de vídeos do YouTube (server-side).
 //
-// Estratégia em duas camadas:
-//  1. yt-dlp → legendas (manuais ou automáticas). Grátis, rápido, sem chave.
-//     Substitui a antiga raspagem direta de `timedtext`, que o YouTube passou
-//     a bloquear (devolve vazio sem um PoToken válido).
-//  2. Whisper (OpenAI) → transcrição do ÁUDIO, como reserva para vídeos sem
-//     legenda nenhuma. Mais caro e lento; exige OPENAI_API_KEY e ffmpeg.
+// 🔴 O PROVEDOR É ESCOLHIDO POR AMBIENTE (`TRANSCRIPT_PROVIDER`), porque o
+// mesmo código roda em dois lugares muito diferentes:
 //
-// Requisitos do ambiente:
+//   · "ytdlp" (padrão) — a máquina do Igor, no `npm run dev`. O yt-dlp baixa as
+//     legendas (manuais ou automáticas) de graça e sem chave. Funciona porque o
+//     IP é RESIDENCIAL.
+//   · um serviço de transcrição por HTTP — o serviço Node no cPanel. Medido em
+//     09/09/2026 num runner do GitHub (IP de datacenter, o mesmo tipo de IP da
+//     hospedagem): o yt-dlp morre em "Sign in to confirm you're not a bot".
+//     Não é limitação de plano, é o YouTube barrando datacenter. Por isso no
+//     servidor a legenda vem de um serviço que faz a busca por proxy
+//     residencial (ver `fetchCaptionsRemote`).
+//
+// Camadas, na ordem:
+//  1. Legendas (yt-dlp ou serviço remoto) — grátis/barato, rápido.
+//  2. Whisper (OpenAI) → transcrição do ÁUDIO, reserva para vídeo sem legenda.
+//     Baixa o áudio com yt-dlp e fatia com ffmpeg, então SÓ EXISTE onde o
+//     provedor é "ytdlp" (ver `whisperAvailable`). No servidor o botão nem
+//     aparece.
+//
+// Requisitos do ambiente local:
 //  - yt-dlp acessível (por padrão via `python -m yt_dlp`; configurável em YTDLP_CMD).
 //  - ffmpeg no PATH (usado pelo yt-dlp e pelo fatiamento de áudio do Whisper).
 
@@ -96,9 +109,42 @@ function langScore(lang: string): number {
   return 0;
 }
 
-// CAMADA 1 — legendas via yt-dlp. Retorna null quando o vídeo não tem legendas
-// nos idiomas pedidos (aí o chamador pode cair para o Whisper).
+// ---------------------------------------------------------------------------
+// Escolha do provedor
+// ---------------------------------------------------------------------------
+export type TranscriptProvider = "ytdlp" | "supadata";
+
+/** Nome normalizado do provedor configurado (padrão: yt-dlp local). */
+export function transcriptProviderName(): TranscriptProvider {
+  const raw = (process.env.TRANSCRIPT_PROVIDER || "ytdlp").trim().toLowerCase();
+  return raw === "supadata" ? "supadata" : "ytdlp";
+}
+
+/**
+ * O Whisper precisa baixar o ÁUDIO (yt-dlp) e fatiá-lo (ffmpeg). Isso só existe
+ * onde o provedor local está configurado — na hospedagem, o yt-dlp não passa
+ * do YouTube e os binários nem estão instalados.
+ */
+export function whisperAvailable(): boolean {
+  return Boolean(process.env.OPENAI_API_KEY) && transcriptProviderName() === "ytdlp";
+}
+
+// CAMADA 1 — legendas. Retorna null quando o vídeo não tem legendas nos
+// idiomas pedidos (aí o chamador pode cair para o Whisper, onde ele existir).
 export async function fetchCaptions(
+  videoId: string,
+): Promise<TranscriptResult | null> {
+  switch (transcriptProviderName()) {
+    case "supadata":
+      return fetchCaptionsRemote(videoId);
+    case "ytdlp":
+    default:
+      return fetchCaptionsYtDlp(videoId);
+  }
+}
+
+// CAMADA 1a — legendas via yt-dlp (máquina local, IP residencial).
+async function fetchCaptionsYtDlp(
   videoId: string,
 ): Promise<TranscriptResult | null> {
   const { cmd, baseArgs } = ytDlpCommand();
@@ -142,6 +188,195 @@ export async function fetchCaptions(
     return { transcript: best.text, lang: best.lang, source: "captions" };
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+// CAMADA 1b — legendas via Supadata (https://supadata.ai), para a hospedagem.
+//
+// Por que este serviço: devolve a legenda de QUALQUER vídeo público do YouTube
+// (inclusive podcasts em que a Andrea é convidada, que a API oficial do YouTube
+// com OAuth do canal dela não cobre), tem plano grátis de 100 créditos/mês e o
+// menor plano pago custa US$ 5/mês (visto em supadata.ai/pricing em
+// 21/09/2026). Uma legenda existente = 1 crédito; o volume esperado do hub
+// (5 a 30 vídeos/mês) cabe no grátis.
+//
+// Doc: https://docs.supadata.ai/get-transcript
+//   GET https://api.supadata.ai/v1/transcript?url=…&lang=pt&text=true&mode=native
+//   header x-api-key
+//   200 → { content: string, lang, availableLangs[] }
+//   202 → { jobId } (processamento assíncrono; só acontece com geração por IA)
+//   206 → legenda indisponível (cobra 1 crédito mesmo assim)
+//   401/402/429 → chave, plano ou cota
+//
+// ⚠️ `mode=native` de propósito: só busca legenda que JÁ EXISTE (manual ou
+// automática do YouTube). Com `auto`, um vídeo sem legenda seria transcrito por
+// IA a 2 créditos POR MINUTO — um podcast de 60 min gastaria 120 créditos, mais
+// do que o mês inteiro do plano grátis. Quem quiser esse fallback liga
+// SUPADATA_MODE=auto sabendo do custo.
+const SUPADATA_BASE = "https://api.supadata.ai/v1";
+const SUPADATA_POLL_MS = 1500;
+const SUPADATA_POLL_MAX_MS = 150_000;
+
+type SupadataResult = {
+  content?: string | Array<{ text?: string }>;
+  lang?: string;
+  availableLangs?: string[];
+  jobId?: string;
+  status?: "queued" | "active" | "completed" | "failed";
+  error?: string;
+  message?: string;
+  details?: string;
+};
+
+function supadataContentToText(content: SupadataResult["content"]): string {
+  if (typeof content === "string") return content.replace(/\s+/g, " ").trim();
+  if (Array.isArray(content)) {
+    return content
+      .map((c) => (c.text ?? "").replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join(" ");
+  }
+  return "";
+}
+
+async function supadataGet(
+  path: string,
+  apiKey: string,
+): Promise<{ status: number; body: SupadataResult }> {
+  const res = await fetch(`${SUPADATA_BASE}${path}`, {
+    headers: { "x-api-key": apiKey, Accept: "application/json" },
+    signal: AbortSignal.timeout(120_000),
+  });
+  const body = (await res.json().catch(() => ({}))) as SupadataResult;
+  return { status: res.status, body };
+}
+
+async function fetchCaptionsRemote(
+  videoId: string,
+): Promise<TranscriptResult | null> {
+  const apiKey = process.env.SUPADATA_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "TRANSCRIPT_PROVIDER=supadata exige SUPADATA_API_KEY no ambiente.",
+    );
+  }
+  const mode = process.env.SUPADATA_MODE === "auto" ? "auto" : "native";
+
+  const query = (lang: string) =>
+    `/transcript?url=${encodeURIComponent(canonicalUrl(videoId))}&lang=${lang}&text=true&mode=${mode}`;
+
+  let { status, body } = await supadataGet(query("pt"), apiKey);
+
+  // Processamento assíncrono (geração por IA em vídeo longo): espera o job.
+  if (status === 202 && body.jobId) {
+    const deadline = Date.now() + SUPADATA_POLL_MAX_MS;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, SUPADATA_POLL_MS));
+      const job = await supadataGet(`/transcript/${body.jobId}`, apiKey);
+      if (job.body.status === "completed") {
+        status = 200;
+        body = job.body;
+        break;
+      }
+      if (job.body.status === "failed") {
+        throw new Error(
+          `A transcrição por IA falhou na Supadata: ${job.body.error ?? "sem detalhe"}.`,
+        );
+      }
+    }
+    if (status === 202) {
+      throw new Error("A Supadata não concluiu a transcrição a tempo. Tente de novo em alguns minutos.");
+    }
+  }
+
+  if (status === 206 || body.error === "transcript-unavailable") {
+    return null; // vídeo sem legenda: o chamador segue sem transcrição
+  }
+  if (status === 401) throw new Error("A chave da Supadata foi recusada (SUPADATA_API_KEY).");
+  if (status === 402) throw new Error("O plano atual da Supadata não cobre esta chamada.");
+  if (status === 429) throw new Error("Cota ou limite de requisições da Supadata esgotado neste mês.");
+  if (status === 403 || status === 404) {
+    throw new Error(
+      `A Supadata não conseguiu acessar o vídeo (HTTP ${status}: ${body.details ?? body.message ?? "privado ou restrito"}).`,
+    );
+  }
+  if (status < 200 || status >= 300) {
+    throw new Error(`A Supadata respondeu HTTP ${status}${body.message ? `: ${body.message}` : ""}.`);
+  }
+
+  // Sem legenda em pt, a Supadata devolve a primeira disponível. Se houver en
+  // ou es na lista, vale 1 crédito a mais para vir num idioma que o site fala.
+  let lang = body.lang ?? "";
+  if (langScore(lang) === 0 && body.availableLangs?.length) {
+    const preferred = ["pt", "pt-BR", "en", "es"].find((l) =>
+      body.availableLangs!.some((a) => a.toLowerCase() === l.toLowerCase()),
+    );
+    if (preferred) {
+      const again = await supadataGet(query(preferred), apiKey);
+      if (again.status === 200) {
+        body = again.body;
+        lang = body.lang ?? preferred;
+      }
+    }
+  }
+
+  const transcript = supadataContentToText(body.content);
+  if (!transcript) return null;
+  return { transcript, lang: lang || undefined, source: "captions" };
+}
+
+// Metadados do vídeo pela Supadata (1 crédito), usados quando a página `watch`
+// do YouTube não responde — em datacenter, sempre; e desde 21/09/2026 também
+// no IP residencial do Igor. Sem isto o rascunho do vídeo sairia sem duração,
+// data de publicação, descrição e capítulos.
+// Doc: https://docs.supadata.ai/api-reference/endpoint/metadata/metadata
+//   GET /metadata?url=…  →  { title, description, author.displayName,
+//                            media.{duration,thumbnailUrl}, createdAt (ISO) }
+// Nunca lança: metadado é acessório, a legenda é o que importa.
+export type RemoteVideoMeta = {
+  title?: string;
+  description?: string;
+  author?: string;
+  thumbnail?: string;
+  durationSeconds?: number;
+  publishDate?: string;
+};
+
+export async function fetchYouTubeMetadataRemote(
+  videoId: string,
+): Promise<RemoteVideoMeta | null> {
+  const apiKey = process.env.SUPADATA_API_KEY;
+  if (!apiKey || transcriptProviderName() !== "supadata") return null;
+  try {
+    const res = await fetch(
+      `${SUPADATA_BASE}/metadata?url=${encodeURIComponent(canonicalUrl(videoId))}`,
+      {
+        headers: { "x-api-key": apiKey, Accept: "application/json" },
+        signal: AbortSignal.timeout(30_000),
+      },
+    );
+    if (!res.ok) return null;
+    const m = (await res.json()) as {
+      title?: string | null;
+      description?: string | null;
+      author?: { displayName?: string; username?: string };
+      media?: { type?: string; duration?: number; thumbnailUrl?: string };
+      createdAt?: string;
+    };
+    const duration =
+      typeof m.media?.duration === "number" && m.media.duration > 0
+        ? Math.round(m.media.duration)
+        : undefined;
+    return {
+      title: m.title || undefined,
+      description: m.description || undefined,
+      author: m.author?.displayName || m.author?.username || undefined,
+      thumbnail: m.media?.thumbnailUrl || undefined,
+      durationSeconds: duration,
+      publishDate: m.createdAt || undefined,
+    };
+  } catch {
+    return null;
   }
 }
 

@@ -11,7 +11,11 @@
 // Quando não houver legenda, `transcript` volta vazio e `transcriptAvailable`
 // = false; o front oferece a transcrição por áudio (Whisper) como reserva.
 
-import { fetchCaptions } from "./transcribe";
+import {
+  fetchCaptions,
+  fetchYouTubeMetadataRemote,
+  whisperAvailable,
+} from "./transcribe";
 
 export type Chapter = { startTime: number; title: string };
 
@@ -29,8 +33,9 @@ export type YouTubeData = {
   transcriptAvailable: boolean;
   transcriptLang?: string;
   transcriptSource?: "captions";
-  // Indica se a transcrição por áudio (Whisper) está configurada no servidor —
-  // o front só oferece esse botão quando há OPENAI_API_KEY.
+  // Indica se a transcrição por áudio (Whisper) existe NESTE servidor — o front
+  // só oferece o botão quando há OPENAI_API_KEY e yt-dlp/ffmpeg (ou seja, só
+  // no `npm run dev`; ver `whisperAvailable` em transcribe.ts).
   audioTranscriptionEnabled: boolean;
 };
 
@@ -187,9 +192,15 @@ export async function fetchYouTubeData(videoId: string): Promise<YouTubeData> {
     player = null;
   }
 
+  // Sem a página `watch` (o YouTube barra IP de datacenter, e desde 21/09/2026
+  // também o residencial do Igor), duração, descrição, data e capítulos
+  // ficariam vazios. Com a Supadata configurada, 1 crédito traz isso.
+  const remote = player ? null : await fetchYouTubeMetadataRemote(videoId);
+
   const details = player?.videoDetails;
   const micro = player?.microformat?.playerMicroformatRenderer;
-  const description = details?.shortDescription || undefined;
+  const description =
+    details?.shortDescription || remote?.description || undefined;
 
   // Transcrição via yt-dlp (legendas). Degrada com elegância: se o yt-dlp não
   // estiver disponível ou o vídeo não tiver legenda, segue sem transcrição.
@@ -208,20 +219,20 @@ export async function fetchYouTubeData(videoId: string): Promise<YouTubeData> {
   return {
     videoId,
     url,
-    title: details?.title || oembed?.title || "",
-    author: details?.author || oembed?.author_name,
-    thumbnail: oembed?.thumbnail_url || thumbnailUrl(videoId),
+    title: details?.title || oembed?.title || remote?.title || "",
+    author: details?.author || oembed?.author_name || remote?.author,
+    thumbnail: oembed?.thumbnail_url || remote?.thumbnail || thumbnailUrl(videoId),
     description,
     durationSeconds: details?.lengthSeconds
       ? Number(details.lengthSeconds)
-      : undefined,
-    publishDate: micro?.publishDate || micro?.uploadDate,
+      : remote?.durationSeconds,
+    publishDate: micro?.publishDate || micro?.uploadDate || remote?.publishDate,
     chapters: parseChapters(description),
     transcript,
     transcriptAvailable: transcript.length > 0,
     transcriptLang,
     transcriptSource: transcript.length > 0 ? "captions" : undefined,
-    audioTranscriptionEnabled: Boolean(process.env.OPENAI_API_KEY),
+    audioTranscriptionEnabled: whisperAvailable(),
   };
 }
 

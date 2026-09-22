@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     // bundle minificado: sem esta linha o eslint tenta analisar tudo e morre
     // sem mensagem, com um stack trace do V8.
     "dist-painel/**",
+    // Saída do `node build-api.mjs` (o serviço de ingestão empacotado, com
+    // as dependências dentro). Mesmo motivo.
+    "dist-api/**",
     "dist/**",
     ".sanity/**",
   ]),

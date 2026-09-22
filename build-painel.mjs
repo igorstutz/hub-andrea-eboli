@@ -27,6 +27,14 @@ import path from "node:path";
 const BASE_PATH = "/admin";
 const OUT = "dist-painel";
 
+// Onde o painel publicado encontra o serviço de ingestão (a ferramenta
+// "Importar de link"). É o serviço Node do cPanel, montado no MESMO domínio em
+// andreaeboli.com/api — por isso um caminho relativo, sem CORS. A variável só
+// chega ao bundle porque tem o prefixo SANITY_STUDIO_ (única família que o Vite
+// da Sanity injeta); ela também é o que faz a ferramenta APARECER no painel
+// (ver `temServicoDeIngestao` em sanity.config.ts).
+const INGEST_API_URL = "/api";
+
 // A identidade do projeto, para a conferência do fim. Tem de bater com
 // src/sanity/env.ts.
 const PROJECT_ID = "52ssivbg";
@@ -48,7 +56,11 @@ rmSync(OUT, { recursive: true, force: true });
 const r = spawnSync(`npx sanity build ${OUT} --yes`, {
   stdio: "inherit",
   shell: true,
-  env: { ...process.env, SANITY_STUDIO_BASEPATH: BASE_PATH },
+  env: {
+    ...process.env,
+    SANITY_STUDIO_BASEPATH: BASE_PATH,
+    SANITY_STUDIO_INGEST_API_URL: INGEST_API_URL,
+  },
 });
 
 if (r.status !== 0) {
@@ -93,6 +105,18 @@ if (!temProjectId) {
   );
 }
 
+// 3. A ferramenta "Importar de link" tem de estar no bundle. Ela só entra
+//    quando SANITY_STUDIO_INGEST_API_URL chegou ao Vite; se sumir, o painel
+//    abre normal e a Andrea simplesmente não encontra o botão.
+const temFerramenta = bundles.some((f) =>
+  readFileSync(path.join(OUT, "static", f), "utf8").includes("Importar de link"),
+);
+if (!temFerramenta) {
+  erros.push(
+    'a ferramenta "Importar de link" não está em nenhum bundle — a SANITY_STUDIO_INGEST_API_URL não pegou',
+  );
+}
+
 if (erros.length) {
   console.error("\n✗ o build saiu, mas o painel não funcionaria:");
   for (const e of erros) console.error(`   · ${e}`);
@@ -100,7 +124,7 @@ if (erros.length) {
 }
 
 console.log(
-  `\n✓ painel pronto em ${OUT}/  ·  base path ${BASE_PATH}  ·  ${bundles.length} bundles`,
+  `\n✓ painel pronto em ${OUT}/  ·  base path ${BASE_PATH}  ·  serviço de ingestão em ${INGEST_API_URL}  ·  ${bundles.length} bundles`,
 );
 console.log(
   "  publicar: workflow \u201cDeploy (andreaeboli.com)\u201d \u2192 modo enviar-painel",

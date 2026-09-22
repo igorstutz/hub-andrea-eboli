@@ -8,24 +8,32 @@ import { structure } from "./src/sanity/structure";
 import IngestTool from "./src/sanity/tools/IngestTool";
 
 /**
- * A ferramenta "Importar de link" só existe onde as rotas de API existem.
+ * A ferramenta "Importar de link" só existe onde há um serviço de ingestão
+ * para atendê-la.
  *
- * Ela chama `/api/ingest/generate` e `/api/ingest/youtube/transcribe`, que são
- * rotas do Next e só respondem no `npm run dev`. Nos outros dois lugares onde
- * este mesmo config roda — o painel estático em andreaeboli.com/admin e o
- * Studio hospedado pela Sanity — não há servidor Node, então o botão
- * apareceria e falharia. Pior ainda para a Andrea, que é quem usa o painel e
- * não teria como saber o motivo.
+ * Ela chama /api/ingest/*. Esse serviço existe em DOIS lugares:
+ *   1. no `npm run dev`, como rotas do Next (Studio embutido em localhost);
+ *   2. no painel publicado em andreaeboli.com/admin, como o serviço Node do
+ *      cPanel montado em andreaeboli.com/api (servidor-ingest/ → dist-api/).
+ *      O `build-painel.mjs` declara isso gravando SANITY_STUDIO_INGEST_API_URL
+ *      no bundle — só as variáveis com esse prefixo passam pelo Vite da Sanity.
  *
- * Por isso a regra é positiva ("só no dev") e não uma lista de exclusões: um
- * destino novo nasce sem a ferramenta, que é o lado seguro do erro.
+ * Por isso a regra é positiva ("onde declararam um serviço") e não uma lista
+ * de exclusões: um destino novo — o Studio de reserva em
+ * andreaeboli.sanity.studio, por exemplo — nasce SEM a ferramenta, que é o
+ * lado seguro do erro. Sem isto o botão apareceria lá, chamaria uma rota que
+ * não existe e a Andrea não teria como saber o motivo. Se um dia o reserva
+ * precisar da ferramenta: `npx sanity deploy` com
+ * SANITY_STUDIO_INGEST_API_URL=https://andreaeboli.com/api (a origem dele já
+ * está na lista de CORS do serviço).
  *
- * A checagem é feita aqui dentro do callback de `tools`, que a Sanity executa
- * no navegador na inicialização do Studio, e não no escopo do módulo: assim
- * não há divergência entre servidor e cliente no Studio embutido.
+ * A checagem é feita dentro do callback de `tools`, que a Sanity executa no
+ * navegador na inicialização do Studio, e não no escopo do módulo: assim não
+ * há divergência entre servidor e cliente no Studio embutido.
  */
-function ehStudioEmbutidoLocal(): boolean {
+function temServicoDeIngestao(): boolean {
   if (typeof window === "undefined") return false;
+  if (process.env.SANITY_STUDIO_INGEST_API_URL) return true;
   const host = window.location.hostname;
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
@@ -54,7 +62,7 @@ export default defineConfig({
     visionTool({ defaultApiVersion: apiVersion }),
   ],
   tools: (prev) =>
-    ehStudioEmbutidoLocal()
+    temServicoDeIngestao()
       ? [
           {
             name: "link-ingest",

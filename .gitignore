@@ -44,3 +44,6 @@ next-env.d.ts
 /dist
 /dist-painel
 /.sanity
+
+# serviço de ingestão empacotado (`node build-api.mjs`)
+/dist-api

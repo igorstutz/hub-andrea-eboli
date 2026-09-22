@@ -24,32 +24,177 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
   ler `NEXT_PUBLIC_*` no bundle do painel devolve `undefined` (ver a sessão de
   09/09 abaixo).
 
-## ⏭️ TAREFAS DO IGOR (decisões que só ele pode dar)
+## ⏭️ TAREFAS DO IGOR (o que só ele pode fazer)
 
-> Pendentes desde 09/09/2026. Sem elas a ingestão continua rodando só no
-> `npm run dev` da máquina dele.
+> Atualizado em 21/09/2026. O código do serviço de ingestão está PRONTO e
+> testado localmente; falta a configuração que exige as contas dele. O passo
+> a passo completo, com os valores de cada campo, está em
+> **`deploy/API-CPANEL.md`**.
 
-1. **Ver no cPanel se existe "Setup Node.js App"** (ou "Aplicativo Node.js").
-   Se existir, as rotas de `/api/ingest` rodam na hospedagem que ele já paga —
-   mesmo domínio, sem CORS, custo zero. Se não, vai para um container pequeno.
-2. **Escolher de onde vem a transcrição do YouTube** (o `yt-dlp` NÃO funciona
-   em servidor — ver a medição na sessão de 09/09):
-   - **A (recomendado):** serviço de transcrição com proxy residencial —
-     funciona para qualquer vídeo, inclusive podcasts em que ela é convidada.
-     Custo pequeno. *Comparar os serviços e apresentar preço ANTES de assinar.*
-   - **B:** API oficial do YouTube com OAuth da conta dela — grátis, mas só
-     cobre os vídeos do canal dela.
-
-Com as duas respostas, o resto é trabalho de código: hospedar as rotas, trocar
-a fonte da transcrição, pôr autenticação de verdade no endpoint (hoje a guarda
-é uma variável `NEXT_PUBLIC_*` visível no bundle) e apontar o painel para lá.
-
-3. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
+1. ✅ **cPanel tem "Setup Node.js App"** (conferido na captura de 21/09). Por
+   isso o serviço foi feito para rodar lá: `servidor-ingest/` → `dist-api/`.
+2. ✅ **Conta na Supadata criada e chave no `.env.local`** (21/09, com
+   `TRANSCRIPT_PROVIDER=supadata` e `SUPADATA_MODE=native`; testada com um
+   vídeo real, ver a sessão). Plano grátis de 100 créditos/mês, 1 legenda =
+   1 crédito. É a fonte de legenda do servidor **e da máquina dele**: em 21/09
+   o `yt-dlp` passou a ser barrado no IP residencial também, mesmo atualizado
+   para 2026.08.19. (A opção B, API oficial do YouTube com OAuth, ficou
+   descartada: não cobre os podcasts em que ela é convidada.)
+   ⏭️ A MESMA chave precisa ir para a variável `SUPADATA_API_KEY` do app no
+   cPanel (item 3).
+3. **No cPanel, um formulário só:** criar o app Node (root
+   `public_html/ingest-api`, URL `/api`, startup `app.js`) com as variáveis
+   `ANTHROPIC_API_KEY`, `TRANSCRIPT_PROVIDER=supadata`, `SUPADATA_API_KEY`,
+   `SUPADATA_MODE=native`. **Não há conta de FTP nem secret novo:** o serviço
+   sobe pela conta do site (decisão de 21/09, ver item 5 da sessão).
+4. **O resto é do Claude** (o `gh` está autenticado nesta máquina com escopo
+   `workflow`): commitar, rodar `enviar-api` e `enviar-painel`, conferir o
+   health e o 401, testar a Supadata de verdade e pôr a chave no `.env.local`.
+   Aí a Andrea importa sozinha.
+5. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
    escrita e não é mais usado. É um comando, quando ele quiser.
+6. **(menor) Commitar** as mudanças de 21/09 — ficaram só no repositório
+   local, de propósito (não foi pedido commit).
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 15/09/2026 (MAIS RECENTE) — O site ficou legível para agentes de IA (e o build voltou a funcionar)
+### 🗓️ Sessão 21/09/2026 (MAIS RECENTE) — A ingestão virou um serviço Node para o cPanel, com autenticação de verdade
+O Igor mandou a captura do cPanel: existe **"Setup Node.js App"** (CloudLinux
+Node.js Selector). Isso fecha a pergunta 1 de 09/09 e destrava hospedar as
+rotas de `/api/ingest` na hospedagem que ele já paga, no MESMO domínio do
+painel. Tudo abaixo está feito e testado localmente; o que falta exige as
+contas dele (lista no topo do arquivo e em **`deploy/API-CPANEL.md`**).
+
+1. **A lógica das rotas saiu do Next.** `src/lib/ingest/handlers.ts` tem os
+   5 handlers em forma neutra `(Request) => Promise<Response>`; as rotas em
+   `src/app/api/ingest/*/route.ts` viraram invólucros de uma linha
+   (`export const POST = handleGenerate`). Motivo: o mesmo código precisa
+   rodar em dois servidores (Next no dev, serviço Node no ar) e nada em
+   `handlers.ts` pode importar de `next/*` (o client do Sanity vem de
+   `@sanity/client`, registrado como dependência direta). Rota nova:
+   `GET /ingest/health` (sem auth, sem segredo: só a PRESENÇA das chaves).
+2. **`servidor-ingest/app.ts` + `build-api.mjs` → `dist-api/app.js`** (1,2 MB,
+   CommonJS, alvo Node 18, dependências dentro, zero `npm install` no
+   servidor). O `http` do Node vira `Request`/`Response`. Aceita o caminho
+   **com ou sem o prefixo `/api`**: a doc do Passenger diz que em sub-URI o app
+   Node recebe o caminho completo (Express precisa de router), mas não é
+   categórica, então o roteador tolera os dois. CORS só para
+   `INGEST_ALLOWED_ORIGINS` + `andreaeboli.sanity.studio`. O build confere:
+   nenhum `require("next…")`, rotas presentes, **nenhuma assinatura de chave
+   no bundle** (Anthropic/OpenAI/Sanity). `tmp/restart.txt` com a data do
+   build faz o Passenger reiniciar a cada envio (mecanismo criado pela própria
+   Passenger para quem só tem FTP).
+3. 🔴 **Autenticação de verdade, sem segredo no navegador.** O
+   `INGEST_API_SECRET`/`NEXT_PUBLIC_INGEST_API_SECRET` **morreu** (era um
+   segredo escrito no bundle). Agora a ferramenta manda o token de sessão do
+   próprio Studio (`client.config().token`; no login `dual` padrão a Sanity
+   guarda o token em `localStorage.__studio_auth_token_<projectId>` depois do
+   login, conferido no código do pacote `sanity`) e o serviço pergunta a
+   `https://52ssivbg.api.sanity.io/v2024-10-01/users/me` quem é
+   (`src/lib/ingest/auth.ts`). **Medido:** token válido → 200 com `role`
+   DO PROJETO; inválido → 401; **sem token → 200 com `{}`**, por isso `id` é
+   obrigatório; o host genérico `api.sanity.io` não traz o papel. `viewer`
+   recebe 403 (não grava rascunho, gastaria crédito à toa). Cache de 5 min.
+4. **Painel:** `IngestTool.tsx` usa `API_BASE = SANITY_STUDIO_INGEST_API_URL
+   || "/api"`, manda o `Authorization`, sonda o `/ingest/health` ao abrir
+   (mostra na tela se o serviço está fora ou sem chave da Anthropic; botão
+   "Buscar" desabilitado até responder) e traduz 401/403/503 em mensagens
+   claras. 🐛 De quebra: o link "abrir rascunho" apontava para
+   `/studio/intent/…`, caminho que não existe desde 09/09 — agora usa o
+   `basePath` do workspace (`useWorkspace()`).
+   `sanity.config.ts`: a regra de visibilidade virou `temServicoDeIngestao()`
+   = localhost OU bundle buildado com `SANITY_STUDIO_INGEST_API_URL`. O
+   `build-painel.mjs` grava `/api` nessa variável e **falha se "Importar de
+   link" não estiver em nenhum bundle**. O Studio de reserva continua sem a
+   ferramenta (nasce sem, lado seguro).
+5. **Workflow:** modo novo **`enviar-api`** (empacota, sobe `dist-api/` por
+   FTPS para **`public_html/ingest-api/`** com a conta do site, `state-name`
+   próprio, exclui `node_modules/**` e `.npmrc` que o cPanel cria; confere
+   `/api/ingest/health` com 6 tentativas e o 401 sem sessão).
+   📌 **Por que o app mora DENTRO de public_html** (decidido quando o Igor
+   perguntou "tudo isso precisa ser eu mesmo?"): a primeira versão pedia uma
+   conta de FTP nova escopada fora de public_html + 2 secrets no GitHub, só
+   para o app ficar fora do document root. Como o bundle não tem segredo
+   (o build confere) e o `dist-api/.htaccess` nega acesso HTTP à pasta
+   (`Require all denied`; o Passenger lê pelo disco), a proteção extra não
+   valia dois passos manuais a mais para ele.
+   🔴 **`api/**` e `ingest-api/**` entraram na lista `exclude` do envio do
+   site**: em `public_html/api/.htaccess` o cPanel grava o bloco "CLOUDLINUX
+   PASSENGER CONFIGURATION" que liga a URL ao app, e em `ingest-api/` mora o
+   app; apagar qualquer dos dois derruba o serviço.
+6. **Transcrição com provedor por ambiente** (`TRANSCRIPT_PROVIDER`):
+   `ytdlp` (padrão, local) ou **`supadata`** (servidor). Pesquisa feita em
+   21/09 direto na doc/preços (supadata.ai/pricing, docs.supadata.ai): plano
+   grátis **100 créditos/mês sem cartão**, pago a partir de **US$ 5/mês**,
+   **1 legenda existente = 1 crédito**; endpoint
+   `GET api.supadata.ai/v1/transcript?url&lang=pt&text=true&mode=native`
+   com header `x-api-key`; 206 = sem legenda (cobra 1). ⚠️ `mode=native` de
+   propósito: `auto` transcreve por IA a **2 créditos por MINUTO** (um podcast
+   de 60 min = 120 créditos, mais que o mês grátis). ✅ **Testado de verdade
+   no mesmo dia**, depois que o Igor criou a conta e mandou a chave (está no
+   `.env.local`, com `TRANSCRIPT_PROVIDER=supadata` e `SUPADATA_MODE=native`):
+   o vídeo `ytAoYc-UBWQ` voltou pelo serviço empacotado com
+   `transcriptAvailable: true`, `transcriptLang: "pt"`, **47.128 caracteres**
+   em 16,5 s, e `audioTranscriptionEnabled: false` (o Whisper sumiu, como
+   devia). Whisper agora só existe onde o provedor é `ytdlp`
+   (`whisperAvailable()`), e `handleTranscribe` devolve 501 fora daí.
+   ⚠️ No mesmo teste, `description`, `durationSeconds`, `publishDate` e
+   `chapters` vieram vazios: a leitura da página `watch` do YouTube
+   (`ytInitialPlayerResponse`) também está sendo barrada neste IP, e em
+   datacenter vai ser sempre. Ver o item 11.
+7. 🔴 **DESCOBERTA: o `yt-dlp` passou a ser barrado NA MÁQUINA DO IGOR
+   também.** A prova de inspeção real (`ytAoYc-UBWQ`) voltou 200 com título
+   e autora mas `transcriptAvailable: false`; direto no yt-dlp:
+   `Sign in to confirm you're not a bot`. Atualizei o yt-dlp de 2026.06.09
+   para **2026.08.19** e a barreira continuou. Ou seja: a premissa de 09/09
+   ("funciona em IP residencial") caiu, e o Whisper local (que baixa o áudio
+   com yt-dlp) caiu junto. Consequência: a Supadata passa a ser a fonte de
+   legenda também no dev. Alternativa local, se um dia quiser: yt-dlp com
+   `--cookies-from-browser`, que usa a sessão do YouTube dele no Chrome —
+   não fiz sem perguntar.
+8. **Validado:** `tsc` e `eslint` limpos; `node build-api.mjs` OK; serviço
+   subido em `localhost:8787` e **15 provas** (health com/sem `/api` e com
+   barra final; 404; 401 sem token e com token inválido; 400 `invalid_url` e
+   `no_valid_target` COM sessão, provando que a auth passou sem gastar IA;
+   401 nas 3 rotas de trabalho; preflight CORS 204/403; `Cache-Control:
+   no-store`): 14 passaram e a 15ª foi a que revelou o item 7. O token de
+   teste veio de `~/.config/sanity/config.json` (CLI) e nunca foi impresso.
+   `node build-painel.mjs` rodado: **30 bundles, base path `/admin`, serviço
+   em `/api`, e a conferência achou "Importar de link" no bundle** — o painel
+   publicado vai mostrar a ferramenta assim que o modo `enviar-painel` rodar.
+   📌 Armadilha: o `tsc` acusava `Type 'Route' does not satisfy…` por tipos
+   velhos em `.next/dev/types`; `rm -rf .next` inteiro falhou (OneDrive), mas
+   apagar só `.next/dev/types` bastou.
+   📌 Armadilha 2: um heredoc `python - <<'PY'` com o script inteiro dentro
+   quebrou o parser do Git Bash ("unexpected EOF while looking for matching
+   `''`") sem rodar nada. Script em arquivo no scratchpad + `python arquivo.py`
+   resolve.
+9. **O que NÃO deu para verificar sem o cPanel** (listado em
+   `deploy/API-CPANEL.md`): versões de Node oferecidas (o bundle pede ≥ 18);
+   se o `/api` chega ao app (tolerado); **timeout do LiteSpeed/Passenger** —
+   uma geração leva 1 a 3 min; se a primeira geração real cair em 504 perto
+   de 60 s, a saída é transformar a geração em job assíncrono; e se o
+   `tmp/restart.txt` vale no LiteSpeed (a doc do LiteSpeed diz que apps do
+   CloudLinux Node.js Selector funcionam "out of the box"; o botão Restart do
+   cPanel é o plano B).
+10. ⚠️ Os dois agentes de pesquisa lançados no início caíram por **limite de
+    gastos mensal da conta** antes de devolver algo; a pesquisa foi refeita
+    à mão com `curl` nas docs (mais barato). Não há commit desta sessão.
+11. **Metadados do vídeo pela Supadata, como reserva.** Quando a página
+    `watch` não responde (`ytInitialPlayerResponse` ausente), `youtube.ts`
+    chama `fetchYouTubeMetadataRemote` (em `transcribe.ts`):
+    `GET api.supadata.ai/v1/metadata?url=…` → `title`, `description`,
+    `author.displayName`, `media.duration`, `createdAt`. **1 crédito a mais
+    por vídeo** (total 2), só nesse caso. Nunca lança: metadado é acessório.
+    ✅ Testado: o mesmo vídeo passou a voltar `durationSeconds: 2806`,
+    `publishDate: 2025-11-17…` e descrição de 1.643 caracteres (antes,
+    vazios). Os endpoints `/youtube/transcript` e `/youtube/video` da Supadata
+    estão marcados `deprecated` na OpenAPI deles; o código usa os universais
+    `/transcript` e `/metadata`.
+
+---
+
+### 🗓️ Sessão 15/09/2026 — O site ficou legível para agentes de IA (e o build voltou a funcionar)
 O Igor trouxe uma auditoria de "agent readiness" (54/100) e pediu para conferir.
 Conferi item por item batendo no site no ar: a auditoria está certa no
 essencial, e num ponto é generosa demais.
@@ -135,7 +280,7 @@ essencial, e num ponto é generosa demais.
 
 ---
 
-### 🗓️ Sessão 09/09/2026 (MAIS RECENTE) — O painel saiu de um domínio de terceiro e veio para andreaeboli.com/admin
+### 🗓️ Sessão 09/09/2026 — O painel saiu de um domínio de terceiro e veio para andreaeboli.com/admin
 O Igor: "não consigo acessar o painel. Não vejo sentido acessar isso por uma
 outra url. Queria algo como https://andreaeboli.com/pt/admin".
 

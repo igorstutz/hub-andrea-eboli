@@ -63,6 +63,24 @@
 #                         envio do site: sem isso, o primeiro republish do
 #                         site apagaria o painel inteiro.
 #
+#   6. enviar-api       → publica o SERVIÇO DE INGESTÃO (Node) que atende a
+#                         ferramenta "Importar de link" do painel. Roda no
+#                         "Setup Node.js App" do cPanel, montado em
+#                         andreaeboli.com/api (mesmo domínio do painel, sem
+#                         CORS). Sobe UM arquivo empacotado (dist-api/app.js,
+#                         sem node_modules) para public_html/ingest-api, pela
+#                         MESMA conta de FTP do site (escopada em public_html,
+#                         então nenhuma conta ou secret novo). Um .htaccess na
+#                         pasta nega acesso por HTTP; o Passenger lê pelo
+#                         disco. O tmp/restart.txt que vai junto faz o
+#                         Passenger reiniciar o app. Configuração do cPanel em
+#                         deploy/API-CPANEL.md.
+#                         ⚠️ `api/**` e `ingest-api/**` estão na lista
+#                         `exclude` do envio do site: em public_html/api o
+#                         cPanel grava o .htaccess que liga a URL ao app, e em
+#                         public_html/ingest-api mora o app. Apagar qualquer
+#                         dos dois derruba o serviço.
+#
 # A remoção dos arquivos do WordPress fica para DEPOIS de o hub estar
 # confirmado no ar, é feita à parte e não por este workflow.
 # ─────────────────────────────────────────────────────────────────────────
@@ -84,6 +102,7 @@ on:
           - ativar
           - reverter
           - enviar-painel
+          - enviar-api
 
 concurrency:
   # ⚠️ SEM cancel-in-progress. Upload por FTP não é atômico: cancelar no meio
@@ -345,15 +364,23 @@ jobs:
           log-level: standard
           # ⚠️ NÃO REDUZIR ESTA LISTA. `admin/**` é o painel do Sanity, que
           # tem deploy próprio (modo `enviar-painel`) e não existe em `out/`:
-          # sem a linha, esta sincronização o apagaria por completo. As duas
-          # seguintes são os document roots dos OUTROS DOIS SITES no ar dentro
-          # de public_html (ver o cabeçalho do arquivo). Sem elas, o deploy os
-          # apaga.
+          # sem a linha, esta sincronização o apagaria por completo. `api/**`
+          # é a pasta que o cPanel cria para montar o serviço de ingestão em
+          # /api — dentro dela só há o .htaccess com o bloco "CLOUDLINUX
+          # PASSENGER CONFIGURATION", e sem ele o serviço sai do ar.
+          # `ingest-api/**` é o próprio serviço (modo `enviar-api`, com
+          # arquivo de estado próprio). As duas seguintes são os document
+          # roots dos OUTROS DOIS SITES no ar dentro de public_html (ver o
+          # cabeçalho do arquivo). Sem elas, o deploy os apaga.
           # As linhas wp-* preservam o WordPress de andreaeboli.com até o
           # corte estar confirmado, para o modo `reverter` ter para onde
           # voltar.
           exclude: |
             admin/**
+            api/**
+            api/.htaccess
+            ingest-api/**
+            ingest-api/.htaccess
             edroficinadesolucoes.com/**
             form.andreaeboli.com/**
             andreaeboli.com/**
@@ -410,6 +437,70 @@ jobs:
           echo "  /admin/structure  HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}/admin/structure")"
           echo "  base path servido:"
           curl -sL --max-time 30 "${{ env.SITE_URL }}/admin/" | grep -o '/admin/static/[a-zA-Z0-9._-]*' | sort -u | head -3
+
+      # ------------------------------------------------------------------
+      # 6. ENVIAR-API — o serviço de ingestão (Node) em andreaeboli.com/api
+      # ------------------------------------------------------------------
+      # O serviço é servidor-ingest/app.ts + src/lib/ingest/*, empacotado num
+      # único dist-api/app.js pelo esbuild. Não há `npm install` no servidor:
+      # o que passou no build é byte a byte o que roda lá. As chaves
+      # (ANTHROPIC_API_KEY, SUPADATA_API_KEY…) NÃO viajam por aqui — moram na
+      # tela "Setup Node.js App" do cPanel e chegam por process.env.
+      #
+      # A pasta do app é public_html/ingest-api, DENTRO do document root, de
+      # propósito: assim sobe pela mesma conta de FTP do site (escopada em
+      # public_html) sem criar conta nem secret novo. O dist-api/.htaccess
+      # nega acesso HTTP à pasta — o Passenger lê pelo disco. E o bundle não
+      # tem segredo nenhum (o build-api.mjs confere), então mesmo a hipótese
+      # de o .htaccess não valer exporia só código.
+      - name: Empacotar o serviço de ingestão
+        if: inputs.modo == 'enviar-api'
+        run: node build-api.mjs
+
+      - name: Enviar o serviço
+        if: inputs.modo == 'enviar-api'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist-api/
+          # A conta é escopada em public_html; a pasta do app fica dentro dela.
+          server-dir: ./ingest-api/
+          dry-run: false
+          # ⚠️ Arquivo de estado PRÓPRIO, pelo mesmo motivo do painel.
+          state-name: .deploy-api-state.json
+          timeout: 120000
+          log-level: standard
+          # O cPanel cria dentro da pasta do app um symlink `node_modules` (para
+          # o ambiente Node dele) e às vezes um .npmrc. Não são nossos e não
+          # podem ser apagados pela sincronização.
+          exclude: |
+            node_modules/**
+            .npmrc
+
+      - name: Conferir o serviço no ar
+        if: inputs.modo == 'enviar-api'
+        run: |
+          # O Passenger reinicia o app ao notar o tmp/restart.txt novo, na
+          # PRÓXIMA requisição — e a primeira depois do restart é a mais lenta.
+          sleep 10
+          for i in 1 2 3 4 5 6; do
+            CODIGO=$(curl -s -o saude.json -w '%{http_code}' --max-time 60 "${{ env.SITE_URL }}/api/ingest/health" || true)
+            echo "  tentativa $i: /api/ingest/health → HTTP $CODIGO"
+            [ "$CODIGO" = "200" ] && break
+            sleep 10
+          done
+          cat saude.json 2>/dev/null; echo
+          grep -q '"ok":true' saude.json || { echo "ERRO: o serviço não respondeu ok"; exit 1; }
+          # As duas chaves que o serviço precisa para servir a Andrea. Sem a
+          # da Anthropic ele lê links mas não gera; sem provedor de legenda
+          # remoto, vídeo do YouTube chega sem transcrição.
+          grep -q '"anthropic":true' saude.json || echo "ATENÇÃO: ANTHROPIC_API_KEY não está definida no cPanel"
+          grep -q '"provider":"supadata"' saude.json || echo "ATENÇÃO: TRANSCRIPT_PROVIDER não é supadata — em servidor o yt-dlp não funciona"
+          # Sem sessão tem de ser 401: é a prova de que a autenticação está ativa.
+          echo "  sem sessão: /api/ingest/generate → HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 60 -X POST -H 'content-type: application/json' -d '{}' "${{ env.SITE_URL }}/api/ingest/generate")  (esperado 401)"
 
       # ------------------------------------------------------------------
       # 3. ATIVAR — a troca, dois arquivos
