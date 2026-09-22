@@ -123,6 +123,17 @@ demais já possuem".
    usava `/i` na regex; o `verifica-agentes.mjs` não checa hreflang.) Mesma
    classe de erro do `Vary: Accept-Encoding` em 15/09: **conferir a regex
    antes de acreditar num resultado negativo uniforme**.
+5. 🎉 **O BLOQUEIO DO CLAUDEBOT ACABOU.** O `verifica-agentes.mjs` deu
+   **19/19** pela primeira vez (era 9/19 em 15/09). Medido de novo à mão:
+   `ClaudeBot/1.0`, o User-Agent completo com `+claudebot@anthropic.com` e
+   `Claude-User` recebem **HTTP 200** na home, no `llms.txt`, numa página de
+   vídeo e numa imagem — antes era **429 do LiteSpeed com corpo vazio** em
+   tudo, menos no `/robots.txt`. Não houve mudança nossa: o `.htaccess`
+   nunca teve regra de User-Agent. Foi a **nuvemHospedagem** que tirou a
+   regra (ticket do Igor ou revisão deles).
+   ⚠️ Se um dia voltar, o sintoma é 429 com corpo vazio e o caminho é ticket
+   na hospedagem, não código. O `verifica-agentes.mjs` segue rodando com
+   `|| true` no deploy justamente por isso.
 
 ### 🗓️ Sessão 21/09/2026 (MAIS RECENTE) — A ingestão virou um serviço Node para o cPanel, com autenticação de verdade
 O Igor mandou a captura do cPanel: existe **"Setup Node.js App"** (CloudLinux
@@ -331,6 +342,9 @@ essencial, e num ponto é generosa demais.
    ⚠️ Nosso `.htaccess` não tem nenhuma regra de User-Agent. **Só resolve com
    ticket na nuvemHospedagem** — o texto pronto está no histórico da conversa
    e a tarefa está na lista do Igor no topo deste arquivo.
+   ✅ **RESOLVIDO em 22/09/2026:** o ClaudeBot passou a receber 200 em tudo e
+   o `verifica-agentes.mjs` foi de 9/19 para **19/19**. Ver a sessão de 22/09
+   no topo.
 
 3. **`gera-artefatos-agentes.mjs` (novo)** — roda depois do `npm run build`,
    sobre o `out/`, e produz:
