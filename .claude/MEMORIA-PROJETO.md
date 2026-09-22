@@ -191,6 +191,38 @@ contas dele (lista no topo do arquivo e em **`deploy/API-CPANEL.md`**).
     vazios). Os endpoints `/youtube/transcript` e `/youtube/video` da Supadata
     estão marcados `deprecated` na OpenAPI deles; o código usa os universais
     `/transcript` e `/metadata`.
+12. ✅ **PUBLICADO em 21/09/2026** (commit `c68d865`): o Igor criou o app no
+    cPanel (Node **18.20.8**, Production, raiz `public_html/ingest-api`, URL
+    `/api`, `app.js`) e eu rodei `enviar-api` e `enviar-painel` pelo `gh`.
+    Conferido no ar: `/api/ingest/health` 200 com `anthropic:true` e
+    `provider:"supadata"`; `POST /api/ingest/generate` sem sessão → 401;
+    `/ingest-api/app.js`, `/ingest-api/` e o arquivo de estado → **403** (o
+    `.htaccess` da pasta vale no LiteSpeed); inspeção autenticada do vídeo
+    real respondida pelo servidor em 12 s com legenda, duração e data (o
+    prefixo `/api` chega ao app e o roteador o remove); painel republicado com
+    28 bundles e `/admin/`, `/admin/structure` em 200.
+    📌 Antes do envio, `public_html/ingest-api/app.js` (o placeholder "It
+    works!" do cPanel) respondia **200 por HTTP** — a pasta nasce aberta; é o
+    nosso `.htaccess` que a fecha.
+13. 🔴 **O TIMEOUT PREVISTO ACONTECEU, e a geração virou um JOB.** Geração
+    real contra o serviço publicado (vídeo + 3 perguntas, transcrição de 47 mil
+    caracteres): `HTTP 500` do **LiteSpeed** aos **121 s**, corpo HTML
+    "Request Timeout … increase 'Connection Timeout'". É limite do servidor
+    web, fora do alcance do `.htaccess`. Correção:
+    - `src/lib/ingest/jobs.ts`: jobs em disco (um JSON por job em
+      `os.tmpdir()/andrea-ingest-jobs`, gravação atômica por rename), com
+      `ownerId` (id do usuário no projeto) e detecção de job morto (running há
+      mais de 15 min → failed). Em disco e não em Map porque o Passenger pode
+      ter mais de um processo e a consulta cair em outro.
+    - `POST /ingest/generate` valida tudo e responde **202 `{jobId}`** na
+      hora; `runGeneration` segue em segundo plano no processo Node.
+      `GET /ingest/generate/<jobId>` (rota nova nos dois servidores; no Next é
+      `generate/[jobId]/route.ts`) devolve `running | completed {documents} |
+      failed {message}`; só o dono do job lê (senão 404).
+    - `IngestTool` consulta a cada 3 s, mostra o tempo decorrido e desiste
+      aos 15 min. Continua aceitando um 200 direto com `documents`.
+    ⚠️ O `inspect` (7 a 16 s) e o `web/inspect` ficam síncronos: cabem no
+    limite. O Whisper (`transcribe`) é só dev.
 
 ---
 

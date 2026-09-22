@@ -280,6 +280,7 @@ export default function IngestTool() {
   }, [client]);
 
   const [generating, setGenerating] = useState(false);
+  const [generateElapsed, setGenerateElapsed] = useState(0);
   const [created, setCreated] = useState<CreatedItem[]>([]);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
@@ -403,6 +404,7 @@ export default function IngestTool() {
   const handleGenerate = useCallback(async () => {
     if (!source) return;
     setGenerating(true);
+    setGenerateElapsed(0);
     setGenerateError(null);
     setCreated([]);
     try {
@@ -426,21 +428,64 @@ export default function IngestTool() {
           directions: directions.trim() || undefined,
         }),
       });
-      const data = await res.json().catch(() => null);
+      const first = await res.json().catch(() => null);
       if (!res.ok) {
         setGenerateError(
-          authMessage(res.status, data) ??
-            data?.message ??
+          authMessage(res.status, first) ??
+            first?.message ??
             "Falha ao gerar o conteúdo. Tente de novo.",
         );
         return;
+      }
+
+      // A geração é um JOB: o serviço responde 202 com um id na hora e o
+      // Claude escreve em segundo plano; aqui se consulta o resultado a cada
+      // 3 s. Motivo: a hospedagem (LiteSpeed) corta qualquer requisição que
+      // passe de ~120 s, e uma geração leva de 1 a 4 minutos (medido em
+      // 21/09/2026: "500 Request Timeout" aos 121 s).
+      let data = first;
+      if (res.status === 202 && first?.jobId) {
+        const started = Date.now();
+        const deadline = started + 15 * 60 * 1000;
+        for (;;) {
+          await new Promise((r) => setTimeout(r, 3000));
+          setGenerateElapsed(Math.round((Date.now() - started) / 1000));
+          const poll = await fetch(api(`/ingest/generate/${first.jobId}`), {
+            headers: apiHeaders(client),
+          });
+          const state = await poll.json().catch(() => null);
+          if (!poll.ok) {
+            setGenerateError(
+              authMessage(poll.status, state) ??
+                state?.message ??
+                "Perdi o contato com a geração. Tente de novo.",
+            );
+            return;
+          }
+          if (state?.status === "completed") {
+            data = state;
+            break;
+          }
+          if (state?.status === "failed") {
+            setGenerateError(
+              state.message || "Falha ao gerar o conteúdo. Tente de novo.",
+            );
+            return;
+          }
+          if (Date.now() > deadline) {
+            setGenerateError(
+              "A geração passou de 15 minutos sem terminar. Tente de novo.",
+            );
+            return;
+          }
+        }
       }
 
       // Grava todos os rascunhos numa ÚNICA transação, pela sessão autenticada
       // do Studio. Transação = atômico (tudo ou nada) e mais rápido. As
       // referências entre os documentos são fracas (ver backend), então a ordem
       // não importa e nada falha por alvo ainda inexistente.
-      const docs = (data.documents ?? []) as GeneratedDoc[];
+      const docs = (data?.documents ?? []) as GeneratedDoc[];
       try {
         const tx = client.transaction();
         for (const entry of docs) tx.createOrReplace(entry.doc);
@@ -786,8 +831,9 @@ export default function IngestTool() {
 
           {generating && (
             <div style={{ ...s.muted, marginTop: 12 }}>
-              O Claude está escrevendo em pt/en/es… isso pode levar alguns
-              segundos.
+              O Claude está escrevendo em pt/en/es… costuma levar de 1 a 4
+              minutos. Pode deixar esta aba aberta e voltar depois.
+              {generateElapsed > 0 ? ` (${generateElapsed} s)` : ""}
             </div>
           )}
 

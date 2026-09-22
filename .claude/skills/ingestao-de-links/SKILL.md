@@ -41,8 +41,17 @@ IngestTool.tsx (Studio)  ──►  {API_BASE}/ingest/…   API_BASE = SANITY_ST
 
 - **Handlers neutros** (`(Request) => Promise<Response>`) em
   `src/lib/ingest/handlers.ts`: `handleHealth`, `handleYouTubeInspect`,
-  `handleWebInspect`, `handleTranscribe`, `handleGenerate`. **Nada ali importa
-  de `next/*`** (o Sanity client vem de `@sanity/client`, não de `next-sanity`).
+  `handleWebInspect`, `handleTranscribe`, `handleGenerate`,
+  `handleGenerateStatus`. **Nada ali importa de `next/*`** (o Sanity client
+  vem de `@sanity/client`, não de `next-sanity`).
+- 🔴 **A geração é um JOB** (`src/lib/ingest/jobs.ts`): o LiteSpeed da
+  hospedagem corta requisições com mais de ~120 s (medido em 21/09/2026) e
+  uma geração leva de 1 a 4 min. `POST /ingest/generate` responde **202
+  `{jobId}`** e segue em segundo plano; `GET /ingest/generate/<jobId>` devolve
+  `running | completed {documents} | failed {message}`. Jobs ficam em disco
+  (`os.tmpdir()/andrea-ingest-jobs`, um JSON por job, rename atômico), com
+  `ownerId` — só quem criou lê. Running há mais de 15 min = processo morreu →
+  `failed`. A ferramenta consulta a cada 3 s e desiste aos 15 min.
 - **Serviço do cPanel:** `servidor-ingest/app.ts`, empacotado por
   `node build-api.mjs` num único `dist-api/app.js` (esbuild, CommonJS, alvo
   Node 18, sem node_modules). Aceita o caminho com ou sem o prefixo `/api`

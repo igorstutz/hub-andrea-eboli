@@ -36,6 +36,7 @@ import {
   type IngestTarget,
 } from "@/lib/ingest/sources";
 import { authFailure, requireMember } from "@/lib/ingest/auth";
+import { completeJob, createJob, failJob, readJob } from "@/lib/ingest/jobs";
 import { fetchWebArticle, MIN_USABLE_TEXT } from "@/lib/webArticle";
 import { fetchYouTubeData, parseYouTubeId } from "@/lib/youtube";
 import {
@@ -170,11 +171,17 @@ export const handleTranscribe: Handler = async (req) => {
 };
 
 // ---------------------------------------------------------------------------
-// POST /ingest/generate — etapa 2, comum às 3 fontes
+// POST /ingest/generate — etapa 2, comum às 3 fontes (assíncrona)
+// GET  /ingest/generate/<jobId> — estado e resultado
 // ---------------------------------------------------------------------------
 // Gera o conteúdo com o Claude e monta documentos do Sanity prontos para serem
 // criados como RASCUNHO. A gravação em si acontece no Studio, pela sessão
 // autenticada da própria editora (não usamos token de escrita aqui).
+//
+// 🔴 É UM JOB, não uma resposta direta: a hospedagem corta requisições com
+// mais de ~120 s e a geração leva de 1 a 4 minutos (ver ./jobs.ts). O POST
+// valida tudo, responde 202 com o id, e o trabalho segue em segundo plano no
+// processo Node. O painel consulta o GET a cada poucos segundos.
 //
 // O que cada fonte pode gerar está em src/lib/ingest/sources.ts e é conferido
 // aqui também (o cliente esconde as opções; o servidor não confia nele).
@@ -473,19 +480,49 @@ export const handleGenerate: Handler = async (req) => {
 
   const material = (payload.material ?? "").toString();
 
-  // Configuração do painel (singleton aiSettings) + conceitos-pilar do hub
-  // + slugs já usados (para gerar slugs limpos sem colisão).
-  const [settings, hubConcepts, takenSlugs] = await Promise.all([
-    readAiSettings(),
-    readHubConcepts(),
-    readTakenSlugs(),
-  ]);
-  const counts: Counts = {
-    questions:
-      payload.counts?.questions ?? settings?.defaultQuestionsCount ?? 5,
-  };
+  const jobId = await createJob(auth.user.id);
+  const startedAt = new Date().toISOString();
 
+  // Segue em segundo plano. O `void` é deliberado: a resposta sai agora.
+  void runGeneration(jobId, auth.user.id, startedAt, {
+    payload,
+    url,
+    source,
+    targets,
+    material,
+  });
+
+  return json({ jobId, status: "running" }, 202);
+};
+
+type GenerationTask = {
+  payload: GeneratePayload;
+  url: string;
+  source: ContentSource;
+  targets: Targets;
+  material: string;
+};
+
+async function runGeneration(
+  jobId: string,
+  ownerId: string,
+  startedAt: string,
+  task: GenerationTask,
+): Promise<void> {
+  const { payload, url, source, targets, material } = task;
   try {
+    // Configuração do painel (singleton aiSettings) + conceitos-pilar do hub
+    // + slugs já usados (para gerar slugs limpos sem colisão).
+    const [settings, hubConcepts, takenSlugs] = await Promise.all([
+      readAiSettings(),
+      readHubConcepts(),
+      readTakenSlugs(),
+    ]);
+    const counts: Counts = {
+      questions:
+        payload.counts?.questions ?? settings?.defaultQuestionsCount ?? 5,
+    };
+
     const gen = await generateContent({
       source,
       meta: { ...payload.meta, url },
@@ -509,10 +546,34 @@ export const handleGenerate: Handler = async (req) => {
       slugFor: makeSlugFactory(takenSlugs),
     });
 
-    return json({ documents });
+    await completeJob(jobId, ownerId, startedAt, documents);
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Falha ao gerar conteúdo.";
-    return json({ error: "generation_failed", message }, 500);
+    console.error(`[ingest] geração ${jobId} falhou:`, message);
+    await failJob(jobId, ownerId, startedAt, "generation_failed", message).catch(
+      () => {},
+    );
   }
+}
+
+// O id vem no fim do caminho (/ingest/generate/<jobId>), lido da URL para o
+// mesmo handler servir o Next e o servidor http sem parâmetros de rota.
+export const handleGenerateStatus: Handler = async (req) => {
+  const auth = await requireMember(req);
+  if (!auth.ok) return authFailure(auth);
+
+  const id =
+    new URL(req.url).pathname.replace(/\/+$/, "").split("/").pop() ?? "";
+  const job = await readJob<ResultDoc[]>(id);
+  if (!job || job.ownerId !== auth.user.id) {
+    return json({ error: "not_found" }, 404);
+  }
+  if (job.status === "running") {
+    return json({ status: "running", startedAt: job.startedAt });
+  }
+  if (job.status === "failed") {
+    return json({ status: "failed", error: job.error, message: job.message });
+  }
+  return json({ status: "completed", documents: job.result });
 };

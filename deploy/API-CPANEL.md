@@ -122,23 +122,27 @@ se o serviço está fora ou sem chave.
 - **Gravação continua no Studio.** O serviço devolve os documentos; quem grava
   os rascunhos é a sessão da editora, no navegador.
 
-## O que NÃO foi possível verificar sem acesso ao cPanel
+## O que foi verificado no ar (21/09/2026) e o que ficou em aberto
 
-1. **Versões de Node oferecidas** pela nuvemHospedagem. Escolher a mais nova
-   (≥ 18). O bundle é CommonJS e não usa recurso além do Node 18.
-2. **Se o prefixo `/api` chega ao app.** A documentação do Passenger indica que
-   sim (em sub-URI, o Node precisa "ajustes no app", isto é, recebe o caminho
-   completo). O roteador aceita os dois casos, com ou sem `/api`.
-3. **Timeout do LiteSpeed/Passenger para uma requisição longa.** Uma geração
-   leva de 1 a 3 minutos. Se a primeira geração real cair em **504** perto de
-   60 s, o limite é do servidor web e a saída é transformar a geração num job
-   assíncrono (o serviço responde na hora com um id e o painel consulta o
-   resultado). Só vale fazer se acontecer.
-4. **`tmp/restart.txt` no LiteSpeed.** É o mecanismo padrão do Passenger
-   (criado justamente para quem só tem FTP, segundo a própria documentação) e
-   o LiteSpeed declara compatibilidade com os apps do CloudLinux Node.js
-   Selector. Se o app não reiniciar sozinho após um envio, o botão **Restart**
-   do cPanel resolve.
+1. **Node oferecido:** o app foi criado com **18.20.8**. O bundle é CommonJS,
+   alvo Node 18, e subiu sem ajuste.
+2. **O prefixo `/api` chega ao app** (a inspeção autenticada por
+   `/api/ingest/youtube/inspect` respondeu 200 pelo servidor). O roteador
+   aceita os dois casos, com ou sem `/api`.
+3. ~~Timeout do LiteSpeed/Passenger~~ **Medido em 21/09/2026: o LiteSpeed
+   corta aos ~120 s** ("500 Request Timeout … increase 'Connection
+   Timeout'"). Por isso a geração é um **job**: `POST /api/ingest/generate`
+   responde 202 com um id e o painel consulta `GET /api/ingest/generate/<id>`
+   a cada 3 s (ver `src/lib/ingest/jobs.ts`). Nenhuma outra rota chega perto
+   do limite.
+4. **`tmp/restart.txt` no LiteSpeed.** No primeiro envio o serviço subiu
+   sozinho (o health passou a responder o nosso JSON em vez do "It works!" do
+   cPanel). Se um envio futuro não reiniciar o app, o botão **Reiniciar** do
+   cPanel resolve.
+5. **A pasta do app está fechada por HTTP:** `/ingest-api/app.js` e
+   `/ingest-api/` respondem **403** (antes do envio, o `app.js` placeholder
+   do cPanel respondia 200 — a pasta nasce aberta; é o nosso `.htaccess` que
+   a fecha).
 
 ## Testar na máquina local
 

@@ -34,6 +34,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import {
   handleGenerate,
+  handleGenerateStatus,
   handleHealth,
   handleTranscribe,
   handleWebInspect,
@@ -48,6 +49,16 @@ const ROUTES: Record<string, Handler> = {
   "POST /ingest/web/inspect": handleWebInspect,
   "POST /ingest/generate": handleGenerate,
 };
+
+// A única rota com parâmetro: o estado de um job de geração.
+const JOB_STATUS_RE = /^\/ingest\/generate\/[0-9a-f-]{36}$/;
+
+function resolveRoute(method: string, path: string): Handler | undefined {
+  const exact = ROUTES[`${method} ${path}`];
+  if (exact) return exact;
+  if (method === "GET" && JOB_STATUS_RE.test(path)) return handleGenerateStatus;
+  return undefined;
+}
 
 const DEFAULT_ORIGINS = ["https://andreaeboli.sanity.studio"];
 const ALLOWED_ORIGINS = new Set([
@@ -158,7 +169,7 @@ const server = createServer(async (req, res) => {
 
   let response: Response;
   try {
-    const handler = ROUTES[`${method} ${path}`];
+    const handler = resolveRoute(method, path);
     if (!handler) {
       response = jsonResponse({ error: "not_found", path }, 404);
     } else {
