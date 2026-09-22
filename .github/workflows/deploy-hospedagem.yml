@@ -1,9 +1,31 @@
 # Publica o hub em andreaeboli.com (cPanel/LiteSpeed na nuvemHospedagem).
 #
 # CONVIVE com o deploy.yml do GitHub Pages de propósito: enquanto a migração
-# não estiver concluída, o site do Pages continua no ar. Por isso aqui não há
-# `on: push` nem `schedule` — só disparo manual. O cron entra no fim, junto
-# com a retirada do workflow do Pages.
+# não estiver concluída, o site do Pages continua no ar.
+#
+# ─────────────────────────────────────────────────────────────────────────
+# REPUBLICAÇÃO AUTOMÁTICA (desde 22/09/2026)
+#
+# O site é estático: publicar no painel não põe a página no ar, é preciso
+# rebuildar e reenviar. Pedido do Igor: "toda vez que a gente gerar conteúdo
+# novo para o site essas páginas devem entrar automaticamente". Dois gatilhos:
+#
+#   · `schedule` — a cada 30 min o job `verificar` pergunta ao Sanity a data
+#     da última publicação e o total de documentos publicados, e compara com
+#     o `content-version.txt` que o último deploy deixou na raiz do site. Se
+#     for igual, o job `deploy` nem começa (custa ~10 s de runner). Se mudou,
+#     roda o modo `enviar-arquivos` inteiro. Sem segredo, sem webhook, sem
+#     depender de ninguém clicar. Latência máxima: meia hora.
+#   · `repository_dispatch` (tipo `sanity-publish`) — para um webhook do
+#     Sanity disparar na hora, quando o Igor criar um token do GitHub com
+#     permissão de Actions no repositório (ver deploy/API-CPANEL.md).
+#
+# O `concurrency` sem cancel-in-progress faz o "debounce": o GitHub mantém no
+# máximo UM run pendente por grupo, então três publicações seguidas viram no
+# máximo um deploy rodando e um na fila.
+#
+# ⚠️ Num run automático `inputs.modo` não existe. Por isso os passos lêem
+# `env.MODO`, que cai em `enviar-arquivos` quando não há input.
 #
 # ⚠️ CONTEXTO DE SEGURANÇA DESTA CONTA cPANEL (medido em 02/09/2026):
 #   1. public_html tem TRÊS sites dentro, confirmado na tela Domínios do
@@ -88,6 +110,12 @@
 name: Deploy (andreaeboli.com)
 
 on:
+  schedule:
+    # A cada 30 min (UTC). Minutos fora do zero: o GitHub atrasa os crons que
+    # caem na virada da hora, quando todo mundo agenda.
+    - cron: "7,37 * * * *"
+  repository_dispatch:
+    types: [sanity-publish]
   workflow_dispatch:
     inputs:
       modo:
@@ -112,9 +140,51 @@ concurrency:
 
 env:
   SITE_URL: https://andreaeboli.com
+  # O modo do deploy. Nos runs automáticos (schedule / repository_dispatch)
+  # não há input, e o padrão é republicar o conteúdo.
+  MODO: ${{ inputs.modo || 'enviar-arquivos' }}
 
 jobs:
+  # ------------------------------------------------------------------
+  # 0. VERIFICAR — há conteúdo novo desde o último deploy?
+  # ------------------------------------------------------------------
+  # Sem checkout: são duas chamadas HTTP. A "versão do conteúdo" é a data da
+  # última publicação + o total de documentos publicados (o total pega
+  # exclusões, que não mexem na data mais recente). O dataset é público de
+  # leitura, então não há token aqui. `aiSettings` fica de fora: é
+  # configuração do painel, não muda o site.
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pular: ${{ steps.check.outputs.pular }}
+      versao: ${{ steps.check.outputs.versao }}
+    steps:
+      - name: Comparar o conteúdo publicado com o que está no ar
+        id: check
+        run: |
+          Q='{"ultima": *[!(_id in path("drafts.**")) && !(_id in path("system.**")) && _type != "aiSettings"] | order(_updatedAt desc)[0]._updatedAt, "total": count(*[!(_id in path("drafts.**")) && !(_id in path("system.**")) && _type != "aiSettings"])}'
+          URL="https://52ssivbg.api.sanity.io/v2024-10-01/data/query/production?query=$(jq -rn --arg q "$Q" '$q|@uri')"
+          RESP=$(curl -sf --max-time 60 "$URL") || { echo "ATENÇÃO: o Sanity não respondeu; deploy segue por precaução"; echo "pular=false" >> "$GITHUB_OUTPUT"; echo "versao=desconhecida-$(date -u +%Y%m%dT%H%M%SZ)" >> "$GITHUB_OUTPUT"; exit 0; }
+          VERSAO=$(echo "$RESP" | jq -r '"\(.result.ultima)|\(.result.total)"')
+          NO_AR=$(curl -s --max-time 60 "${{ env.SITE_URL }}/content-version.txt?t=$(date +%s)" | tr -d '\r\n' || true)
+          echo "  conteúdo publicado no Sanity: $VERSAO"
+          echo "  versão que está no ar:        ${NO_AR:-(nenhuma)}"
+          echo "versao=$VERSAO" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "schedule" ] && [ "${{ github.event_name }}" != "repository_dispatch" ]; then
+            echo "  run manual (${{ env.MODO }}): não pula"
+            echo "pular=false" >> "$GITHUB_OUTPUT"
+          elif [ "$VERSAO" = "$NO_AR" ]; then
+            echo "  nada novo: o deploy não roda"
+            echo "pular=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "  há conteúdo novo: republicar"
+            echo "pular=false" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
+    needs: verificar
+    if: needs.verificar.outputs.pular != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -122,24 +192,24 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: env.MODO != 'reverter' && env.MODO != 'diagnostico'
         # (vale para os quatro modos que buildam algo, painel incluído)
         with:
           node-version: 24
           cache: npm
 
       - name: Instalar dependências
-        if: inputs.modo != 'reverter' && inputs.modo != 'diagnostico'
+        if: env.MODO != 'reverter' && env.MODO != 'diagnostico'
         run: npm ci
 
       # Hospedagem estática não tem servidor: saem as rotas de API, o Studio
       # embutido e o middleware de idioma.
       - name: Remover partes server-only
-        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        if: env.MODO == 'simulacao' || env.MODO == 'enviar-arquivos' || env.MODO == 'ativar'
         run: rm -rf src/app/api 'src/app/(studio)' src/proxy.ts
 
       - name: Build estático
-        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        if: env.MODO == 'simulacao' || env.MODO == 'enviar-arquivos' || env.MODO == 'ativar'
         run: npm run build
         env:
           STATIC_EXPORT: "1"
@@ -153,11 +223,11 @@ jobs:
       # O markdown de cada rota, o llms.txt e a 404 da marca. Roda DEPOIS do
       # build porque parte do `out/` pronto — ver o cabeçalho do script.
       - name: Gerar os artefatos para agentes de IA
-        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        if: env.MODO == 'simulacao' || env.MODO == 'enviar-arquivos' || env.MODO == 'ativar'
         run: node gera-artefatos-agentes.mjs
 
       - name: Montar o .htaccess e a raiz
-        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        if: env.MODO == 'simulacao' || env.MODO == 'enviar-arquivos' || env.MODO == 'ativar'
         run: |
           mkdir -p ativacao
           cp deploy/htaccess ativacao/.htaccess
@@ -184,11 +254,18 @@ jobs:
           # no modo `ativar`, deliberadamente.
           rm -f out/.htaccess out/index.html
 
+          # O carimbo que o job `verificar` compara no próximo run: a versão
+          # do conteúdo que ESTE build usou. Público de propósito (é só uma
+          # data e um total); o .htaccess já manda não cachear .txt.
+          echo "${{ needs.verificar.outputs.versao }}" > out/content-version.txt
+
       - name: Conferir o artefato
-        if: inputs.modo == 'simulacao' || inputs.modo == 'enviar-arquivos' || inputs.modo == 'ativar'
+        if: env.MODO == 'simulacao' || env.MODO == 'enviar-arquivos' || env.MODO == 'ativar'
         run: |
           echo "arquivos: $(find out -type f | wc -l)  ·  tamanho: $(du -sh out | cut -f1)"
           test -f out/404.html || { echo "ERRO: 404.html ausente"; exit 1; }
+          test -s out/content-version.txt || { echo "ERRO: content-version.txt ausente"; exit 1; }
+          echo "versão do conteúdo: $(cat out/content-version.txt)"
           test -f ativacao/.htaccess || { echo "ERRO: .htaccess ausente"; exit 1; }
           # O basePath antigo não pode ter sobrado: era a falha que subia meio
           # site prefixado com o build passando verde.
@@ -220,7 +297,7 @@ jobs:
       # ⚠️ Sem `curl -v` de propósito: o modo verboso do curl imprime o
       # comando PASS com a senha em claro no log do Actions.
       - name: Diagnóstico do FTP
-        if: inputs.modo == 'diagnostico'
+        if: env.MODO == 'diagnostico'
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -302,7 +379,7 @@ jobs:
       # 1. SIMULAÇÃO — não escreve nada no servidor
       # ------------------------------------------------------------------
       - name: Simulação do envio
-        if: inputs.modo == 'simulacao'
+        if: env.MODO == 'simulacao'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -317,7 +394,7 @@ jobs:
           log-level: verbose
 
       - name: Listar a árvore do servidor
-        if: inputs.modo == 'simulacao'
+        if: env.MODO == 'simulacao'
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -346,7 +423,7 @@ jobs:
       # 2. ENVIAR ARQUIVOS — o WordPress continua servindo o site
       # ------------------------------------------------------------------
       - name: Enviar o hub, sem trocar o site
-        if: inputs.modo == 'enviar-arquivos'
+        if: env.MODO == 'enviar-arquivos'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -407,11 +484,11 @@ jobs:
       # Quem reescreve as URLs internas (/admin/structure/…) para o index.html
       # é o .htaccess, que sobe no modo `ativar`.
       - name: Buildar o painel
-        if: inputs.modo == 'enviar-painel'
+        if: env.MODO == 'enviar-painel'
         run: node build-painel.mjs
 
       - name: Enviar o painel
-        if: inputs.modo == 'enviar-painel'
+        if: env.MODO == 'enviar-painel'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -428,7 +505,7 @@ jobs:
           log-level: standard
 
       - name: Conferir o painel no ar
-        if: inputs.modo == 'enviar-painel'
+        if: env.MODO == 'enviar-painel'
         run: |
           sleep 15
           echo "  /admin/           HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ env.SITE_URL }}/admin/")"
@@ -454,11 +531,11 @@ jobs:
       # tem segredo nenhum (o build-api.mjs confere), então mesmo a hipótese
       # de o .htaccess não valer exporia só código.
       - name: Empacotar o serviço de ingestão
-        if: inputs.modo == 'enviar-api'
+        if: env.MODO == 'enviar-api'
         run: node build-api.mjs
 
       - name: Enviar o serviço
-        if: inputs.modo == 'enviar-api'
+        if: env.MODO == 'enviar-api'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -481,7 +558,7 @@ jobs:
             .npmrc
 
       - name: Conferir o serviço no ar
-        if: inputs.modo == 'enviar-api'
+        if: env.MODO == 'enviar-api'
         run: |
           # O Passenger reinicia o app ao notar o tmp/restart.txt novo, na
           # PRÓXIMA requisição — e a primeira depois do restart é a mais lenta.
@@ -506,7 +583,7 @@ jobs:
       # 3. ATIVAR — a troca, dois arquivos
       # ------------------------------------------------------------------
       - name: Guardar o .htaccess do WordPress e ativar o hub
-        if: inputs.modo == 'ativar'
+        if: env.MODO == 'ativar'
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -543,7 +620,7 @@ jobs:
           echo "→ hub ATIVO em ${{ env.SITE_URL }}"
 
       - name: Conferir o site no ar
-        if: inputs.modo == 'ativar'
+        if: env.MODO == 'ativar'
         run: |
           sleep 15
           for u in "/pt/" "/pt/pesquisa/" "/pt/confraria/" "/en/" "/es/" "/uma-url-que-nao-existe/"; do
@@ -562,14 +639,14 @@ jobs:
       # pintaria de vermelho todo deploy por algo que este repositório não
       # controla. O relatório fica no log para ser lido.
       - name: Prontidão para agentes de IA
-        if: inputs.modo == 'ativar'
+        if: env.MODO == 'ativar'
         run: node verifica-agentes.mjs || true
 
       # ------------------------------------------------------------------
       # 4. REVERTER — devolve o WordPress em segundos
       # ------------------------------------------------------------------
       - name: Reverter para o WordPress
-        if: inputs.modo == 'reverter'
+        if: env.MODO == 'reverter'
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
