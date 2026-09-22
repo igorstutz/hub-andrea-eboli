@@ -26,10 +26,12 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## ⏭️ TAREFAS DO IGOR (o que só ele pode fazer)
 
-> Atualizado em 21/09/2026. O código do serviço de ingestão está PRONTO e
-> testado localmente; falta a configuração que exige as contas dele. O passo
-> a passo completo, com os valores de cada campo, está em
-> **`deploy/API-CPANEL.md`**.
+> Atualizado em 21/09/2026, fim do dia. **O serviço de ingestão está NO AR e
+> provado** (sessão de 21/09, itens 12 e 13): a Andrea já pode importar
+> sozinha em andreaeboli.com/admin → "Importar de link". Os itens 1 a 4
+> abaixo estão concluídos e ficam como registro; sobram os "menores" e um
+> pedido: **a Andrea (ou o Igor) fazer uma importação pelo painel** e avisar
+> se algo destoar. Guia da hospedagem em **`deploy/API-CPANEL.md`**.
 
 1. ✅ **cPanel tem "Setup Node.js App"** (conferido na captura de 21/09). Por
    isso o serviço foi feito para rodar lá: `servidor-ingest/` → `dist-api/`.
@@ -42,19 +44,20 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
    descartada: não cobre os podcasts em que ela é convidada.)
    ⏭️ A MESMA chave precisa ir para a variável `SUPADATA_API_KEY` do app no
    cPanel (item 3).
-3. **No cPanel, um formulário só:** criar o app Node (root
-   `public_html/ingest-api`, URL `/api`, startup `app.js`) com as variáveis
-   `ANTHROPIC_API_KEY`, `TRANSCRIPT_PROVIDER=supadata`, `SUPADATA_API_KEY`,
-   `SUPADATA_MODE=native`. **Não há conta de FTP nem secret novo:** o serviço
-   sobe pela conta do site (decisão de 21/09, ver item 5 da sessão).
-4. **O resto é do Claude** (o `gh` está autenticado nesta máquina com escopo
-   `workflow`): commitar, rodar `enviar-api` e `enviar-painel`, conferir o
-   health e o 401, testar a Supadata de verdade e pôr a chave no `.env.local`.
-   Aí a Andrea importa sozinha.
+3. ✅ **App criado no cPanel** (21/09, à noite): Node 18.20.8, Production,
+   root `public_html/ingest-api`, URL `/api`, startup `app.js`, com as
+   variáveis `ANTHROPIC_API_KEY`, `TRANSCRIPT_PROVIDER=supadata`,
+   `SUPADATA_API_KEY`, `SUPADATA_MODE=native`. Sem conta de FTP nem secret
+   novo: o serviço sobe pela conta do site (ver item 5 da sessão).
+4. ✅ **Publicado pelo Claude** (`gh` autenticado com escopo `workflow`):
+   commits `c68d865` e `58ead1e`, modos `enviar-api` e `enviar-painel`
+   rodados duas vezes (a segunda com o modelo de jobs), health, 401, 403 e
+   geração real conferidos no ar.
 5. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
    escrita e não é mais usado. É um comando, quando ele quiser.
-6. **(menor) Commitar** as mudanças de 21/09 — ficaram só no repositório
-   local, de propósito (não foi pedido commit).
+6. **(menor) Créditos da Supadata:** cada vídeo importado gasta 2 (legenda +
+   metadados); o plano grátis dá 100/mês. Se um mês passar disso, o menor
+   plano pago é US$ 5/mês. O consumo aparece em dash.supadata.ai.
 
 ## Estado atual / onde paramos
 
@@ -223,6 +226,15 @@ contas dele (lista no topo do arquivo e em **`deploy/API-CPANEL.md`**).
       aos 15 min. Continua aceitando um 200 direto com `documents`.
     ⚠️ O `inspect` (7 a 16 s) e o `web/inspect` ficam síncronos: cabem no
     limite. O Whisper (`transcribe`) é só dev.
+    ✅ **Publicado (commit `58ead1e`) e provado no ar:** geração real do
+    mesmo vídeo (47 mil caracteres, vídeo + 3 perguntas) pelo serviço
+    publicado: `POST` respondeu **202 em 79 ms**, o job terminou em **128 s**
+    (42 consultas; teria caído no corte de 120 s do modelo antigo) e voltaram
+    **4 documentos** (1 vídeo + 3 perguntas, cada um com 3 conceitos-pilar
+    vinculados, slugs limpos; o do vídeo ganhou sufixo porque já existe um
+    igual no dataset). Os documentos NÃO foram gravados: a gravação é do
+    Studio. **A ferramenta está pronta para a Andrea usar em
+    andreaeboli.com/admin → "Importar de link".**
 
 ---
 
