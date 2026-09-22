@@ -130,6 +130,24 @@ Valem no `.env.local` (dev) **e** na tela "Setup Node.js App" do cPanel
 `OPENAI_TRANSCRIBE_MODEL`, `OPENAI_TRANSCRIBE_LANG`, `INGEST_ALLOWED_ORIGINS`.
 `INGEST_BUILD` é gravada pelo `build-api.mjs` (aparece no `/ingest/health`).
 
+## Depois de publicar: o site entra no ar sozinho
+
+O site é estático, então publicar no painel **não** põe a página no ar. Desde
+22/09/2026 o workflow de deploy roda a cada 30 min (cron `7,37 * * * *`): o
+job `verificar` compara `_updatedAt` do documento publicado mais recente + o
+total de publicados com o `content-version.txt` da raiz do site e, se mudou,
+roda o `enviar-arquivos`. Também aceita `repository_dispatch` tipo
+`sanity-publish` (webhook do Sanity, opcional, precisa de token do GitHub —
+receita em `deploy/API-CPANEL.md`).
+⚠️ Em run automático **não existe `inputs.modo`**: os passos lêem `env.MODO`.
+
+As páginas geradas saem com a MESMA carga de SEO/GEO/AEO das antigas, porque
+tudo vem do tipo do documento: canonical no próprio idioma, hreflang
+(`hrefLang` camelCase no HTML do Next) + x-default, Open Graph, JSON-LD
+(`VideoObject`+`FAQPage`+`SpeakableSpecification` no vídeo; `FAQPage` na
+pergunta), `index.md` por negociação de `Accept`, sitemap, llms.txt e
+llms-full.txt. Nada disso é escrito à mão na importação.
+
 ## Testar
 
 - `npx tsc --noEmit` e `npx eslint …` limpos; `node build-api.mjs` confere que

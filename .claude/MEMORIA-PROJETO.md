@@ -26,12 +26,12 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## ⏭️ TAREFAS DO IGOR (o que só ele pode fazer)
 
-> Atualizado em 21/09/2026, fim do dia. **O serviço de ingestão está NO AR e
-> provado** (sessão de 21/09, itens 12 e 13): a Andrea já pode importar
-> sozinha em andreaeboli.com/admin → "Importar de link". Os itens 1 a 4
-> abaixo estão concluídos e ficam como registro; sobram os "menores" e um
-> pedido: **a Andrea (ou o Igor) fazer uma importação pelo painel** e avisar
-> se algo destoar. Guia da hospedagem em **`deploy/API-CPANEL.md`**.
+> Atualizado em 22/09/2026. **O ciclo está fechado:** a Andrea importa pelo
+> painel, publica, e o site se republica sozinho em até ~30 min (sessão de
+> 22/09). Os itens 1 a 4 abaixo estão concluídos e ficam como registro.
+> Sobram os "menores" e uma melhoria opcional: o **webhook do Sanity** para
+> a republicação ser imediata em vez de a cada 30 min, que exige um token do
+> GitHub que só o Igor pode criar (receita em **`deploy/API-CPANEL.md`**).
 
 1. ✅ **cPanel tem "Setup Node.js App"** (conferido na captura de 21/09). Por
    isso o serviço foi feito para rodar lá: `servidor-ingest/` → `dist-api/`.
@@ -53,13 +53,76 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
    commits `c68d865` e `58ead1e`, modos `enviar-api` e `enviar-painel`
    rodados duas vezes (a segunda com o modelo de jobs), health, 401, 403 e
    geração real conferidos no ar.
-5. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
+5. **(opcional) Webhook do Sanity → republicação imediata.** Hoje o site
+   confere a cada 30 min e republica se houver conteúdo novo; com o webhook,
+   o deploy começa no instante em que ela publica. Exige um fine-grained
+   token do GitHub (Actions: read and write, só neste repositório) colado num
+   webhook do Sanity — passo a passo em `deploy/API-CPANEL.md`.
+6. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
    escrita e não é mais usado. É um comando, quando ele quiser.
-6. **(menor) Créditos da Supadata:** cada vídeo importado gasta 2 (legenda +
+7. **(menor) Créditos da Supadata:** cada vídeo importado gasta 2 (legenda +
    metadados); o plano grátis dá 100/mês. Se um mês passar disso, o menor
    plano pago é US$ 5/mês. O consumo aparece em dash.supadata.ai.
 
 ## Estado atual / onde paramos
+
+### 🗓️ Sessão 22/09/2026 (MAIS RECENTE) — A Andrea importou pelo painel, e o site passou a se republicar sozinho
+A ferramenta foi usada de verdade pela primeira vez: o Igor gerou **1 vídeo +
+2 perguntas a partir de um SHORT do YouTube** (`P86aZMQzQcY`, 38 s) pelo
+painel em andreaeboli.com/admin, e publicou os três. Depois: "toda vez que a
+gente gerar conteúdo novo para o site essas páginas devem entrar
+automaticamente e também devem sair com todas as regras de SEO/GEO/AEO que as
+demais já possuem".
+
+1. ✅ **A importação real saiu íntegra.** Conferido documento por documento na
+   API do Sanity: títulos em pt/en/es, corpo trilíngue (8 e 9 blocos por
+   idioma nas perguntas), **3 conceitos-pilar** vinculados em cada um, 6
+   pontos-chave por idioma no vídeo, transcrição em pt, SEO preenchido, as 2
+   perguntas ligadas ao vídeo e **zero travessões** nos três. O `publishedAt`
+   e a duração (38 s) vieram certos pela Supadata. Funciona com Short, não só
+   com vídeo longo.
+2. 🔴 **O que faltava não era a ferramenta, era o deploy.** O site é
+   ESTÁTICO: publicar no painel não põe a página no ar. A URL do vídeo novo
+   respondia 404 até eu rodar o `enviar-arquivos` à mão. Era exatamente o
+   ponto 4 dos "próximos passos" de 20/07 ("republicação automática: webhook
+   do Sanity → workflow_dispatch"), que nunca tinha sido feito.
+3. **Republicação automática, sem depender de ninguém** (commit `f0a5d1e`):
+   - `schedule` a cada 30 min (cron `7,37 * * * *` — minutos fora da virada
+     da hora, que o GitHub atrasa). Um job **`verificar`** (sem checkout, 2
+     chamadas HTTP, ~5 s) pergunta ao Sanity `_updatedAt` do documento
+     publicado mais recente **+ o total de documentos publicados** (o total
+     pega exclusões, que não mexem na data mais recente) e compara com o
+     **`content-version.txt`** que o último deploy deixou na raiz do site. Se
+     for igual, o job `deploy` nem começa (`needs` + `if`).
+   - `repository_dispatch` (tipo `sanity-publish`) para um webhook do Sanity
+     disparar na hora. Opcional: exige um token do GitHub que só o Igor pode
+     criar — receita completa em `deploy/API-CPANEL.md`.
+   - O `concurrency` sem `cancel-in-progress` já faz o debounce: o GitHub
+     mantém no máximo 1 run na fila por grupo.
+   - ⚠️ **Num run automático `inputs.modo` não existe.** Por isso entrou
+     `env.MODO: ${{ inputs.modo || 'enviar-arquivos' }}` e os **21 passos**
+     com `if:` passaram de `inputs.modo` para `env.MODO`.
+   - 📌 **`curl -sf`, não `curl -s`**, ao ler o carimbo: sem o `-f` um 404
+     devolve o HTML inteiro da página de erro (que este site tem caprichada)
+     como se fosse a versão. A decisão continuaria certa, mas o log ficaria
+     ilegível. Corrigido em `7d56b71`.
+4. ✅ **Paridade de SEO/GEO/AEO provada no ar**, comparando as 3 páginas novas
+   com um vídeo antigo. As novas têm exatamente os mesmos sinais, porque tudo
+   é derivado do tipo do documento, não escrito à mão:
+   | Sinal | Páginas novas |
+   |---|---|
+   | canonical no próprio idioma | ✓ |
+   | hreflang pt-BR/en/es + x-default | ✓ |
+   | Open Graph (5 campos) + twitter:card | ✓ |
+   | JSON-LD | vídeo: VideoObject, Person, WebPage, **SpeakableSpecification**, BreadcrumbList, **FAQPage**; perguntas: FAQPage, BreadcrumbList |
+   | `Accept: text/markdown` → 200 `text/markdown` | ✓ (4.041 / 3.078 / 2.775 chars) |
+   | sitemap.xml · llms.txt · llms-full.txt | ✓ (55 URLs · 58 links · 335 KB) |
+   📌 **Falso positivo meu, de novo:** o verificador não achava hreflang em
+   NENHUMA página, nem nas antigas. O Next gera **`hrefLang`** em camelCase e
+   eu procurava `hreflang=` minúsculo. (O `gera-artefatos-agentes.mjs` já
+   usava `/i` na regex; o `verifica-agentes.mjs` não checa hreflang.) Mesma
+   classe de erro do `Vary: Accept-Encoding` em 15/09: **conferir a regex
+   antes de acreditar num resultado negativo uniforme**.
 
 ### 🗓️ Sessão 21/09/2026 (MAIS RECENTE) — A ingestão virou um serviço Node para o cPanel, com autenticação de verdade
 O Igor mandou a captura do cPanel: existe **"Setup Node.js App"** (CloudLinux
