@@ -53,11 +53,14 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
    commits `c68d865` e `58ead1e`, modos `enviar-api` e `enviar-painel`
    rodados duas vezes (a segunda com o modelo de jobs), health, 401, 403 e
    geração real conferidos no ar.
-5. **(opcional) Webhook do Sanity → republicação imediata.** Hoje o site
-   confere a cada 30 min e republica se houver conteúdo novo; com o webhook,
-   o deploy começa no instante em que ela publica. Exige um fine-grained
-   token do GitHub (Actions: read and write, só neste repositório) colado num
-   webhook do Sanity — passo a passo em `deploy/API-CPANEL.md`.
+5. ⭐ **Webhook do Sanity → republicação imediata. VIROU A MAIS ÚTIL.**
+   Medido em 23/09: o cron do GitHub, declarado de 30 em 30 min, na prática
+   dispara a cada **3 a 6 horas** (a plataforma descarta a maioria dos
+   agendamentos). Ou seja, hoje a página dela pode levar horas para entrar no
+   ar. O webhook faz o deploy começar no instante da publicação. Exige um
+   fine-grained token do GitHub (Actions: read and write, só neste
+   repositório) colado num webhook do Sanity — passo a passo em
+   `deploy/API-CPANEL.md`.
 6. **(menor) Revogar o token do robô `seed-temporario`**, que tem permissão de
    escrita e não é mais usado. É um comando, quando ele quiser.
 7. **(menor) Créditos da Supadata:** cada vídeo importado gasta 2 (legenda +
@@ -65,6 +68,58 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
    plano pago é US$ 5/mês. O consumo aparece em dash.supadata.ai.
 
 ## Estado atual / onde paramos
+
+### 🗓️ Sessão 23/09/2026 (MAIS RECENTE) — Os textos da home saíram do código e foram para o painel
+O Igor: *"eu queria mudar as perguntas da pagina principal e as 3 do
+quadrado... mas nao estou as encontrando no admin"*. Não estavam: viviam nos
+`messages/*.json` e só mudavam por commit. Perguntei o caminho e ele escolheu
+**levar para o painel**, incluindo os demais textos da home.
+
+1. **Singleton `homePage` ("Página inicial", 1º item do painel)** com os **44
+   textos** da home em **7 abas** (topo · para quem é · tese · as 3 perguntas ·
+   ECP · seções · newsletter), nos 3 idiomas.
+2. 🔴 **TODO CAMPO É OPCIONAL e cai na tradução quando vazio**
+   (`src/lib/homeText.ts`: `tx()` e `txList()` no lugar de `t()` e `t.raw()`).
+   Três motivos: campo limpo sem querer não abre buraco na home; o site
+   continua montável com o dataset fora do ar; e não foi preciso migrar tudo
+   de uma vez. **10/10 casos** testados (Sanity vence, vazio/só-espaços/idioma
+   ausente/campo inexistente/doc nulo caem na tradução; lista vazia idem; item
+   vazio no meio é descartado).
+3. 📌 **O nome do campo no Sanity é IGUAL à chave de tradução** (`thesisP1`,
+   `q1`, `audienceDenial`…). É isso que faz a ponte ser uma linha em vez de um
+   mapa de-para — e por isso a query é `{...}` e não campo a campo: listar
+   campo a campo significaria editar a query a cada campo novo, e o sintoma de
+   esquecer seria silencioso (o painel salva, o site ignora).
+4. ✅ **A duplicação das 3 perguntas acabou.** Estavam em `home.q*` **e**
+   `aboutPage.q*` com o mesmo texto: mudar uma não mudava a outra. Agora a
+   home e o quadro do /sobre leem o mesmo campo. Provado com um marcador
+   gravado no painel: apareceu nas DUAS páginas.
+5. **`semeia-textos-home.mjs`** levou o texto atual para o painel (já rodado,
+   44 campos). Sem isso ela abriria "Página inicial" e veria 44 campos vazios,
+   sem saber o que cada um controla. **Não sobrescreve** campo já preenchido,
+   então rodar de novo é seguro (é o que fazer quando um campo novo entrar no
+   schema). Tem `--gravar`; sem a flag, só simula.
+6. 🔴 **MEDIDO: o cron do GitHub NÃO roda de 30 em 30 min.** O `schedule` está
+   declarado como `7,37 * * * *`, mas os 8 disparos reais saíram com **3 a 6
+   horas de intervalo** (06:07, 12:01, 16:51, 20:09, 23:14, 01:44, 07:41,
+   13:35). O GitHub descarta a maioria dos disparos agendados em repositório
+   de pouca atividade — comportamento conhecido da plataforma, não erro nosso.
+   ✅ O mecanismo em si está **provado**: os 8 runs deram `success` e o mais
+   recente registrou `verificar=success deploy=skipped`, que é o
+   comportamento certo quando nada mudou.
+   ⏭️ **Consequência prática:** a latência real entre ela publicar e a página
+   entrar no ar é de **algumas horas**, não de meia. Quem resolve isso é o
+   **webhook do Sanity** (`repository_dispatch`, já aceito pelo workflow), que
+   exige um token do GitHub que só o Igor cria — receita em
+   `deploy/API-CPANEL.md`. Passou a ser a pendência mais útil da lista dele.
+7. 📌 **Armadilha ao testar isto no `npm run dev`:** o `sanityFetch` tem
+   `revalidate: 3600`, então uma mudança no painel **não aparece** no dev por
+   1 hora, mesmo apagando `.next/cache` e reiniciando. O que destrava é um
+   query string novo na URL (`/pt?n=123`), que fura o cache de ROTA; o de
+   dados continua valendo. Em produção não existe: cada deploy builda do zero.
+   📌 E, pela **terceira vez na semana**, perdi tempo com **falso positivo de
+   substring**: `grep 't("audienceDenial")'` casa dentro de
+   `txList("audienceDenial")`. Usar limite de palavra ao conferir substituição.
 
 ### 🗓️ Sessão 22/09/2026 (MAIS RECENTE) — A Andrea importou pelo painel, e o site passou a se republicar sozinho
 A ferramenta foi usada de verdade pela primeira vez: o Igor gerou **1 vídeo +

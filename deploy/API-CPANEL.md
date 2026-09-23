@@ -109,15 +109,21 @@ se o serviço está fora ou sem chave.
 ## Depois de publicar no painel: o site se republica sozinho
 
 O site é estático, então publicar um documento no painel não põe a página no
-ar por si só. Desde 22/09/2026 o workflow **roda a cada 30 minutos**: o job
+ar por si só. Desde 22/09/2026 o workflow se encarrega disso: o job
 `verificar` compara a data da última publicação e o total de documentos
 publicados no Sanity com o `content-version.txt` que o último deploy deixou
 em https://andreaeboli.com/content-version.txt. Se mudou, o modo
 `enviar-arquivos` roda inteiro (uns 20 min); se não, o run termina em
-segundos. Latência máxima até a página nova aparecer: **meia hora + o tempo
-do deploy**. Nenhuma ação manual.
+segundos. Nenhuma ação manual.
 
-### Opcional: disparar na hora (webhook do Sanity)
+🔴 **Mas a frequência real não é a declarada.** O `schedule` pede a cada 30
+minutos; medido em 23/09/2026, os disparos reais saem com **3 a 6 horas de
+intervalo** — o GitHub descarta a maioria dos agendamentos em repositórios de
+pouca atividade. O mecanismo funciona (8 disparos, todos com sucesso, pulando
+o deploy quando nada mudou), mas a página nova pode levar horas para aparecer.
+**Quem resolve isso é o webhook abaixo.**
+
+### Recomendado: disparar na hora (webhook do Sanity)
 
 O workflow também aceita `repository_dispatch` do tipo `sanity-publish`. Para
 o Sanity chamá-lo a cada publicação, é preciso um token do GitHub, que só o
