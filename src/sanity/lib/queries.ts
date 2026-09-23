@@ -217,3 +217,18 @@ export const sitemapQuery = groq`
   "slug": slug.current,
   _updatedAt
 }`;
+
+// ---------------------------------------------------------------------------
+// Textos da página inicial (singleton `homePage`)
+// ---------------------------------------------------------------------------
+// Criado em 22/09/2026: estes textos viviam só nos messages/*.json e a Andrea
+// não os encontrava no painel. Agora ela edita, e o que ficar vazio aqui cai no
+// arquivo de tradução (ver src/lib/homeText.ts).
+//
+// 📌 A projeção é `...` de propósito: o documento é um saco de textos e os
+// nomes dos campos são IGUAIS às chaves de tradução. Listar campo por campo
+// significaria editar esta query a cada campo novo no schema — e o sintoma de
+// esquecer seria silencioso (o painel salva, o site ignora).
+//
+// ⚠️ `q1`, `q2` e `q3` alimentam a home E o quadro da página Sobre.
+export const homePageQuery = groq`*[_type == "homePage"][0]{...}`;

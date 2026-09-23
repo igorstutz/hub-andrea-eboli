@@ -11,9 +11,11 @@ import {
   languageTagFor,
   localizedUrl,
 } from "@/lib/seo";
+import { homeText, type HomeDoc } from "@/lib/homeText";
 import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import {
+  homePageQuery,
   questionsListQuery,
   conceptsListQuery,
   casesListQuery,
@@ -125,13 +127,18 @@ export default async function HomePage({
   const ta = await getTranslations("aboutPage");
 
   // Conteúdo real das bibliotecas (datasets pequenos; fatiamos aqui).
-  const [questions, concepts, cases, articles, videos] = await Promise.all([
+  // Textos da home: o painel manda, a tradução é a rede (ver src/lib/homeText.ts).
+  const [home, questions, concepts, cases, articles, videos] = await Promise.all([
+    sanityFetch<HomeDoc>(homePageQuery, { locale }),
     sanityFetch<QItem[]>(questionsListQuery, { locale }),
     sanityFetch<CItem[]>(conceptsListQuery, { locale }),
     sanityFetch<CaseItem[]>(casesListQuery, { locale }),
     sanityFetch<AItem[]>(articlesListQuery, { locale }),
     sanityFetch<VItem[]>(videosListQuery, { locale }),
   ]);
+
+  // `tx` no lugar de `t` para tudo que a Andrea edita no painel.
+  const { tx, txList } = homeText(home, locale, t);
 
   // A home é a página central da tese: as três dimensões da ECP e o vocabulário
   // Ser Poder vêm da mesma biblioteca de conceitos, separados pelo campo "group".
@@ -179,29 +186,29 @@ export default async function HomePage({
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
               <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
-              {t("thesisBadge")}
+              {tx("thesisBadge")}
             </span>
           </Reveal>
           <Reveal delay={100}>
             <h2 className="mt-6 text-4xl text-wine md:text-5xl">
-              {t("thesisTitle")}
+              {tx("thesisTitle")}
             </h2>
           </Reveal>
           <Reveal delay={200}>
             <div className="drop-cap mt-8">
-              <p className="text-xl leading-relaxed text-ink">{t("thesisP1")}</p>
+              <p className="text-xl leading-relaxed text-ink">{tx("thesisP1")}</p>
             </div>
           </Reveal>
           <Reveal delay={280}>
-            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP2")}</p>
+            <p className="mt-6 leading-relaxed text-ink-soft">{tx("thesisP2")}</p>
           </Reveal>
           <Reveal delay={340}>
             <p className="mt-6 border-l-2 border-wine pl-5 font-serif text-xl italic leading-relaxed text-green-deep">
-              {t("thesisP3")}
+              {tx("thesisP3")}
             </p>
           </Reveal>
           <Reveal delay={400}>
-            <p className="mt-6 leading-relaxed text-ink-soft">{t("thesisP4")}</p>
+            <p className="mt-6 leading-relaxed text-ink-soft">{tx("thesisP4")}</p>
           </Reveal>
         </div>
       </section>
@@ -220,19 +227,19 @@ export default async function HomePage({
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-green-deep/25 bg-green-deep/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-green-deep">
               <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-green-deep" />
-              {t("audienceBadge")}
+              {tx("audienceBadge")}
             </span>
           </Reveal>
           <Reveal delay={100}>
             <h2 className="mt-6 text-4xl text-wine md:text-5xl">
-              {t("audienceTitle")}
+              {tx("audienceTitle")}
             </h2>
           </Reveal>
 
           {/* O que NÃO é */}
           <Reveal delay={180}>
             <div className="mt-10 space-y-1.5">
-              {(t.raw("audienceDenial") as string[]).map((line) => (
+              {txList("audienceDenial").map((line) => (
                 <p key={line} className="text-lg leading-relaxed text-muted">
                   {line}
                 </p>
@@ -246,7 +253,7 @@ export default async function HomePage({
               seguinte é o corpo maior e o filete acima. */}
           <Reveal delay={240}>
             <ul className="mt-10 space-y-5 border-t border-wine/15 pt-10">
-              {(t.raw("audienceAffirmation") as string[]).map((line) => (
+              {txList("audienceAffirmation").map((line) => (
                 <li key={line} className="text-xl leading-relaxed text-ink">
                   {line}
                 </li>
@@ -257,7 +264,7 @@ export default async function HomePage({
           {/* A virada: já conquistou por fora */}
           <Reveal delay={300}>
             <div className="mt-10 space-y-3">
-              {(t.raw("audiencePivot") as string[]).map((line) => (
+              {txList("audiencePivot").map((line) => (
                 <p key={line} className="leading-relaxed text-ink-soft">
                   {line}
                 </p>
@@ -268,7 +275,7 @@ export default async function HomePage({
           {/* O próximo passo — o trecho que carrega a frase */}
           <Reveal delay={360}>
             <div className="mt-10 border-l-2 border-wine pl-5">
-              {(t.raw("audienceTurn") as string[]).map((line) => (
+              {txList("audienceTurn").map((line) => (
                 <p
                   key={line}
                   className="font-serif text-xl italic leading-relaxed text-green-deep"
@@ -282,7 +289,7 @@ export default async function HomePage({
           {/* Fecho: não nasce da fraqueza */}
           <Reveal delay={420}>
             <div className="mt-12 space-y-3 border-t border-ink/10 pt-10">
-              {(t.raw("audienceClose") as string[]).map((line) => (
+              {txList("audienceClose").map((line) => (
                 <p
                   key={line}
                   className="font-serif text-2xl leading-snug text-wine md:text-3xl"
@@ -307,11 +314,11 @@ export default async function HomePage({
         <div className="relative mx-auto max-w-5xl px-6 py-24">
           <Reveal>
             <h2 className="max-w-2xl text-3xl text-cream md:text-4xl">
-              {t("questionsTitle")}
+              {tx("questionsTitle")}
             </h2>
           </Reveal>
           <div className="mt-14 grid gap-10 md:grid-cols-3">
-            {[t("q1"), t("q2"), t("q3")].map((q, i) => (
+            {[tx("q1"), tx("q2"), tx("q3")].map((q, i) => (
               <Reveal key={i} delay={i * 140}>
                 <div>
                   <span className="font-serif text-5xl font-semibold leading-none text-cream/25">
@@ -333,27 +340,27 @@ export default async function HomePage({
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-wine/30 bg-wine/5 px-3.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-wine">
               <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-wine" />
-              {t("ecpBadge")}
+              {tx("ecpBadge")}
             </span>
           </Reveal>
           <Reveal delay={100}>
             <h2 className="mt-6 text-3xl text-green-deep md:text-5xl">
-              {t("ecpTitle")}
+              {tx("ecpTitle")}
             </h2>
           </Reveal>
           <Reveal delay={200}>
-            <p className="mt-8 leading-relaxed text-ink-soft">{t("ecpP1")}</p>
+            <p className="mt-8 leading-relaxed text-ink-soft">{tx("ecpP1")}</p>
           </Reveal>
           <Reveal delay={260}>
-            <p className="mt-5 leading-relaxed text-ink-soft">{t("ecpP2")}</p>
+            <p className="mt-5 leading-relaxed text-ink-soft">{tx("ecpP2")}</p>
           </Reveal>
           <Reveal delay={320}>
-            <p className="mt-5 leading-relaxed text-ink-soft">{t("ecpP3")}</p>
+            <p className="mt-5 leading-relaxed text-ink-soft">{tx("ecpP3")}</p>
           </Reveal>
           <Reveal delay={400}>
             <blockquote className="mt-12 border-t border-ink/10 pt-10">
               <p className="font-serif text-2xl font-medium leading-snug text-wine md:text-3xl">
-                {t("ecpQuote")}
+                {tx("ecpQuote")}
               </p>
               <cite className="mt-5 block text-sm uppercase not-italic tracking-[0.2em] text-wine">
                 Andrea Eboli
@@ -371,10 +378,10 @@ export default async function HomePage({
           <div className="relative mx-auto max-w-6xl px-6 py-24">
             <Reveal>
               <SectionHeading
-                badge={t("dimensionsLabel")}
-                title={t("dimensionsTitle")}
+                badge={tx("dimensionsLabel")}
+                title={tx("dimensionsTitle")}
                 href="/conceitos"
-                cta={t("sectionCta")}
+                cta={tx("sectionCta")}
                 dark
               />
             </Reveal>
@@ -425,11 +432,11 @@ export default async function HomePage({
           </span>
           <div className="relative mx-auto max-w-5xl px-6 py-24">
             <Reveal>
-              <p className="kicker text-wine">{t("vocabularyLabel")}</p>
+              <p className="kicker text-wine">{tx("vocabularyLabel")}</p>
               <h2 className="mt-3 text-3xl text-wine md:text-4xl">
-                {t("vocabularyTitle")}
+                {tx("vocabularyTitle")}
               </h2>
-              <p className="mt-3 text-ink-soft">{t("vocabularyLead")}</p>
+              <p className="mt-3 text-ink-soft">{tx("vocabularyLead")}</p>
             </Reveal>
             <ul className="mt-12 divide-y divide-ink/10 border-y border-ink/10">
               {vocabulary.map((c, i) => (
@@ -478,7 +485,7 @@ export default async function HomePage({
                 title={tl("videos.name")}
                 lead={tl("videos.desc")}
                 href="/videos"
-                cta={t("sectionCta")}
+                cta={tx("sectionCta")}
               />
             </Reveal>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -555,7 +562,7 @@ export default async function HomePage({
                 title={tl("questions.name")}
                 lead={tl("questions.desc")}
                 href="/artigos-e-perguntas"
-                cta={t("sectionCta")}
+                cta={tx("sectionCta")}
               />
             </Reveal>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -604,7 +611,7 @@ export default async function HomePage({
                 title={tl("cases.name")}
                 lead={tl("cases.desc")}
                 href="/casos"
-                cta={t("sectionCta")}
+                cta={tx("sectionCta")}
               />
             </Reveal>
             <div className="grid gap-5 sm:grid-cols-2">
@@ -648,7 +655,7 @@ export default async function HomePage({
                 title={tl("articles.name")}
                 lead={tl("articles.desc")}
                 href="/artigos-e-perguntas"
-                cta={t("sectionCta")}
+                cta={tx("sectionCta")}
               />
             </Reveal>
             <div className="divide-y divide-ink/10 border-y border-ink/10">
@@ -708,17 +715,17 @@ export default async function HomePage({
         <div className="relative mx-auto max-w-3xl px-6 py-24 text-center">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-cream/25 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">
-              {t("newsletterBadge")}
+              {tx("newsletterBadge")}
             </span>
           </Reveal>
           <Reveal delay={120}>
             <h2 className="mt-6 text-4xl italic md:text-5xl">
-              {t("newsletterTitle")}
+              {tx("newsletterTitle")}
             </h2>
           </Reveal>
           <Reveal delay={240}>
             <p className="mx-auto mt-4 max-w-xl text-cream/85">
-              {t("newsletterLead")}
+              {tx("newsletterLead")}
             </p>
           </Reveal>
           <Reveal delay={360}>

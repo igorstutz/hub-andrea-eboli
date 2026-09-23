@@ -12,6 +12,7 @@ import { caseStudy } from "./documents/caseStudy";
 import { article } from "./documents/article";
 import { video } from "./documents/video";
 import { aboutPage } from "./documents/aboutPage";
+import { homePage } from "./documents/homePage";
 import { siteSettings } from "./documents/siteSettings";
 import { aiSettings } from "./documents/aiSettings";
 
@@ -30,6 +31,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     article,
     video,
     aboutPage,
+    homePage,
     siteSettings,
     aiSettings,
   ],

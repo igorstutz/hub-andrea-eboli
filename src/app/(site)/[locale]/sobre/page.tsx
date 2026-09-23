@@ -6,9 +6,10 @@ import PageBanner from "@/components/PageBanner";
 import BannerPhoto from "@/components/BannerPhoto";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL, localizedUrl, pageMetadata } from "@/lib/seo";
+import { homeText, type HomeDoc } from "@/lib/homeText";
 import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
-import { aboutGalleryQuery } from "@/sanity/lib/queries";
+import { aboutGalleryQuery, homePageQuery } from "@/sanity/lib/queries";
 import { urlFor, type ImageSource } from "@/sanity/lib/image";
 
 type GalleryPhoto = {
@@ -61,9 +62,17 @@ export default async function Page({
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
   const experiences = t.raw("experiences") as string[];
-  const gallery =
-    (await sanityFetch<GalleryPhoto[] | null>(aboutGalleryQuery, { locale })) ??
-    [];
+  const [gallery, home] = await Promise.all([
+    sanityFetch<GalleryPhoto[] | null>(aboutGalleryQuery, { locale }).then(
+      (g) => g ?? [],
+    ),
+    // As três perguntas do quadro são AS MESMAS da página inicial. Vinham de
+    // `aboutPage.q*` nos arquivos de tradução, duplicadas de `home.q*`: mudar
+    // uma não mudava a outra. Agora as duas páginas leem o mesmo campo do
+    // painel, e a tradução daqui continua como reserva.
+    sanityFetch<HomeDoc>(homePageQuery, { locale }),
+  ]);
+  const { tx } = homeText(home, locale, t);
 
   // O @id é o MESMO que a home declara: assim buscadores e IAs entendem as
   // duas páginas como a mesma pessoa, em vez de duas entidades soltas.
@@ -143,7 +152,7 @@ export default async function Page({
             <div className="my-8 rounded-r-lg border-l-2 border-wine bg-bone px-6 py-6">
               <p className="kicker mb-4 text-wine">{t("questionsLabel")}</p>
               <ol className="space-y-4">
-                {[t("q1"), t("q2"), t("q3")].map((q, i) => (
+                {[tx("q1"), tx("q2"), tx("q3")].map((q, i) => (
                   <li key={i} className="flex gap-4">
                     <span className="font-serif text-lg font-semibold leading-snug text-wine/45">
                       {String(i + 1).padStart(2, "0")}
