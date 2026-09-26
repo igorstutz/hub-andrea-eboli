@@ -4,7 +4,8 @@ import PageBanner from "@/components/PageBanner";
 import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { videosListQuery } from "@/sanity/lib/queries";
-import { parseYouTubeId, thumbnailUrl } from "@/lib/youtube";
+import { parseYouTubeId } from "@/lib/youtube";
+import { videoCover } from "@/lib/videoCover";
 import { pageMetadata } from "@/lib/seo";
 import { getPageText } from "@/lib/pageText";
 
@@ -13,6 +14,8 @@ type VideoItem = {
   slug: string;
   summary?: string;
   youtubeUrl?: string;
+  durationSeconds?: number;
+  isShort?: boolean | null;
 };
 
 export async function generateMetadata({
@@ -67,7 +70,7 @@ export default async function Page({
                   slug: v.slug,
                   title: v.title,
                   text: v.summary,
-                  image: id ? thumbnailUrl(id) : undefined,
+                  image: id ? videoCover(id, v) : undefined,
                 };
               })}
             />

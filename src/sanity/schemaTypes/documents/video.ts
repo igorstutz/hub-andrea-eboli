@@ -36,6 +36,15 @@ export const video = defineType({
       description: "Preenchido automaticamente na importação.",
     }),
     defineField({
+      name: "isShort",
+      title: "É um Short",
+      description:
+        "Ligado = no site a capa é a arte fixa “Shorts · Pílulas de conhecimento” " +
+        "(o YouTube não dá capa boa para Short). Marcado sozinho na importação " +
+        "quando o link é /shorts/ ou o vídeo tem até 3 minutos.",
+      type: "boolean",
+    }),
+    defineField({
       name: "directAnswer",
       title: "Resposta direta (citável)",
       type: "localeText",

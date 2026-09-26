@@ -170,6 +170,7 @@ export const videosListQuery = groq`
   "summary": coalesce(summary[$locale], summary.pt),
   "youtubeUrl": youtubeUrl,
   "durationSeconds": durationSeconds,
+  isShort,
   "publishedAt": publishedAt
 }`;
 
@@ -180,6 +181,7 @@ export const videoBySlugQuery = groq`
   "youtubeUrl": youtubeUrl,
   "publishedAt": publishedAt,
   "durationSeconds": durationSeconds,
+  isShort,
   "directAnswer": coalesce(directAnswer[$locale], directAnswer.pt),
   "summary": coalesce(summary[$locale], summary.pt),
   "keyTakeaways": coalesce(keyTakeaways[$locale], keyTakeaways.pt),

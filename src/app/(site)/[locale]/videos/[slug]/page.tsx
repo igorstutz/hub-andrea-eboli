@@ -13,9 +13,9 @@ import {
   parseYouTubeId,
   formatDurationISO,
   formatDurationHuman,
-  thumbnailUrl,
 } from "@/lib/youtube";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { videoCoverAbsolute } from "@/lib/videoCover";
 import { getPageText } from "@/lib/pageText";
 
 type Chapter = { startTime: number; title: string };
@@ -37,6 +37,7 @@ type VideoDetail = {
   youtubeUrl?: string;
   publishedAt?: string;
   durationSeconds?: number;
+  isShort?: boolean | null;
   directAnswer?: string;
   summary?: string;
   keyTakeaways?: unknown;
@@ -100,7 +101,7 @@ export default async function Page({
       "@type": "VideoObject",
       name: v.title,
       description: v.summary || v.directAnswer || v.title,
-      thumbnailUrl: [thumbnailUrl(videoId)],
+      thumbnailUrl: [videoCoverAbsolute(videoId, v)],
       uploadDate: v.publishedAt || undefined,
       duration: formatDurationISO(v.durationSeconds),
       embedUrl: `https://www.youtube.com/embed/${videoId}`,

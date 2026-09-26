@@ -21,7 +21,8 @@ import {
   articlesListQuery,
   videosListQuery,
 } from "@/sanity/lib/queries";
-import { parseYouTubeId, thumbnailUrl, formatDurationHuman } from "@/lib/youtube";
+import { parseYouTubeId, formatDurationHuman } from "@/lib/youtube";
+import { videoCover } from "@/lib/videoCover";
 
 // "Casos e Personagens" está fora da home por enquanto (pedido do Igor,
 // 28/08/2026): a flag esconde a seção de casos. A rota /casos e o conteúdo
@@ -43,7 +44,7 @@ type CItem = {
 };
 type CaseItem = { title: string; slug: string; description?: string };
 type AItem = { title: string; slug: string; kind?: string; excerpt?: string; publishedAt?: string };
-type VItem = { title: string; slug: string; summary?: string; youtubeUrl?: string; durationSeconds?: number };
+type VItem = { title: string; slug: string; summary?: string; youtubeUrl?: string; durationSeconds?: number; isShort?: boolean | null };
 
 // Cabeçalho padrão das seções de conteúdo da home: badge com ponto pulsante
 // (eco do banner), título, lead e CTA em pill que preenche no hover.
@@ -502,7 +503,7 @@ export default async function HomePage({
                         {id ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={thumbnailUrl(id)}
+                            src={videoCover(id, v)}
                             alt=""
                             className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />

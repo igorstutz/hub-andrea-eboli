@@ -86,6 +86,14 @@ matéria em que foi mencionada).
   a da importação). Artigo sem link da fonte leva à página no hub.
 - Os 3 artigos que já estavam lá (1 Forbes, 2 LinkedIn) ficaram com o campo
   LIGADO, para nada sumir do ar sem ela decidir.
+- **Capa fixa dos Shorts** (pedido seguinte): o YouTube não dá capa boa para
+  Short, então todo Short usa `public/brand/capa-shorts-pilulas-de-conhecimento.webp`
+  (original em `../brand-originais/`). Campo novo `isShort` no vídeo, marcado
+  sozinho na importação (link /shorts/ ou até 180 s); vazio = regra da
+  duração (`src/lib/videoCover.ts`). Vale na home, em /videos e no JSON-LD.
+  Os 6 vídeos existentes foram marcados (3 Shorts: 38, 50 e 72 s).
+  📌 Porta 3000 desta máquina às vezes está com OUTRO projeto (Maxima): ler a
+  porta no log do `npm run dev` antes de testar.
 
 ### 🗓️ Sessão 25/09/2026 — Todas as páginas fixas no painel + aba "Acessos" (origem das visitas)
 Três pedidos do Igor.

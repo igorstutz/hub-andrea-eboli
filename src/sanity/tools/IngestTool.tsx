@@ -466,10 +466,15 @@ export default function IngestTool() {
         const tx = client.transaction();
         for (const entry of docs) {
           // A escolha "Aparecer em Na mídia" vai no artigo (campo showInMedia).
+          // E o vídeo curto vem marcado como Short (capa fixa no site; ver
+          // src/lib/videoCover.ts): link /shorts/ ou até 3 minutos.
+          const secs = Number(entry.doc.durationSeconds) || 0;
           const doc =
             entry.doc._type === "article"
               ? { ...entry.doc, showInMedia: inMedia === true }
-              : entry.doc;
+              : entry.doc._type === "video"
+                ? { ...entry.doc, isShort: /\/shorts\//.test(url) || (secs > 0 && secs <= 180) }
+                : entry.doc;
           tx.createOrReplace(doc);
         }
         await tx.commit({ visibility: "async" });
