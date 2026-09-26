@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SiteTracker from "@/components/SiteTracker";
 import { SITE_URL, OG_IMAGE_PATH, ogLocaleFor } from "@/lib/seo";
 import "../../globals.css";
 
@@ -89,6 +90,8 @@ export default async function SiteLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          {/* Origem das visitas → painel "Acessos" (ver src/lib/analytics/track.ts) */}
+          <SiteTracker locale={locale} />
         </NextIntlClientProvider>
       </body>
     </html>

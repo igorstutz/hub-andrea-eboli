@@ -6,10 +6,10 @@ import PageBanner from "@/components/PageBanner";
 import BannerPhoto from "@/components/BannerPhoto";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL, localizedUrl, pageMetadata } from "@/lib/seo";
-import { homeText, type HomeDoc } from "@/lib/homeText";
+import { getPageText } from "@/lib/pageText";
 import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
-import { aboutGalleryQuery, homePageQuery } from "@/sanity/lib/queries";
+import { aboutGalleryQuery } from "@/sanity/lib/queries";
 import { urlFor, type ImageSource } from "@/sanity/lib/image";
 
 type GalleryPhoto = {
@@ -42,10 +42,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  const tp = await getTranslations({ locale, namespace: "aboutPage" });
+  const { tx } = await getPageText("aboutPage", "aboutPage", locale);
   return pageMetadata({
     title: t("about"),
-    description: tp("headline"),
+    description: tx("headline"),
     path: "/sobre",
     locale,
   });
@@ -58,11 +58,9 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("aboutPage");
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
-  const experiences = t.raw("experiences") as string[];
-  const [gallery, home] = await Promise.all([
+  const [gallery, home, about] = await Promise.all([
     sanityFetch<GalleryPhoto[] | null>(aboutGalleryQuery, { locale }).then(
       (g) => g ?? [],
     ),
@@ -70,9 +68,13 @@ export default async function Page({
     // `aboutPage.q*` nos arquivos de tradução, duplicadas de `home.q*`: mudar
     // uma não mudava a outra. Agora as duas páginas leem o mesmo campo do
     // painel, e a tradução daqui continua como reserva.
-    sanityFetch<HomeDoc>(homePageQuery, { locale }),
+    getPageText("homePage", "home", locale),
+    // Os demais textos da página: painel → Sobre Andrea.
+    getPageText("aboutPage", "aboutPage", locale),
   ]);
-  const { tx } = homeText(home, locale, t);
+  const t = about.tx;
+  const tx = home.tx;
+  const experiences = about.txList("experiences");
 
   // O @id é o MESMO que a home declara: assim buscadores e IAs entendem as
   // duas páginas como a mesma pessoa, em vez de duas entidades soltas.

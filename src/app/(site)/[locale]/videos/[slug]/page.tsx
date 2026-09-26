@@ -16,6 +16,7 @@ import {
   thumbnailUrl,
 } from "@/lib/youtube";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 type Chapter = { startTime: number; title: string };
 type RefItem = { title: string; slug: string };
@@ -71,6 +72,8 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const v = await sanityFetch<VideoDetail>(videoBySlugQuery, { locale, slug });
   if (!v) notFound();
@@ -142,7 +145,7 @@ export default async function Page({
       {
         "@type": "ListItem",
         position: 2,
-        name: t("libraries.videos.name"),
+        name: lib("videos.name"),
         item: localizedUrl(locale, "/videos"),
       },
       { "@type": "ListItem", position: 3, name: v.title, item: pageUrl },
@@ -169,7 +172,7 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.videos.name"), href: "/videos" },
+          { label: lib("videos.name"), href: "/videos" },
           { label: v.title },
         ]}
         badge={v.topic?.title}

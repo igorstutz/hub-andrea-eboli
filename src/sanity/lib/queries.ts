@@ -73,17 +73,7 @@ export const conceptBySlugQuery = groq`
 }`;
 
 // ---------- Sobre (singleton) ----------
-export const aboutQuery = groq`
-*[_type == "aboutPage"][0]{
-  name,
-  "headline": coalesce(headline[$locale], headline.pt),
-  "bio": coalesce(bio[$locale], bio.pt),
-  "credentials": credentials[]{ "text": coalesce(@[$locale], @.pt) },
-  photo,
-  "sameAs": *[_type == "siteSettings"][0].socialLinks[].url
-}`;
-
-// Só a galeria da página Sobre — os textos dela vivem nos messages/*.json.
+// Só a galeria da página Sobre — os textos vêm de `pageTextQuery`.
 // Entradas sem imagem são descartadas (slot vazio no Studio não quebra o build).
 // `w`/`h` são as dimensões originais do arquivo: a galeria mostra cada foto na
 // proporção em que foi tirada, então precisa delas para reservar a altura certa
@@ -219,16 +209,36 @@ export const sitemapQuery = groq`
 }`;
 
 // ---------------------------------------------------------------------------
-// Textos da página inicial (singleton `homePage`)
+// As páginas fixas (singletons de `src/sanity/pageTextDefs.ts`)
 // ---------------------------------------------------------------------------
-// Criado em 22/09/2026: estes textos viviam só nos messages/*.json e a Andrea
-// não os encontrava no painel. Agora ela edita, e o que ficar vazio aqui cai no
-// arquivo de tradução (ver src/lib/homeText.ts).
+// Criado em 22/09/2026 para a home e estendido em 25/09 para todas as páginas
+// fixas. O que ficar vazio no painel cai no arquivo de tradução (ver
+// src/lib/pageText.ts).
 //
 // 📌 A projeção é `...` de propósito: o documento é um saco de textos e os
 // nomes dos campos são IGUAIS às chaves de tradução. Listar campo por campo
 // significaria editar esta query a cada campo novo no schema — e o sintoma de
 // esquecer seria silencioso (o painel salva, o site ignora).
 //
-// ⚠️ `q1`, `q2` e `q3` alimentam a home E o quadro da página Sobre.
-export const homePageQuery = groq`*[_type == "homePage"][0]{...}`;
+// `$id` é o tipo do singleton, que também é o _id (homePage, aboutPage…).
+export const pageTextQuery = groq`*[_id == $id][0]{...}`;
+
+// Uma galeria de página (campo tipo "imgs" de pageTextDefs), com as dimensões
+// originais para o mosaico reservar a altura sem pular.
+export const pagePhotosQuery = groq`
+*[_id == $id][0][$field][defined(asset)]{
+  "key": _key,
+  "alt": coalesce(alt[$locale], alt.pt),
+  "image": { "_type": "image", asset },
+  "lqip": asset->metadata.lqip,
+  "w": asset->metadata.dimensions.width,
+  "h": asset->metadata.dimensions.height
+}`;
+
+// Uma imagem avulsa de página (campo tipo "img"): retrato, capa do livro.
+// `image` vem null quando o campo existe sem arquivo (imagem removida no painel).
+export const pageImageQuery = groq`
+*[_id == $id][0][$field]{
+  "image": select(defined(asset) => { "_type": "image", asset, hotspot, crop }),
+  "lqip": asset->metadata.lqip
+}`;

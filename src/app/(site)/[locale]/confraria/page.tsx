@@ -7,19 +7,38 @@ import EvidenceIntro from "@/components/EvidenceIntro";
 import Reveal from "@/components/Reveal";
 import { pageMetadata } from "@/lib/seo";
 import { asset } from "@/lib/assetPath";
+import { getPageText } from "@/lib/pageText";
+import { sanityFetch } from "@/sanity/lib/fetch";
+import { pagePhotosQuery } from "@/sanity/lib/queries";
+import { urlFor, type ImageSource } from "@/sanity/lib/image";
 
 /* ------------------------------------------------------------------
    MATERIAL DA CONFRARIA
 
-   PHOTOS  → a primeira é o destaque (largura inteira); as demais formam a
-             galeria em mosaico, cada uma na sua proporção original.
-             Arquivos em public/confraria/, gerados por
-             `prepara-fotos-confraria.mjs`; os alts moram no i18n.
-   TESTIMONIAL → depoimento curto ou aprendizado de participante.
-   CONFRARIA_URL → destino do botão "Conheça a Confraria". Enquanto for null
-             o botão não aparece.
+   Desde 25/09/2026 tudo aqui é editável no painel (Confraria Let's Be):
+   textos, fotos (com descrição), depoimento e o link do botão. O depoimento
+   e o botão só aparecem quando preenchidos.
+
+   PHOTOS  → a RESERVA para quando o painel não tiver fotos: a primeira é o
+             destaque (largura inteira); as demais formam a galeria em
+             mosaico, cada uma na sua proporção original. Arquivos em
+             public/confraria/, gerados por `prepara-fotos-confraria.mjs`
+             (que guarda o porquê da curadoria); os alts moram no i18n.
+             As mesmas 10 fotos foram levadas ao painel pelo
+             `semeia-textos-paginas.mjs`.
 ------------------------------------------------------------------- */
 type Photo = { src: string; altKey: string; w: number; h: number };
+
+/** Uma foto como a página desenha, venha do painel ou da reserva. */
+type Shown = { key: string; src: string; alt: string; w: number; h: number };
+
+type PanelPhoto = {
+  key: string;
+  alt?: string;
+  image: ImageSource;
+  w?: number;
+  h?: number;
+};
 
 /* 10 fotos (eram 16 até 31/08/2026). Saíram 6 a pedido da Andrea: cada uma
    repetia o mesmo instante ou a mesma cena de outra que ficou, e duas ainda
@@ -96,8 +115,6 @@ const PHOTOS: Photo[] = [
     h: 1600,
   },
 ];
-const TESTIMONIAL: { quote: string; author: string } | null = null;
-const CONFRARIA_URL: string | null = null;
 
 export async function generateMetadata({
   params,
@@ -105,7 +122,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "confrariaPage" });
+  const { tx: t } = await getPageText("confrariaPage", "confrariaPage", locale);
   return pageMetadata({
     title: t("title"),
     description: t("headline"),
@@ -121,11 +138,31 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("confrariaPage");
+  const [{ tx: t, url }, panelPhotos] = await Promise.all([
+    getPageText("confrariaPage", "confrariaPage", locale),
+    sanityFetch<PanelPhoto[] | null>(pagePhotosQuery, {
+      id: "confrariaPage",
+      field: "photos",
+      locale,
+    }),
+  ]);
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
 
-  const [main, ...gallery] = PHOTOS;
+  const photos: Shown[] = panelPhotos?.length
+    ? panelPhotos.map((p) => ({
+        key: p.key,
+        src: urlFor(p.image).width(1600).auto("format").url(),
+        alt: p.alt || t("photosLabel"),
+        w: p.w ?? 1600,
+        h: p.h ?? 1066,
+      }))
+    : PHOTOS.map((p) => ({ key: p.src, src: asset(p.src), alt: t(p.altKey), w: p.w, h: p.h }));
+  const [main, ...gallery] = photos;
+
+  const quote = t("testimonialQuote", "");
+  const testimonial = quote ? { quote, author: t("testimonialAuthor", "") } : null;
+  const confrariaUrl = url("confrariaUrl");
 
   return (
     <>
@@ -151,8 +188,8 @@ export default async function Page({
           <Reveal className="mt-10">
             <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-green-darker">
               <Image
-                src={asset(main.src)}
-                alt={t(main.altKey)}
+                src={main.src}
+                alt={main.alt}
                 fill
                 sizes="(max-width: 1152px) 100vw, 1152px"
                 className="object-cover"
@@ -165,14 +202,14 @@ export default async function Page({
           <div className="mt-5 gap-5 sm:columns-2 lg:columns-3 [column-gap:1.25rem]">
             {gallery.map((photo, i) => (
               <Reveal
-                key={photo.src}
+                key={photo.key}
                 delay={(i % 3) * 110}
                 className="mb-5 break-inside-avoid"
               >
                 <div className="group overflow-hidden rounded-2xl bg-green-darker">
                   <Image
-                    src={asset(photo.src)}
-                    alt={t(photo.altKey)}
+                    src={photo.src}
+                    alt={photo.alt}
                     width={photo.w}
                     height={photo.h}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -186,7 +223,7 @@ export default async function Page({
       </section>
 
       {/* Depoimento de participante */}
-      {TESTIMONIAL && (
+      {testimonial && (
         <section className="relative overflow-hidden bg-green-deep text-cream">
           <div className="gradient-mesh pointer-events-none absolute inset-0 opacity-50" />
           <div className="relative mx-auto max-w-3xl px-6 py-20 text-center">
@@ -196,10 +233,10 @@ export default async function Page({
                 “
               </span>
               <blockquote className="-mt-4 font-serif text-2xl italic leading-snug md:text-3xl">
-                {TESTIMONIAL.quote}
+                {testimonial.quote}
               </blockquote>
               <cite className="mt-7 block text-sm uppercase not-italic tracking-[0.2em] text-cream/70">
-                {TESTIMONIAL.author}
+                {testimonial.author}
               </cite>
             </Reveal>
           </div>
@@ -207,12 +244,12 @@ export default async function Page({
       )}
 
       {/* CTA da Confraria */}
-      {CONFRARIA_URL && (
+      {confrariaUrl && (
         <section className="bg-cream">
           <div className="mx-auto max-w-3xl px-6 py-16 text-center">
             <Reveal>
               <a
-                href={CONFRARIA_URL}
+                href={confrariaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group inline-flex items-center gap-2 rounded-full bg-wine px-7 py-3.5 text-sm font-semibold text-cream transition-all hover:gap-3 hover:bg-wine-deep"

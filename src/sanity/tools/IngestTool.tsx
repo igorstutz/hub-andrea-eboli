@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { useClient, useWorkspace, type SanityClient } from "sanity";
+import { useClient, useWorkspace } from "sanity";
+import { api, apiHeaders } from "./serviceApi";
 import {
   SOURCE_LABEL,
   SOURCE_TARGETS,
@@ -31,37 +32,6 @@ import {
 // Sanity quem é o dono do token (ver src/lib/ingest/auth.ts).
 
 const API_VERSION = "2024-10-01";
-const API_BASE = (process.env.SANITY_STUDIO_INGEST_API_URL || "/api").replace(
-  /\/+$/,
-  "",
-);
-
-function api(path: string): string {
-  return `${API_BASE}${path}`;
-}
-
-function readStoredToken(projectId: string): string | null {
-  try {
-    const raw = window.localStorage.getItem(`__studio_auth_token_${projectId}`);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { token?: string };
-    return typeof parsed.token === "string" ? parsed.token : null;
-  } catch {
-    return null;
-  }
-}
-
-// Cabeçalhos de uma chamada ao serviço: JSON + a sessão do Studio. Lido a cada
-// chamada (e não uma vez), porque o token pode ser renovado durante a sessão.
-function apiHeaders(client: SanityClient): Record<string, string> {
-  const cfg = client.config();
-  const token = cfg.token ?? (cfg.projectId ? readStoredToken(cfg.projectId) : null);
-  return {
-    "content-type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 // Mensagem para os erros que o serviço devolve de forma padronizada.
 function authMessage(status: number, data: { message?: string } | null): string | null {
   if (status === 401) {

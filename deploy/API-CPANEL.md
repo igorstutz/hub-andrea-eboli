@@ -147,6 +147,32 @@ Igor pode criar:
 O `concurrency` do workflow faz o debounce: várias publicações seguidas viram
 no máximo um deploy rodando e um na fila.
 
+## Medição de acessos (aba "Acessos" do painel) — 25/09/2026
+
+O mesmo serviço recebe as páginas vistas do site e alimenta a aba **Acessos**
+do painel. Código em `src/lib/analytics/track.ts`; o site manda com
+`src/components/SiteTracker.tsx`.
+
+| Rota | Quem chama | O que faz |
+|---|---|---|
+| `POST /api/track` | o site, a cada página vista | grava uma linha; sempre responde 204 |
+| `GET /api/track/summary?days=30` | o painel (sessão de membro, inclusive `viewer`) | indicadores do período |
+| `GET /api/track/export?days=30` | o painel (idem) | sessões em CSV |
+
+- **Onde ficam os dados:** `~/andrea-analytics/events-AAAA-MM-DD.jsonl` (um
+  arquivo por dia UTC), **fora de `public_html`**, para nenhum envio por FTP
+  mexer neles. Outro lugar: variável `TRACK_DATA_DIR` no app do cPanel.
+  Não há variável nova obrigatória.
+- **Backup:** se um dia quiser guardar o histórico, é copiar essa pasta. Apagar
+  a pasta zera o painel, sem quebrar nada.
+- **Privacidade:** sem cookie, sem IP gravado, referrer só como domínio, e
+  navegador com Do Not Track/GPC não é medido. `?naomedir=1` em qualquer página
+  desliga a medição naquele navegador (para ela e o Igor não contarem as
+  próprias visitas); `?naomedir=0` religa.
+- **Proteções do POST público:** corpo até 4 KB, 120 páginas/min por IP (em
+  memória), robôs descartados pelo User-Agent (inclusive `HeadlessChrome`),
+  arquivo diário limitado a 20 MB.
+
 ## Como o serviço se protege
 
 - **Sessão do Sanity, não segredo.** A ferramenta manda o token de sessão do

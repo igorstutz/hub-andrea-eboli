@@ -6,6 +6,7 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { videosListQuery } from "@/sanity/lib/queries";
 import { parseYouTubeId, thumbnailUrl } from "@/lib/youtube";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 type VideoItem = {
   title: string;
@@ -20,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "libraries" });
+  const { tx: t } = await getPageText("librariesText", "libraries", locale);
   return pageMetadata({
     title: t("videos.name"),
     description: t("videos.desc"),
@@ -36,6 +37,8 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const items = await sanityFetch<VideoItem[]>(videosListQuery, { locale });
 
@@ -47,7 +50,7 @@ export default async function Page({
           { label: t("nav.videosPodcast") },
         ]}
         title={t("nav.videosPodcast")}
-        lead={t("libraries.videos.desc")}
+        lead={lib("videos.desc")}
       />
       <section className="bg-cream">
         <div className="mx-auto max-w-5xl px-6 py-16">

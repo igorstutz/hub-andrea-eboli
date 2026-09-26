@@ -112,15 +112,6 @@ async function askSanity(token: string): Promise<AuthResult> {
       message: "Sessão não reconhecida. Entre de novo no painel.",
     };
   }
-  if (!ALLOWED_ROLES.has(role) && !roles.some((r) => ALLOWED_ROLES.has(r))) {
-    return {
-      ok: false,
-      status: 403,
-      error: "forbidden",
-      message: `O papel "${role}" não pode importar conteúdo.`,
-    };
-  }
-
   return {
     ok: true,
     user: { id: me.id, name: me.name, email: me.email, role, roles },
@@ -128,10 +119,32 @@ async function askSanity(token: string): Promise<AuthResult> {
 }
 
 /**
+ * O papel vale para ESTA chamada, e por isso é conferido depois do cache (que
+ * só guarda quem é a pessoa): o painel de acessos aceita `viewer`, a
+ * importação não, e um cache compartilhado não pode deixar um liberar o outro.
+ */
+function checkRole(user: SanityUser, allowViewer: boolean): AuthResult {
+  const allowed = (r: string) => ALLOWED_ROLES.has(r) || (allowViewer && r === "viewer");
+  if (allowed(user.role) || user.roles.some(allowed)) return { ok: true, user };
+  return {
+    ok: false,
+    status: 403,
+    error: "forbidden",
+    message: `O papel "${user.role}" não pode importar conteúdo.`,
+  };
+}
+
+/**
  * Confere a sessão de quem chama. Uso: `const auth = await requireMember(req);
  * if (!auth.ok) return unauthorized(auth);`
+ *
+ * `allowViewer`: libera também quem só tem leitura no projeto (painel de
+ * acessos). Na importação fica desligado, que é o padrão.
  */
-export async function requireMember(req: Request): Promise<AuthResult> {
+export async function requireMember(
+  req: Request,
+  { allowViewer = false }: { allowViewer?: boolean } = {},
+): Promise<AuthResult> {
   const token = bearerToken(req);
   if (!token) {
     return {
@@ -144,7 +157,7 @@ export async function requireMember(req: Request): Promise<AuthResult> {
 
   const now = Date.now();
   const hit = cache.get(token);
-  if (hit && hit.expiresAt > now) return { ok: true, user: hit.user };
+  if (hit && hit.expiresAt > now) return checkRole(hit.user, allowViewer);
 
   const result = await askSanity(token);
   if (result.ok) {
@@ -153,6 +166,7 @@ export async function requireMember(req: Request): Promise<AuthResult> {
     if (cache.size > 200) {
       for (const [k, v] of cache) if (v.expiresAt <= now) cache.delete(k);
     }
+    return checkRole(result.user, allowViewer);
   }
   return result;
 }

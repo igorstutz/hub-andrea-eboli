@@ -1,18 +1,33 @@
 import type { StructureResolver } from "sanity/structure";
+import { DocumentsIcon } from "@sanity/icons";
+import { PAGE_TYPES } from "./schemaTypes/documents/pageTexts";
 
-// Estrutura do Studio: singletons no topo, bibliotecas listadas abaixo.
+// Estrutura do Studio: as páginas fixas numa pasta só, configurações, e as
+// bibliotecas listadas abaixo.
+//
+// "Páginas do site" (25/09/2026): cada página fixa é um documento único cujo
+// id é o próprio tipo (homePage, aboutPage…). A lista sai de pageTextDefs.ts,
+// então uma página nova no arquivo aparece aqui sem mexer neste código.
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("Conteúdo")
     .items([
       S.listItem()
-        .title("Página inicial")
-        .id("homePage")
-        .child(S.document().schemaType("homePage").documentId("homePage")),
-      S.listItem()
-        .title("Sobre Andrea")
-        .id("aboutPage")
-        .child(S.document().schemaType("aboutPage").documentId("aboutPage")),
+        .title("Páginas do site")
+        .id("paginas")
+        .icon(DocumentsIcon)
+        .child(
+          S.list()
+            .title("Páginas do site")
+            .items(
+              PAGE_TYPES.map(({ type, title }) =>
+                S.listItem()
+                  .title(title)
+                  .id(type)
+                  .child(S.document().schemaType(type).documentId(type)),
+              ),
+            ),
+        ),
       S.listItem()
         .title("Configurações")
         .id("siteSettings")

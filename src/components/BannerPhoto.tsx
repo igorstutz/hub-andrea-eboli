@@ -1,6 +1,9 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { asset } from "@/lib/assetPath";
+import { sanityFetch } from "@/sanity/lib/fetch";
+import { pageImageQuery } from "@/sanity/lib/queries";
+import { urlFor, type ImageSource } from "@/sanity/lib/image";
 
 // Foto editorial do banner — moldura RETANGULAR (o arco saiu a pedido da Andrea
 // em 19/08/2026) + bloco de cor deslocado atrás, mantendo a colagem editorial +
@@ -11,6 +14,10 @@ import { asset } from "@/lib/assetPath";
 // inteiras. No projeto fica só a versão leve (.webp, 900x1200); o JPG original
 // está FORA do repositório, na pasta irmã `brand-originais/`. Se PHOTO_SRC for
 // null, cai no placeholder desenhado (monograma).
+//
+// Desde 25/09/2026 o retrato é trocável no painel (Sobre Andrea → Coluna
+// lateral → Retrato). Vazio lá = este arquivo. O recorte 3:4 respeita o ponto
+// de foco que ela marcar na foto.
 const PHOTO_SRC: string | null = "/brand/andrea-eboli-retrato-2026.webp";
 
 export default async function BannerPhoto({
@@ -22,6 +29,13 @@ export default async function BannerPhoto({
 }) {
   // O alt vem do i18n (`common.portraitAlt`) para acompanhar o idioma da página.
   const t = await getTranslations("common");
+  const fromPanel = await sanityFetch<{ image: ImageSource; lqip?: string } | null>(
+    pageImageQuery,
+    { id: "aboutPage", field: "photo" },
+  );
+  const src = fromPanel?.image
+    ? urlFor(fromPanel.image).width(900).height(1200).fit("crop").auto("format").url()
+    : PHOTO_SRC && asset(PHOTO_SRC);
 
   return (
     <div className={`relative mx-auto w-full max-w-[22rem] ${className}`}>
@@ -32,9 +46,9 @@ export default async function BannerPhoto({
       />
 
       <div className="photo-frame photo-duotone relative aspect-[3/4] w-full bg-green-darker">
-        {PHOTO_SRC ? (
+        {src ? (
           <Image
-            src={asset(PHOTO_SRC)}
+            src={src}
             alt={t("portraitAlt")}
             fill
             priority={priority}

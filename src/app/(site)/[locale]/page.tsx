@@ -11,11 +11,10 @@ import {
   languageTagFor,
   localizedUrl,
 } from "@/lib/seo";
-import { homeText, type HomeDoc } from "@/lib/homeText";
+import { getPageText, getNewsletterLabels } from "@/lib/pageText";
 import { SOCIAL_SAME_AS } from "@/lib/social";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import {
-  homePageQuery,
   questionsListQuery,
   conceptsListQuery,
   casesListQuery,
@@ -120,16 +119,16 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("home");
-  const tl = await getTranslations("libraries");
   const tk = await getTranslations("articleKinds");
   const tm = await getTranslations("meta");
-  const ta = await getTranslations("aboutPage");
 
   // Conteúdo real das bibliotecas (datasets pequenos; fatiamos aqui).
-  // Textos da home: o painel manda, a tradução é a rede (ver src/lib/homeText.ts).
-  const [home, questions, concepts, cases, articles, videos] = await Promise.all([
-    sanityFetch<HomeDoc>(homePageQuery, { locale }),
+  // Textos das páginas: o painel manda, a tradução é a rede (ver src/lib/pageText.ts).
+  const [home, about, libs, newsletter, questions, concepts, cases, articles, videos] = await Promise.all([
+    getPageText("homePage", "home", locale),
+    getPageText("aboutPage", "aboutPage", locale),
+    getPageText("librariesText", "libraries", locale),
+    getNewsletterLabels(locale),
     sanityFetch<QItem[]>(questionsListQuery, { locale }),
     sanityFetch<CItem[]>(conceptsListQuery, { locale }),
     sanityFetch<CaseItem[]>(casesListQuery, { locale }),
@@ -138,7 +137,9 @@ export default async function HomePage({
   ]);
 
   // `tx` no lugar de `t` para tudo que a Andrea edita no painel.
-  const { tx, txList } = homeText(home, locale, t);
+  const { tx, txList } = home;
+  const tl = libs.tx;
+  const ta = about.tx;
 
   // A home é a página central da tese: as três dimensões da ECP e o vocabulário
   // Ser Poder vêm da mesma biblioteca de conceitos, separados pelo campo "group".
@@ -729,7 +730,7 @@ export default async function HomePage({
             </p>
           </Reveal>
           <Reveal delay={360}>
-            <NewsletterForm />
+            <NewsletterForm labels={newsletter} />
           </Reveal>
         </div>
       </section>

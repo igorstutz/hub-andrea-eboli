@@ -5,6 +5,7 @@ import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { questionsListQuery } from "@/sanity/lib/queries";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 type QItem = {
   title: string;
@@ -19,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "libraries" });
+  const { tx: t } = await getPageText("librariesText", "libraries", locale);
   return pageMetadata({
     title: t("questions.name"),
     description: t("questions.desc"),
@@ -35,6 +36,8 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const items = await sanityFetch<QItem[]>(questionsListQuery, { locale });
 
@@ -43,10 +46,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.questions.name") },
+          { label: lib("questions.name") },
         ]}
-        title={t("libraries.questions.name")}
-        lead={t("libraries.questions.desc")}
+        title={lib("questions.name")}
+        lead={lib("questions.desc")}
       />
       <section className="bg-cream">
         <div className="mx-auto max-w-5xl px-6 py-16">

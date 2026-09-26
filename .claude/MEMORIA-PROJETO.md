@@ -69,7 +69,83 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 23/09/2026 (MAIS RECENTE) — Os textos da home saíram do código e foram para o painel
+### 🗓️ Sessão 25/09/2026 (MAIS RECENTE) — Todas as páginas fixas no painel + aba "Acessos" (origem das visitas)
+Três pedidos do Igor.
+
+0. **"O último vídeo não entrou no site".** Não era erro: o vídeo foi publicado
+   às 21:00 UTC e o cron tinha rodado às 20:43. Disparei `enviar-arquivos` à
+   mão e a página subiu nos 3 idiomas. É a latência do cron (item 5 da lista
+   dele: o webhook do Sanity resolve).
+
+1. **Páginas fixas editáveis no painel** ("todo conteúdo dessas páginas deve
+   poder ser editado pelo painel sem usar códigos"). Painel → **"Páginas do
+   site"** com 9 documentos: Página inicial, Sobre, Pesquisa ECP, Confraria,
+   Artigos e Perguntas, Na mídia, Livro, Contato e **Bibliotecas** (nomes e
+   descrições de Vídeos/Perguntas/Conceitos/Casos/Artigos, que também aparecem
+   nos breadcrumbs das páginas de detalhe).
+   - 📌 **Lista única em `src/sanity/pageTextDefs.ts`**: dela saem o schema
+     (`schemaTypes/documents/pageTexts.ts`, que substituiu `homePage.ts` e
+     `aboutPage.ts`) E a semeadura (`semeia-textos-paginas.mjs`, que
+     substituiu `semeia-textos-home.mjs`). Campo novo = uma linha lá. O
+     arquivo NÃO pode importar nada: o script o carrega com Node puro (type
+     stripping do Node 24).
+   - `src/lib/pageText.ts` (`getPageText`) substituiu `homeText.ts`: `tx`,
+     `txList`, `num` (percentuais), `url`. Mesma regra de antes: painel vence,
+     vazio cai na tradução. Chave aninhada vira camelCase (`questions.name` →
+     `questionsName`); a abertura comum de Pesquisa e Confraria mora no
+     documento da Pesquisa com prefixo `evidence`.
+   - Além de texto: **percentuais dos 4 gráficos** (`<labelKey>Pct`; a
+     ESTRUTURA e as cores ficam no código, porque a cor é semântica),
+     **fotos da Confraria** (as 10 subiram para o Sanity com os alts),
+     **retrato** do topo da home e do Sobre, **capa do livro**, **depoimento**
+     e **links** dos botões "Conheça a pesquisa/Confraria" e do formulário
+     "Envie sua pergunta" (vazio = WhatsApp).
+   - 🐛 **Furo da sessão de 23/09 achado e corrigido:** os campos do "Topo" da
+     home (perguntas que giram, título, botões) e as mensagens da newsletter
+     existiam no painel mas NÃO chegavam ao site: `HomeBanner`,
+     `RotatingQuestions` e `NewsletterForm` ainda liam só a tradução. Agora
+     leem do painel (os dois de cliente recebem o texto por prop).
+   - 🔧 A semeadura antiga gravava itens das listas longas com
+     `_type: "localeString"` (schema: `localeText`); corrigido na hora.
+   - 🔴 **`aboutPage` tinha lixo de antes do i18n**: `headline` com um texto
+     ANTIGO que nunca apareceu no site (passaria a vencer a tradução), além de
+     `bio`, `credentials`, `name`, `seo`. Removidos antes de semear.
+     E havia um **rascunho `drafts.aboutPage` de 09/09** cuja única diferença
+     era um espaço vazio na galeria (item sem imagem); publicá-lo apagaria os
+     textos semeados. Descartado (cópia no scratchpad da sessão).
+   - ✅ **Provado:** o texto visível das 26 páginas testadas (13 × pt/en) saiu
+     idêntico ao que está no ar; marcador gravado no painel apareceu na home,
+     na Pesquisa (inclusive a barra em 11,1%), nas listagens e no breadcrumb
+     do vídeo; `sanity schema validate` e `documents validate` sem erro.
+   - 📌 **Armadilha nova:** a CDN da Sanity (`useCdn: true`) pode entregar a
+     versão velha na primeira leitura logo depois de uma gravação, e o dev
+     guarda essa resposta EM MEMÓRIA (apagar `.next/dev` não basta com o
+     servidor de pé). Para testar mudança do painel no dev: gravar, esperar ~1
+     min, parar o dev, apagar `.next/dev` e subir de novo.
+
+2. **Aba "Acessos" no painel = medição própria da origem das visitas**
+   (decisão do Igor: dados na hospedagem, dashboard no painel; "lead" = só
+   visitas com origem, por enquanto).
+   - Site: `SiteTracker` no layout manda cada página vista por `sendBeacon`
+     para `/api/track` (só em andreaeboli.com e localhost). Id de SESSÃO em
+     sessionStorage (30 min parado = sessão nova), sem cookie. A origem da
+     sessão é a da página de entrada.
+   - Serviço (`src/lib/analytics/track.ts`, no mesmo app do cPanel): classifica
+     UTM > id de clique de anúncio (gclid, fbclid…) > referrer (buscador,
+     rede social, **IA**: chatgpt/perplexity/claude/gemini/copilot) > direto;
+     grava JSONL por dia em `~/andrea-analytics/` (fora de public_html);
+     resumo e CSV exigem sessão de membro (inclusive `viewer`; o papel agora é
+     checado DEPOIS do cache em `auth.ts`, senão um liberaria o outro).
+   - Painel: indicadores com comparação ao período anterior, sessões por dia,
+     tabelas por origem/meio/campanha/termo/conteúdo/site/página de entrada/
+     dispositivo/idioma, últimas sessões, **gerador de link com UTM** e
+     planilha CSV. Fundo claro próprio (no tema escuro a tinta sumia).
+   - ✅ Testado no pacote do cPanel (`dist-api/app.js`) e no Chrome: 7 origens
+     classificadas certo, robô/lixo/sid inválido descartados, fuso de Brasília,
+     401 sem sessão. `?naomedir=1` desliga a medição no navegador.
+   - Guia: `deploy/API-CPANEL.md` → "Medição de acessos".
+
+### 🗓️ Sessão 23/09/2026 — Os textos da home saíram do código e foram para o painel
 O Igor: *"eu queria mudar as perguntas da pagina principal e as 3 do
 quadrado... mas nao estou as encontrando no admin"*. Não estavam: viviam nos
 `messages/*.json` e só mudavam por commit. Perguntei o caminho e ele escolheu

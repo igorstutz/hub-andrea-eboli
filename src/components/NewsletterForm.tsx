@@ -7,12 +7,22 @@ type Status = "idle" | "loading" | "ok" | "error";
 
 // tone="dark"  → seções escuras (home, wine/verde): campos claros translúcidos.
 // tone="light" → seções claras (livro, contato): campos brancos, botão vinho.
+/** Os textos do formulário editados no painel (Página inicial → Newsletter).
+ *  Um componente de cliente não lê o Sanity, então a página os entrega prontos;
+ *  o que faltar cai na tradução. */
+export type NewsletterLabels = Partial<
+  Record<"newsletterPlaceholder" | "newsletterCta" | "newsletterOk" | "newsletterError", string>
+>;
+
 export default function NewsletterForm({
   tone = "dark",
+  labels = {},
 }: {
   tone?: "dark" | "light";
+  labels?: NewsletterLabels;
 }) {
-  const t = useTranslations("home");
+  const tr = useTranslations("home");
+  const t = (key: keyof NewsletterLabels) => labels[key] || tr(key);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const light = tone === "light";

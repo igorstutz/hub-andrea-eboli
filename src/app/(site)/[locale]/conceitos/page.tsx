@@ -5,6 +5,7 @@ import LibrarySearch from "@/components/LibrarySearch";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { conceptsListQuery } from "@/sanity/lib/queries";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 type CItem = { title: string; slug: string; shortDefinition?: string };
 
@@ -14,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "libraries" });
+  const { tx: t } = await getPageText("librariesText", "libraries", locale);
   return pageMetadata({
     title: t("concepts.name"),
     description: t("concepts.desc"),
@@ -30,6 +31,8 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const items = await sanityFetch<CItem[]>(conceptsListQuery, { locale });
 
@@ -38,10 +41,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.concepts.name") },
+          { label: lib("concepts.name") },
         ]}
-        title={t("libraries.concepts.name")}
-        lead={t("libraries.concepts.desc")}
+        title={lib("concepts.name")}
+        lead={lib("concepts.desc")}
       />
       <section className="bg-cream">
         <div className="mx-auto max-w-5xl px-6 py-16">

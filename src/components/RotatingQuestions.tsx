@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 
 // Rotaciona as perguntas humanas — o elemento interativo central do hero.
-export default function RotatingQuestions() {
-  const t = useTranslations("home");
-  const questions = t.raw("rotatingQuestions") as string[];
+// A lista vem pronta do servidor (painel → Página inicial → Topo): um
+// componente de cliente não lê o Sanity.
+export default function RotatingQuestions({ questions }: { questions: string[] }) {
 
   const [index, setIndex] = useState(0);
   const [show, setShow] = useState(true);

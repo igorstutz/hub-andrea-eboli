@@ -7,6 +7,7 @@ import SectionOrderToggle from "@/components/SectionOrderToggle";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { questionsListQuery, articlesListQuery } from "@/sanity/lib/queries";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 import { ASK_QUESTION_URL } from "@/lib/askQuestion";
 import {
   normalizeArticleSource,
@@ -35,7 +36,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  const tp = await getTranslations({ locale, namespace: "articlesQuestionsPage" });
+  const { tx: tp } = await getPageText("articlesQuestionsPage", "articlesQuestionsPage", locale);
   return pageMetadata({
     title: t("articlesQuestions"),
     description: tp("headline"),
@@ -87,12 +88,14 @@ export default async function Page({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const tp = await getTranslations("articlesQuestionsPage");
-
-  const [questions, articles] = await Promise.all([
+  const [page, questions, articles] = await Promise.all([
+    getPageText("articlesQuestionsPage", "articlesQuestionsPage", locale),
     sanityFetch<QItem[]>(questionsListQuery, { locale }),
     sanityFetch<AItem[]>(articlesListQuery, { locale }),
   ]);
+  const tp = page.tx;
+  // O link do formulário de perguntas é editável no painel; vazio = WhatsApp.
+  const askUrl = page.url("askFormUrl") ?? ASK_QUESTION_URL;
 
   return (
     <>
@@ -143,7 +146,7 @@ export default async function Page({
                 {tp("askPrompt")}
               </p>
               <a
-                href={ASK_QUESTION_URL}
+                href={askUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-wine px-7 py-3.5 text-sm font-semibold uppercase tracking-wider text-cream transition-all hover:gap-3 hover:bg-wine-deep"

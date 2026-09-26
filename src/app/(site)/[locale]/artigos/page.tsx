@@ -9,6 +9,7 @@ import {
   normalizeArticleSource,
   presentArticleSources,
 } from "@/lib/articleSources";
+import { getPageText } from "@/lib/pageText";
 
 type ArticleItem = {
   title: string;
@@ -25,7 +26,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "libraries" });
+  const { tx: t } = await getPageText("librariesText", "libraries", locale);
   return pageMetadata({
     title: t("articles.name"),
     description: t("articles.desc"),
@@ -41,6 +42,8 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const items = await sanityFetch<ArticleItem[]>(articlesListQuery, { locale });
 
@@ -49,10 +52,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.articles.name") },
+          { label: lib("articles.name") },
         ]}
-        title={t("libraries.articles.name")}
-        lead={t("libraries.articles.desc")}
+        title={lib("articles.name")}
+        lead={lib("articles.desc")}
       />
       <section className="bg-cream">
         <div className="mx-auto max-w-5xl px-6 py-16">

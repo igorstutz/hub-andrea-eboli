@@ -14,6 +14,7 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { conceptBySlugQuery } from "@/sanity/lib/queries";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 // Export estático: pré-gera todos os conceitos publicados.
 export async function generateStaticParams() {
@@ -60,6 +61,8 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const c = await sanityFetch<CDetail>(conceptBySlugQuery, { locale, slug });
   if (!c) notFound();
@@ -87,10 +90,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.concepts.name"), href: "/conceitos" },
+          { label: lib("concepts.name"), href: "/conceitos" },
           { label: c.title },
         ]}
-        badge={t("libraries.concepts.badge")}
+        badge={lib("concepts.badge")}
         title={c.title}
         lead={c.shortDefinition}
       />
@@ -113,7 +116,7 @@ export default async function Page({
 
             <EndOrnament
               backHref="/conceitos"
-              backLabel={t("libraries.concepts.name")}
+              backLabel={lib("concepts.name")}
             />
           </article>
 

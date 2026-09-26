@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import PageBanner from "@/components/PageBanner";
 import Reveal from "@/components/Reveal";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { pressListQuery } from "@/sanity/lib/queries";
 
@@ -51,7 +52,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  const tp = await getTranslations({ locale, namespace: "mediaPage" });
+  const { tx: tp } = await getPageText("mediaPage", "mediaPage", locale);
   return pageMetadata({
     title: t("media"),
     description: tp("headline"),
@@ -67,7 +68,7 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("mediaPage");
+  const { tx: t } = await getPageText("mediaPage", "mediaPage", locale);
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
   const ts = await getTranslations("articleSources");

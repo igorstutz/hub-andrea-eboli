@@ -14,6 +14,7 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { caseBySlugQuery } from "@/sanity/lib/queries";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 // Export estático: pré-gera todos os casos publicados.
 export async function generateStaticParams() {
@@ -58,6 +59,8 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const c = await sanityFetch<CaseDetail>(caseBySlugQuery, { locale, slug });
   if (!c) notFound();
@@ -69,7 +72,7 @@ export default async function Page({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: t("common.home"), item: localizedUrl(locale, "/") },
-      { "@type": "ListItem", position: 2, name: t("libraries.cases.name"), item: localizedUrl(locale, "/casos") },
+      { "@type": "ListItem", position: 2, name: lib("cases.name"), item: localizedUrl(locale, "/casos") },
       { "@type": "ListItem", position: 3, name: c.title, item: pageUrl },
     ],
   };
@@ -80,10 +83,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.cases.name"), href: "/casos" },
+          { label: lib("cases.name"), href: "/casos" },
           { label: c.title },
         ]}
-        badge={t("libraries.cases.badge")}
+        badge={lib("cases.badge")}
         title={c.title}
         lead={c.description}
       />
@@ -95,7 +98,7 @@ export default async function Page({
               <PortableTextBody value={c.pattern} />
             </div>
 
-            <EndOrnament backHref="/casos" backLabel={t("libraries.cases.name")} />
+            <EndOrnament backHref="/casos" backLabel={lib("cases.name")} />
           </article>
 
           <aside className="min-w-0 space-y-6 self-start lg:sticky lg:top-24">

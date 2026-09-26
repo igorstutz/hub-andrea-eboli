@@ -1,11 +1,14 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
+import { getPageText } from "@/lib/pageText";
 import Reveal from "@/components/Reveal";
 
 // Abertura comum das páginas Pesquisa e Confraria: as duas contam a mesma
 // história (o método é construído no encontro entre pesquisa e experiência),
 // então o texto do par abre as duas e a frase-síntese fecha o bloco.
+// No painel, o bloco fica em Pesquisa ECP → Abertura (campos `evidence*`).
 export default async function EvidenceIntro() {
-  const t = await getTranslations("evidence");
+  const locale = await getLocale();
+  const { tx: t } = await getPageText("researchPage", "evidence", locale, "evidence");
 
   return (
     <section className="bg-cream">

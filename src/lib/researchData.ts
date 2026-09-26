@@ -166,3 +166,30 @@ export const FORCED_CHOICE: BarGroup[] = [
     ],
   },
 ];
+
+/* ------------------------------------------------------------------ *
+ * Os números acima são o PADRÃO. Desde 25/09/2026 cada percentual pode ser
+ * trocado no painel (Pesquisa ECP → Gráficos), num campo chamado
+ * `<labelKey>Pct` (ex.: `ideaControlPct`). Campo vazio = o número daqui.
+ *
+ * ⚠️ O painel troca rótulos e números, NÃO a estrutura: quantas barras, a
+ * ordem e a cor de cada uma continuam aqui, porque a cor é semântica (ver o
+ * comentário de `Tone`) e um gráfico montado à mão no painel podia pintar de
+ * vinho uma ideia de poder interno sem ninguém notar.
+ * ------------------------------------------------------------------ */
+type NumberSource = (key: string, fallback: number) => number;
+
+export function withPanelValues(groups: BarGroup[], num: NumberSource): BarGroup[] {
+  return groups.map((g) => ({
+    ...g,
+    bars: g.bars.map((b) => ({ ...b, value: num(`${b.labelKey}Pct`, b.value) })),
+  }));
+}
+
+export function gapWithPanelValues(rows: GapRow[], num: NumberSource): GapRow[] {
+  return rows.map((r) => ({
+    ...r,
+    declared: { ...r.declared, value: num(`${r.declared.labelKey}Pct`, r.declared.value) },
+    lived: { ...r.lived, value: num(`${r.lived.labelKey}Pct`, r.lived.value) },
+  }));
+}

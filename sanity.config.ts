@@ -1,11 +1,12 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
-import { LinkIcon } from "@sanity/icons";
+import { BarChartIcon, LinkIcon } from "@sanity/icons";
 import { apiVersion, dataset, projectId } from "./src/sanity/env";
 import { schema } from "./src/sanity/schemaTypes";
 import { structure } from "./src/sanity/structure";
 import IngestTool from "./src/sanity/tools/IngestTool";
+import DashboardTool from "./src/sanity/tools/DashboardTool";
 
 /**
  * A ferramenta "Importar de link" só existe onde há um serviço de ingestão
@@ -69,6 +70,14 @@ export default defineConfig({
             title: "Importar de link",
             icon: LinkIcon,
             component: IngestTool,
+          },
+          // "Acessos" usa o mesmo serviço (andreaeboli.com/api/track), então
+          // aparece onde a importação aparece. Ver src/lib/analytics/track.ts.
+          {
+            name: "acessos",
+            title: "Acessos",
+            icon: BarChartIcon,
+            component: DashboardTool,
           },
           ...prev,
         ]

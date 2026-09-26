@@ -41,6 +41,7 @@ import {
   handleYouTubeInspect,
   type Handler,
 } from "@/lib/ingest/handlers";
+import { handleTrack, handleTrackExport, handleTrackSummary } from "@/lib/analytics/track";
 
 const ROUTES: Record<string, Handler> = {
   "GET /ingest/health": handleHealth,
@@ -48,6 +49,11 @@ const ROUTES: Record<string, Handler> = {
   "POST /ingest/youtube/transcribe": handleTranscribe,
   "POST /ingest/web/inspect": handleWebInspect,
   "POST /ingest/generate": handleGenerate,
+  // Medição de acessos do site (src/lib/analytics/track.ts). O POST é público:
+  // é o próprio site mandando cada página vista.
+  "POST /track": handleTrack,
+  "GET /track/summary": handleTrackSummary,
+  "GET /track/export": handleTrackExport,
 };
 
 // A única rota com parâmetro: o estado de um job de geração.

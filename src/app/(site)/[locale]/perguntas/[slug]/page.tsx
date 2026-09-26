@@ -14,6 +14,7 @@ import { sanityFetch } from "@/sanity/lib/fetch";
 import { client } from "@/sanity/lib/client";
 import { questionBySlugQuery } from "@/sanity/lib/queries";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 // Export estático: pré-gera todas as perguntas publicadas.
 export async function generateStaticParams() {
@@ -60,6 +61,8 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const q = await sanityFetch<QDetail>(questionBySlugQuery, { locale, slug });
   if (!q) notFound();
@@ -82,7 +85,7 @@ export default async function Page({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: t("common.home"), item: localizedUrl(locale, "/") },
-      { "@type": "ListItem", position: 2, name: t("libraries.questions.name"), item: localizedUrl(locale, "/perguntas") },
+      { "@type": "ListItem", position: 2, name: lib("questions.name"), item: localizedUrl(locale, "/perguntas") },
       { "@type": "ListItem", position: 3, name: q.title, item: pageUrl },
     ],
   };
@@ -94,10 +97,10 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.questions.name"), href: "/perguntas" },
+          { label: lib("questions.name"), href: "/perguntas" },
           { label: q.title },
         ]}
-        badge={q.topic?.title ?? t("libraries.questions.badge")}
+        badge={q.topic?.title ?? lib("questions.badge")}
         title={q.title}
         lead={q.experience}
       />
@@ -125,7 +128,7 @@ export default async function Page({
 
             <EndOrnament
               backHref="/perguntas"
-              backLabel={t("libraries.questions.name")}
+              backLabel={lib("questions.name")}
             />
           </article>
 

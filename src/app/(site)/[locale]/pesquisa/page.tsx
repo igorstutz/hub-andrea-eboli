@@ -6,11 +6,14 @@ import EvidenceIntro from "@/components/EvidenceIntro";
 import Reveal from "@/components/Reveal";
 import { RankedBars, GapBars } from "@/components/ResearchCharts";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 import {
   POWER_IDEAS,
   POWER_REFERENCE,
   DECLARED_VS_LIVED,
   FORCED_CHOICE,
+  withPanelValues,
+  gapWithPanelValues,
 } from "@/lib/researchData";
 
 /* ------------------------------------------------------------------
@@ -26,8 +29,9 @@ import {
    Os quatro gráficos são desenhados na página (ver `ResearchCharts.tsx`), em
    ordem de argumento: o que chamam de poder → em quem pensam → o que declaram
    contra o que vivem → o que escolhem quando a alternativa está na mesa.
-   RESEARCH_URL → destino do botão "Conheça a pesquisa" (deck, PDF, página).
-                 Enquanto for null o botão não aparece.
+   Todos os textos, os percentuais dos gráficos e o link do botão "Conheça a
+   pesquisa" são editáveis no painel (Pesquisa ECP). O que estiver vazio lá
+   cai na tradução e nos números de `researchData.ts`.
 ------------------------------------------------------------------- */
 const STATS = [
   { valueKey: "stat1Value", labelKey: "stat1Label" },
@@ -53,15 +57,13 @@ const DIMENSIONS = [
   },
 ] as const;
 
-const RESEARCH_URL: string | null = null;
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "researchPage" });
+  const { tx: t } = await getPageText("researchPage", "researchPage", locale);
   return pageMetadata({
     title: t("title"),
     description: t("headline"),
@@ -77,7 +79,8 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("researchPage");
+  const { tx: t, num, url } = await getPageText("researchPage", "researchPage", locale);
+  const researchUrl = url("researchUrl");
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
 
@@ -183,7 +186,7 @@ export default async function Page({
           <div className="mt-12 space-y-8">
             <Reveal>
               <RankedBars
-                groups={POWER_IDEAS}
+                groups={withPanelValues(POWER_IDEAS, num)}
                 t={t}
                 locale={locale}
                 title={t("chartIdeasTitle")}
@@ -194,7 +197,7 @@ export default async function Page({
 
             <Reveal>
               <RankedBars
-                groups={POWER_REFERENCE}
+                groups={withPanelValues(POWER_REFERENCE, num)}
                 t={t}
                 locale={locale}
                 title={t("chartRefTitle")}
@@ -209,7 +212,7 @@ export default async function Page({
 
             <Reveal>
               <GapBars
-                rows={DECLARED_VS_LIVED}
+                rows={gapWithPanelValues(DECLARED_VS_LIVED, num)}
                 t={t}
                 locale={locale}
                 title={t("chartGapTitle")}
@@ -222,7 +225,7 @@ export default async function Page({
 
             <Reveal>
               <RankedBars
-                groups={FORCED_CHOICE}
+                groups={withPanelValues(FORCED_CHOICE, num)}
                 t={t}
                 locale={locale}
                 title={t("chartChoiceTitle")}
@@ -246,9 +249,9 @@ export default async function Page({
                 {t("method")}
               </p>
 
-              {RESEARCH_URL && (
+              {researchUrl && (
                 <a
-                  href={RESEARCH_URL}
+                  href={researchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group mt-8 inline-flex items-center gap-2 rounded-full bg-wine px-6 py-3.5 text-sm font-semibold text-cream transition-all hover:gap-3 hover:bg-wine-deep"

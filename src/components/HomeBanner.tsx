@@ -1,4 +1,5 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
+import { getPageText } from "@/lib/pageText";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
 import RotatingQuestions from "@/components/RotatingQuestions";
@@ -8,7 +9,9 @@ import BannerPhoto from "@/components/BannerPhoto";
 // outro, e a virada "Existe um nome para tudo isso" → SER PODER.
 // O kicker "Percepção · Escolha · Presença" saiu a pedido da Andrea (19/08/2026).
 export default async function HomeBanner() {
-  const t = await getTranslations("home");
+  // Textos do painel (Página inicial → Topo), com a tradução como rede.
+  const locale = await getLocale();
+  const { tx, txList } = await getPageText("homePage", "home", locale);
 
   return (
     <section className="relative flex min-h-[calc(100svh_-_var(--header-h))] items-center overflow-hidden bg-wine text-cream">
@@ -21,10 +24,10 @@ export default async function HomeBanner() {
         <div>
           <Reveal>
             <p className="mb-3 text-sm uppercase tracking-[0.2em] text-cream/45">
-              {t("rotatingLabel")}
+              {tx("rotatingLabel")}
             </p>
             <div className="flex h-24 items-center overflow-hidden text-2xl leading-tight md:h-28 md:text-4xl">
-              <RotatingQuestions />
+              <RotatingQuestions questions={txList("rotatingQuestions")} />
             </div>
           </Reveal>
 
@@ -32,20 +35,20 @@ export default async function HomeBanner() {
             <div className="flex items-center gap-4">
               <span className="h-px w-12 bg-cream/40" />
               <span className="text-xs uppercase tracking-[0.2em] text-cream/50">
-                {t("answerLabel")}
+                {tx("answerLabel")}
               </span>
             </div>
             <h1 className="mt-4 font-serif text-7xl font-semibold uppercase tracking-tight text-cream md:text-8xl">
-              {t("title")}
+              {tx("title")}
             </h1>
           </Reveal>
 
           <Reveal delay={280} className="mt-7 max-w-xl">
             <p className="font-serif text-2xl leading-snug text-cream md:text-[1.7rem]">
-              {t("leadStrong")}
+              {tx("leadStrong")}
             </p>
             <p className="mt-4 text-lg leading-relaxed text-cream/80">
-              {t("lead")}
+              {tx("lead")}
             </p>
           </Reveal>
 
@@ -55,7 +58,7 @@ export default async function HomeBanner() {
                 href="#ser-poder"
                 className="group inline-flex items-center gap-2 rounded-full border border-cream bg-cream px-7 py-3.5 text-sm font-semibold text-wine transition-all hover:gap-3 hover:bg-wine hover:text-cream"
               >
-                {t("ctaPrimary")}
+                {tx("ctaPrimary")}
                 <span className="transition-transform group-hover:translate-y-0.5">
                   ↓
                 </span>
@@ -64,7 +67,7 @@ export default async function HomeBanner() {
                 href="/sobre"
                 className="rounded-full border border-cream/25 px-7 py-3.5 text-sm font-medium text-cream transition-colors hover:bg-cream/10"
               >
-                {t("ctaSecondary")}
+                {tx("ctaSecondary")}
               </Link>
             </div>
           </Reveal>

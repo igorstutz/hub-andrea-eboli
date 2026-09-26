@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import PageBanner from "@/components/PageBanner";
 import NewsletterForm from "@/components/NewsletterForm";
 import { pageMetadata } from "@/lib/seo";
+import { getPageText, getNewsletterLabels } from "@/lib/pageText";
 import { INSTAGRAM_URL } from "@/lib/social";
 
 export async function generateMetadata({
@@ -12,7 +13,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "nav" });
-  const tp = await getTranslations({ locale, namespace: "contactPage" });
+  const { tx: tp } = await getPageText("contactPage", "contactPage", locale);
   return pageMetadata({
     title: t("contact"),
     description: tp("headline"),
@@ -28,7 +29,10 @@ export default async function Page({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("contactPage");
+  const [{ tx: t }, newsletter] = await Promise.all([
+    getPageText("contactPage", "contactPage", locale),
+    getNewsletterLabels(locale),
+  ]);
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
   const email = t("email");
@@ -79,7 +83,7 @@ export default async function Page({
               {t("newsletterTitle")}
             </h2>
             <div className="mt-6">
-              <NewsletterForm tone="light" />
+              <NewsletterForm tone="light" labels={newsletter} />
             </div>
           </div>
         </div>

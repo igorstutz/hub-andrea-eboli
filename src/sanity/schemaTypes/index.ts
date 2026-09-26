@@ -11,8 +11,7 @@ import { concept } from "./documents/concept";
 import { caseStudy } from "./documents/caseStudy";
 import { article } from "./documents/article";
 import { video } from "./documents/video";
-import { aboutPage } from "./documents/aboutPage";
-import { homePage } from "./documents/homePage";
+import { pageTextTypes } from "./documents/pageTexts";
 import { siteSettings } from "./documents/siteSettings";
 import { aiSettings } from "./documents/aiSettings";
 
@@ -30,8 +29,8 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     caseStudy,
     article,
     video,
-    aboutPage,
-    homePage,
+    // as páginas fixas (home, sobre, pesquisa…), geradas de pageTextDefs.ts
+    ...pageTextTypes,
     siteSettings,
     aiSettings,
   ],

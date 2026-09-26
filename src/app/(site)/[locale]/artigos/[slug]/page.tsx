@@ -14,6 +14,7 @@ import { client } from "@/sanity/lib/client";
 import { articleBySlugQuery } from "@/sanity/lib/queries";
 import { slugify } from "@/lib/portableText";
 import { localizedUrl, pageMetadata } from "@/lib/seo";
+import { getPageText } from "@/lib/pageText";
 
 // Export estático: pré-gera todos os artigos publicados.
 export async function generateStaticParams() {
@@ -84,6 +85,8 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // Nomes das bibliotecas: painel → Bibliotecas (a tradução é a reserva).
+  const { tx: lib } = await getPageText("librariesText", "libraries", locale);
   const t = await getTranslations();
   const a = await sanityFetch<ArticleDetail>(articleBySlugQuery, { locale, slug });
   if (!a) notFound();
@@ -115,7 +118,7 @@ export default async function Page({
       <PageBanner
         crumbs={[
           { label: t("common.home"), href: "/" },
-          { label: t("libraries.articles.name"), href: "/artigos" },
+          { label: lib("articles.name"), href: "/artigos" },
           { label: a.title },
         ]}
         badge={kindLabel ?? undefined}
