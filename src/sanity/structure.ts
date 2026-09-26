@@ -44,6 +44,7 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("caseStudy").title("Casos e Personagens"),
       S.documentTypeListItem("article").title("Artigos"),
       S.documentTypeListItem("video").title("Vídeos"),
+      S.documentTypeListItem("mediaMention").title("Na mídia (menções)"),
       S.divider(),
       S.documentTypeListItem("topic").title("Temas"),
     ]);

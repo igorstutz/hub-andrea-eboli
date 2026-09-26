@@ -360,5 +360,13 @@
   "footer": {
     "tagline": "Investigadora y creadora de la ECP, un enfoque pionero para comprender y desarrollar el poder consciente.",
     "rights": "Todos los derechos reservados."
+  },
+  "mediaKinds": {
+    "mention": "Mención",
+    "research": "Investigación",
+    "interview": "Entrevista",
+    "podcast": "Podcast",
+    "talk": "Conferencia",
+    "article": "Artículo"
   }
 }

@@ -230,6 +230,10 @@ export default function IngestTool() {
     article: false,
   });
   const [questionsCount, setQuestionsCount] = useState(5);
+  // O artigo gerado também entra na página "Na mídia"? Pergunta obrigatória
+  // quando o alvo "Artigo" está marcado (26/09/2026): antes todo artigo da
+  // Forbes/LinkedIn entrava lá sem escolha. null = ainda não respondeu.
+  const [inMedia, setInMedia] = useState<boolean | null>(null);
   const [directions, setDirections] = useState("");
 
   // Pré-carrega a quantidade padrão definida no painel "Agentes de IA".
@@ -276,6 +280,7 @@ export default function IngestTool() {
     }
 
     setTargets(defaultTargets(detected));
+    setInMedia(null);
     setInspecting(true);
     try {
       const endpoint =
@@ -330,6 +335,7 @@ export default function IngestTool() {
     setGenerateError(null);
     setTranscribeError(null);
     setTargets({ video: true, questions: true, article: false });
+    setInMedia(null);
   }, []);
 
   const handleTranscribeAudio = useCallback(async () => {
@@ -458,7 +464,14 @@ export default function IngestTool() {
       const docs = (data?.documents ?? []) as GeneratedDoc[];
       try {
         const tx = client.transaction();
-        for (const entry of docs) tx.createOrReplace(entry.doc);
+        for (const entry of docs) {
+          // A escolha "Aparecer em Na mídia" vai no artigo (campo showInMedia).
+          const doc =
+            entry.doc._type === "article"
+              ? { ...entry.doc, showInMedia: inMedia === true }
+              : entry.doc;
+          tx.createOrReplace(doc);
+        }
         await tx.commit({ visibility: "async" });
       } catch (writeErr) {
         console.error("Falha ao gravar rascunhos:", docs, writeErr);
@@ -493,6 +506,7 @@ export default function IngestTool() {
     targets,
     questionsCount,
     directions,
+    inMedia,
   ]);
 
   const allowed = useMemo<IngestTarget[]>(
@@ -504,7 +518,9 @@ export default function IngestTool() {
   const needsPastedText =
     Boolean(web) && material.trim().length < (web?.minUsableText ?? 400);
   const serviceOnline = service.status === "online";
-  const ready = serviceOnline && Boolean(source) && anyTarget && !needsPastedText;
+  const mediaPending = targets.article && allowed.includes("article") && inMedia === null;
+  const ready =
+    serviceOnline && Boolean(source) && anyTarget && !needsPastedText && !mediaPending;
 
   const toggle =
     (key: IngestTarget) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -764,6 +780,42 @@ export default function IngestTool() {
               )}
             </div>
           ))}
+
+          {targets.article && allowed.includes("article") && (
+            <div
+              style={{
+                marginTop: 14,
+                padding: "12px 14px",
+                borderRadius: 8,
+                border: `1px solid ${inMedia === null ? "#e0b4b4" : "#e3e3e8"}`,
+                background: inMedia === null ? "#fdf5f5" : "transparent",
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 600 }}>
+                O artigo também deve aparecer em “Na mídia”?
+              </div>
+              <div style={{ ...s.muted, marginTop: 4 }}>
+                Sim = entra na lista da página Na mídia, com link para o original.
+                Dá para mudar depois no próprio artigo (campo “Aparecer em Na mídia”).
+              </div>
+              <div style={{ display: "flex", gap: 18, marginTop: 10, fontSize: 14 }}>
+                {[
+                  { value: true, label: "Sim" },
+                  { value: false, label: "Não" },
+                ].map((o) => (
+                  <label key={o.label} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="in-media"
+                      checked={inMedia === o.value}
+                      onChange={() => setInMedia(o.value)}
+                    />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ marginTop: 18 }}>
             <div style={s.label}>

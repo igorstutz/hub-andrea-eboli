@@ -58,6 +58,18 @@ export const article = defineType({
       description: "Endereço do vídeo/artigo original, quando houver.",
       type: "url",
     }),
+    defineField({
+      name: "showInMedia",
+      title: "Aparecer em “Na mídia”",
+      description:
+        "Ligado = este artigo também entra na lista da página Na mídia, com link " +
+        "para o original (ou para a página no hub, se não houver link da fonte). " +
+        "Na importação por link a ferramenta pergunta sim/não. Menções que NÃO " +
+        "são artigos dela (pesquisa que a cita, matéria em que foi mencionada) " +
+        "entram em “Na mídia (menções)”.",
+      type: "boolean",
+      initialValue: false,
+    }),
     defineField({ name: "excerpt", title: "Resumo", type: "localeText" }),
     defineField({ name: "body", title: "Corpo", type: "localeBlock" }),
     defineField({

@@ -126,16 +126,27 @@ export const articlesListQuery = groq`
 // propósito: o canal e os textos originais são dela, não imprensa.
 // Reaproveita o campo `source` do artigo, então a Andrea alimenta a /na-midia
 // pelo mesmo lugar onde já publica ("Importar de link" ou o campo Fonte).
+// Na mídia (26/09/2026): artigos com "Aparecer em Na mídia" ligado + as
+// menções avulsas (pesquisa que a cita, matéria em que foi mencionada…).
+// Antes era todo artigo da Forbes/LinkedIn, sem escolha.
+// `url` é o original no veículo; artigo sem link da fonte leva à página no hub.
+// A ordem usa a data do veículo quando existe (menções); a do artigo é a da
+// importação, então ele só entra na ordem, sem data na tela.
 export const pressListQuery = groq`
-*[_type == "article" && source in ["forbes", "linkedin"] && defined(sourceUrl)]
-  | order(coalesce(publishedAt, _createdAt) desc){
+*[(_type == "article" && showInMedia == true && defined(slug.current))
+  || (_type == "mediaMention" && defined(url))]{
+  "type": _type,
+  "key": _id,
   "title": coalesce(title[$locale], title.pt),
   "slug": slug.current,
-  "source": source,
-  "sourceUrl": sourceUrl,
+  source,
+  outlet,
+  kind,
+  "url": select(_type == "mediaMention" => url, sourceUrl),
   "excerpt": coalesce(excerpt[$locale], excerpt.pt),
-  "publishedAt": publishedAt
-}`;
+  date,
+  "sort": coalesce(date, publishedAt, _createdAt)
+} | order(sort desc)`;
 
 export const articleBySlugQuery = groq`
 *[_type == "article" && slug.current == $slug][0]{

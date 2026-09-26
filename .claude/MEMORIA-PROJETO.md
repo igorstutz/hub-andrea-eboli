@@ -69,7 +69,25 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 25/09/2026 (MAIS RECENTE) — Todas as páginas fixas no painel + aba "Acessos" (origem das visitas)
+### 🗓️ Sessão 26/09/2026 (MAIS RECENTE) — "Na mídia" deixou de ser automática
+O Igor: artigo importado deve ter a opção sim/não de aparecer em Na mídia, e
+tem de dar para pôr lá coisas que não são artigos dela (pesquisa que a cita,
+matéria em que foi mencionada).
+- **Artigo:** campo `showInMedia` ("Aparecer em Na mídia", padrão desligado).
+  Na "Importar de link", com o alvo Artigo marcado, a pergunta Sim/Não é
+  OBRIGATÓRIA (o botão Gerar fica travado até responder); quem grava o campo
+  é o painel, no commit dos rascunhos (o serviço do cPanel não mudou).
+- **Tipo novo `mediaMention`** ("Na mídia (menções)" no painel): título,
+  veículo, tipo (menção, pesquisa, entrevista, podcast, palestra, artigo em
+  outro veículo), link do original, data do veículo e resumo. Não vira
+  página: o título leva ao original. Rótulos dos tipos em `mediaKinds.*`.
+- **Página:** `pressListQuery` junta as duas fontes, ordenada por
+  `coalesce(date, publishedAt)`. Data aparece SÓ nas menções (a do artigo é
+  a da importação). Artigo sem link da fonte leva à página no hub.
+- Os 3 artigos que já estavam lá (1 Forbes, 2 LinkedIn) ficaram com o campo
+  LIGADO, para nada sumir do ar sem ela decidir.
+
+### 🗓️ Sessão 25/09/2026 — Todas as páginas fixas no painel + aba "Acessos" (origem das visitas)
 Três pedidos do Igor.
 
 0. **"O último vídeo não entrou no site".** Não era erro: o vídeo foi publicado

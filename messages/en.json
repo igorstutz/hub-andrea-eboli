@@ -360,5 +360,13 @@
   "footer": {
     "tagline": "Researcher and creator of the ECP, a pioneering approach to understanding and developing conscious power.",
     "rights": "All rights reserved."
+  },
+  "mediaKinds": {
+    "mention": "Mention",
+    "research": "Research",
+    "interview": "Interview",
+    "podcast": "Podcast",
+    "talk": "Talk",
+    "article": "Article"
   }
 }

@@ -15,34 +15,32 @@ import { pressListQuery } from "@/sanity/lib/queries";
    processo de divulgação em breve"). Ela tinha saído da navegação em 19/08 e
    era só um estado vazio.
 
-   Para não devolver ao menu uma página em branco, a lista agora é REAL: lê do
-   Sanity os artigos cuja fonte é um veículo externo (Forbes, LinkedIn) e que
-   têm o link de origem. Ou seja, a Andrea alimenta esta página pelo mesmo
-   lugar onde já publica, sem schema novo.
+   A LISTA JUNTA DUAS FONTES (26/09/2026, pedido do Igor):
+     · artigos com "Aparecer em Na mídia" ligado (campo `showInMedia`; na
+       importação por link a ferramenta pergunta sim/não). Antes entrava todo
+       artigo da Forbes/LinkedIn, sem escolha;
+     · menções avulsas (tipo `mediaMention`): pesquisa que a cita, matéria em
+       que foi mencionada, entrevista, podcast, palestra.
 
-   O título de cada item aponta para o ORIGINAL no veículo, que é o que "na
-   mídia" quer dizer; o link secundário leva à versão no hub, quando existe.
+   O título aponta para o ORIGINAL no veículo, que é o que "na mídia" quer
+   dizer; artigo sem link da fonte leva à página dele no hub.
 
-   ⚠️ A LISTA NÃO MOSTRA DATA, de propósito. O `publishedAt` de um artigo
-   importado é a data da IMPORTAÇÃO para o hub, não a da publicação no veículo:
-   no artigo da Forbes ele está em 06/08/2026, enquanto a própria URL do
-   original diz 16/12/2025. Data errada numa página de imprensa é pior do que
-   nenhuma. Para ligar a data de volta: corrigir `publishedAt` no Studio para a
-   data do veículo e devolver o bloco `{date && ...}` abaixo da pastilha.
-
-   ⏭️ Palcos e podcasts (NRF, SXSW, BrasaConnect, ONU, Gerações Cast) aparecem
-   nas fotos do /sobre mas não existem como documento no Sanity. Enquanto não
-   existirem, esta lista mostra só a imprensa escrita.
+   ⚠️ DATA SÓ NAS MENÇÕES. O `publishedAt` de um artigo importado é a data da
+   IMPORTAÇÃO, não a do veículo (no da Forbes: 06/08/2026 no hub, 16/12/2025
+   no original). Data errada numa página de imprensa é pior do que nenhuma. A
+   menção tem o campo `date`, que é a data do veículo, e essa aparece.
 ------------------------------------------------------------------- */
 type PressItem = {
+  type: "article" | "mediaMention";
+  key: string;
   title: string;
   slug?: string;
-  source: string;
-  sourceUrl: string;
+  source?: string;
+  outlet?: string;
+  kind?: string;
+  url?: string;
   excerpt?: string;
-  /** Só chega aqui para o dia em que a data do veículo for confiável (ver o
-   *  aviso acima). Hoje a lista não mostra data. */
-  publishedAt?: string;
+  date?: string;
 };
 
 export async function generateMetadata({
@@ -72,6 +70,7 @@ export default async function Page({
   const tc = await getTranslations("common");
   const tn = await getTranslations("nav");
   const ts = await getTranslations("articleSources");
+  const tk = await getTranslations("mediaKinds");
 
   const press =
     (await sanityFetch<PressItem[] | null>(pressListQuery, {
@@ -102,21 +101,47 @@ export default async function Page({
                 // O Reveal vai DENTRO do <li>: ele renderiza uma div, e uma
                 // div solta entre <ul> e <li> é HTML inválido (o leitor de
                 // tela deixa de enxergar a lista).
-                <li key={item.sourceUrl} className="py-8">
+                <li key={item.key} className="py-8">
                   <Reveal delay={i * 80}>
-                    <span className="inline-block rounded-full border border-wine/25 bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-wine">
-                      {ts(item.source)}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                      <span className="inline-block rounded-full border border-wine/25 bg-wine/5 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-wine">
+                        {item.type === "mediaMention"
+                          ? item.outlet
+                          : ts(item.source ?? "original")}
+                      </span>
+                      {item.type === "mediaMention" && item.kind && (
+                        <span className="text-xs uppercase tracking-[0.14em] text-muted">
+                          {tk(item.kind)}
+                        </span>
+                      )}
+                      {item.date && (
+                        <span className="text-xs text-muted">
+                          {new Intl.DateTimeFormat(locale, {
+                            dateStyle: "long",
+                            timeZone: "UTC",
+                          }).format(new Date(`${item.date}T00:00:00Z`))}
+                        </span>
+                      )}
+                    </div>
 
                     <h3 className="mt-4 text-2xl leading-snug">
-                      <a
-                        href={item.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-wine transition-colors hover:text-wine-soft"
-                      >
-                        {item.title}
-                      </a>
+                      {item.url ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-wine transition-colors hover:text-wine-soft"
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <Link
+                          href={`/artigos/${item.slug}`}
+                          className="text-wine transition-colors hover:text-wine-soft"
+                        >
+                          {item.title}
+                        </Link>
+                      )}
                     </h3>
 
                     {item.excerpt && (
@@ -126,18 +151,20 @@ export default async function Page({
                     )}
 
                     <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                      <a
-                        href={item.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group inline-flex items-center gap-2 font-medium text-green-deep transition-all hover:gap-3"
-                      >
-                        {t("readAtSource")}
-                        <span className="transition-transform group-hover:translate-x-0.5">
-                          →
-                        </span>
-                      </a>
-                      {item.slug && (
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center gap-2 font-medium text-green-deep transition-all hover:gap-3"
+                        >
+                          {t("readAtSource")}
+                          <span className="transition-transform group-hover:translate-x-0.5">
+                            →
+                          </span>
+                        </a>
+                      )}
+                      {item.type === "article" && item.slug && (
                         <Link
                           href={`/artigos/${item.slug}`}
                           className="text-muted underline decoration-ink/20 underline-offset-4 transition-colors hover:text-wine"
