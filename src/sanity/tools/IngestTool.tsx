@@ -103,6 +103,7 @@ const TYPE_LABEL: Record<string, string> = {
   video: "Vídeo",
   question: "Pergunta",
   article: "Artigo",
+  mediaMention: "Na mídia",
 };
 
 const TARGET_LABEL: Record<IngestTarget, string> = {
@@ -230,9 +231,12 @@ export default function IngestTool() {
     article: false,
   });
   const [questionsCount, setQuestionsCount] = useState(5);
-  // O artigo gerado também entra na página "Na mídia"? Pergunta obrigatória
-  // quando o alvo "Artigo" está marcado (26/09/2026): antes todo artigo da
-  // Forbes/LinkedIn entrava lá sem escolha. null = ainda não respondeu.
+  // Entra na página "Na mídia"? Pergunta obrigatória (26/09/2026): antes todo
+  // artigo da Forbes/LinkedIn entrava lá sem escolha. null = ainda não respondeu.
+  //   · Alvo "Artigo" marcado → a resposta vai no artigo gerado (showInMedia).
+  //   · Link da Forbes/LinkedIn SEM o alvo "Artigo" (28/09/2026) → "Sim" cria
+  //     uma menção (mediaMention) apontando para o ORIGINAL no veículo, sem
+  //     gerar artigo novo. Era o caso de querer só listar o artigo da Forbes.
   const [inMedia, setInMedia] = useState<boolean | null>(null);
   const [directions, setDirections] = useState("");
 
@@ -383,7 +387,48 @@ export default function IngestTool() {
     setGenerateElapsed(0);
     setGenerateError(null);
     setCreated([]);
+
+    // Menção em "Na mídia" com link para o original (sem artigo gerado). Não
+    // passa pela IA: título, veículo, data e resumo vêm da leitura do link.
+    const wantsMention =
+      Boolean(web) && inMedia === true && !(targets.article && SOURCE_TARGETS[source].includes("article"));
+    const mention: GeneratedDoc | null =
+      wantsMention && web
+        ? (() => {
+            const id = `drafts.${crypto.randomUUID()}`;
+            const date = web.publishDate && !Number.isNaN(Date.parse(web.publishDate))
+              ? new Date(web.publishDate).toISOString().slice(0, 10)
+              : undefined;
+            const title = web.title?.trim() || "";
+            const excerpt = web.description?.trim();
+            return {
+              _id: id,
+              _type: "mediaMention",
+              label: title || web.url,
+              doc: {
+                _id: id,
+                _type: "mediaMention",
+                title: { _type: "localeString", pt: title },
+                outlet: SOURCE_LABEL[web.source],
+                kind: "article",
+                url: web.url,
+                ...(date ? { date } : {}),
+                ...(excerpt ? { excerpt: { _type: "localeText", pt: excerpt } } : {}),
+              },
+            };
+          })()
+        : null;
+    const anyGenerated = SOURCE_TARGETS[source].some((key) => targets[key]);
+
     try {
+      if (!anyGenerated) {
+        // Só a menção: nada para a IA gerar.
+        if (!mention) return;
+        await client.create(mention.doc);
+        setCreated([{ id: mention._id, type: mention._type, label: mention.label }]);
+        return;
+      }
+
       const res = await fetch(api("/ingest/generate"), {
         method: "POST",
         headers: apiHeaders(client),
@@ -461,7 +506,10 @@ export default function IngestTool() {
       // do Studio. Transação = atômico (tudo ou nada) e mais rápido. As
       // referências entre os documentos são fracas (ver backend), então a ordem
       // não importa e nada falha por alvo ainda inexistente.
-      const docs = (data?.documents ?? []) as GeneratedDoc[];
+      const docs = [
+        ...((data?.documents ?? []) as GeneratedDoc[]),
+        ...(mention ? [mention] : []),
+      ];
       try {
         const tx = client.transaction();
         for (const entry of docs) {
@@ -519,13 +567,23 @@ export default function IngestTool() {
     [source],
   );
   const anyTarget = allowed.some((key) => targets[key]);
-  // Fonte de texto sem material suficiente não gera nada que preste.
+  const articleTarget = targets.article && allowed.includes("article");
+  // A pergunta "Na mídia" aparece com o alvo Artigo OU em link da Forbes/LinkedIn
+  // (aí, sem o Artigo, "Sim" cria uma menção para o original).
+  const mediaAsked = articleTarget || Boolean(web);
+  const mentionOnly = !anyTarget && Boolean(web) && inMedia === true;
+  // Fonte de texto sem material suficiente não gera nada que preste (a menção
+  // sozinha não usa o texto, então não precisa dele).
   const needsPastedText =
-    Boolean(web) && material.trim().length < (web?.minUsableText ?? 400);
+    anyTarget && Boolean(web) && material.trim().length < (web?.minUsableText ?? 400);
   const serviceOnline = service.status === "online";
-  const mediaPending = targets.article && allowed.includes("article") && inMedia === null;
+  const mediaPending = mediaAsked && inMedia === null;
   const ready =
-    serviceOnline && Boolean(source) && anyTarget && !needsPastedText && !mediaPending;
+    serviceOnline &&
+    Boolean(source) &&
+    (anyTarget || mentionOnly) &&
+    !needsPastedText &&
+    !mediaPending;
 
   const toggle =
     (key: IngestTarget) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -786,7 +844,7 @@ export default function IngestTool() {
             </div>
           ))}
 
-          {targets.article && allowed.includes("article") && (
+          {mediaAsked && (
             <div
               style={{
                 marginTop: 14,
@@ -797,11 +855,14 @@ export default function IngestTool() {
               }}
             >
               <div style={{ fontSize: 14, fontWeight: 600 }}>
-                O artigo também deve aparecer em “Na mídia”?
+                {articleTarget
+                  ? "O artigo também deve aparecer em “Na mídia”?"
+                  : `Colocar este artigo da ${SOURCE_LABEL[source]} em “Na mídia”?`}
               </div>
               <div style={{ ...s.muted, marginTop: 4 }}>
-                Sim = entra na lista da página Na mídia, com link para o original.
-                Dá para mudar depois no próprio artigo (campo “Aparecer em Na mídia”).
+                {articleTarget
+                  ? "Sim = entra na lista da página Na mídia, com link para o original. Dá para mudar depois no próprio artigo (campo “Aparecer em Na mídia”)."
+                  : "Sim = cria um rascunho em “Na mídia (menções)” com link para o original, sem gerar artigo novo. Dá para usar sozinho (desmarque tudo acima) ou junto com as perguntas."}
               </div>
               <div style={{ display: "flex", gap: 18, marginTop: 10, fontSize: 14 }}>
                 {[
@@ -852,7 +913,11 @@ export default function IngestTool() {
               disabled={!ready || generating}
               onClick={handleGenerate}
             >
-              {generating ? "Gerando…" : "Gerar rascunhos"}
+              {generating
+                ? "Gerando…"
+                : mentionOnly
+                  ? "Adicionar em Na mídia"
+                  : "Gerar rascunhos"}
             </button>
           </div>
 
