@@ -7,6 +7,7 @@ export type SocialId =
   | "linkedin"
   | "youtube"
   | "spotify"
+  | "tiktok"
   | "whatsapp";
 
 export type SocialLink = {
@@ -17,6 +18,12 @@ export type SocialLink = {
   /** Arroba/identificador público, quando existir. */
   handle?: string;
 };
+
+// TikTok (28/09/2026): o Igor pediu no Contato, mas o perfil não foi
+// confirmado (o TikTok não mostra perfil para robô). Com a URL aqui, ele entra
+// no Contato, no rodapé e no JSON-LD de uma vez; null = não aparece.
+const TIKTOK_URL: string | null = null;
+const TIKTOK_HANDLE: string | undefined = undefined;
 
 export const SOCIAL_LINKS: readonly SocialLink[] = [
   {
@@ -42,12 +49,15 @@ export const SOCIAL_LINKS: readonly SocialLink[] = [
     name: "Spotify",
     href: "https://open.spotify.com/show/2wbyXRM406YYgM4aqnpMqx",
   },
+  ...(TIKTOK_URL
+    ? [{ id: "tiktok" as const, name: "TikTok", href: TIKTOK_URL, handle: TIKTOK_HANDLE }]
+    : []),
   {
     id: "whatsapp",
     name: "WhatsApp",
     href: "https://api.whatsapp.com/send?phone=5511971963867",
   },
-] as const;
+];
 
 export const INSTAGRAM_URL = SOCIAL_LINKS[0].href;
 

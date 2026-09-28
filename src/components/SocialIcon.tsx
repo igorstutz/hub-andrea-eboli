@@ -38,6 +38,13 @@ const ICONS: Record<SocialId, ReactNode> = {
       <path d="M6 8.8q6-2.8 12 .8" />
     </>
   ),
+  // TikTok — a nota musical com o "rabo" da marca
+  tiktok: (
+    <>
+      <path d="M13.5 3.5v11a3.5 3.5 0 1 1-3.5-3.5" />
+      <path d="M13.5 3.5c.4 2.6 2.4 4.6 5 4.9" />
+    </>
+  ),
   // WhatsApp — balão com rabicho + monofone (desenhado em escala própria)
   whatsapp: (
     <>

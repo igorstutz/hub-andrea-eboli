@@ -514,6 +514,7 @@ export const PAGE_DEFS: PageDef[] = [
           ["lead", "Frase de apoio", "t", "Também é a descrição da página no Google."],
           ["emailLabel", "Rótulo do e-mail"],
           ["email", "E-mail de contato", "str", "O mesmo nos 3 idiomas."],
+          ["emailCta", "Chamada do botão de e-mail", "s", 'O botão abaixo do e-mail, que abre o programa de e-mail. Hoje: "Clique para escrever"'],
           ["socialLabel", "Rótulo das redes"],
           ["newsletterTitle", "Título do quadro da newsletter"],
         ],

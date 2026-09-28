@@ -4,7 +4,11 @@ import PageBanner from "@/components/PageBanner";
 import NewsletterForm from "@/components/NewsletterForm";
 import { pageMetadata } from "@/lib/seo";
 import { getPageText, getNewsletterLabels } from "@/lib/pageText";
-import { INSTAGRAM_URL } from "@/lib/social";
+import { SOCIAL_LINKS } from "@/lib/social";
+import SocialIcon from "@/components/SocialIcon";
+
+// As redes listadas no Contato, nesta ordem (as que existirem em social.ts).
+const CONTACT_NETWORKS = ["instagram", "youtube", "linkedin", "tiktok"] as const;
 
 export async function generateMetadata({
   params,
@@ -56,24 +60,34 @@ export default async function Page({
               className="group mt-3 inline-flex items-center gap-2 font-serif text-2xl italic text-green-deep transition-colors hover:text-wine md:text-3xl"
             >
               {email}
-              <span className="text-wine transition-transform group-hover:translate-x-0.5">
-                →
-              </span>
             </a>
+            <div>
+              <a
+                href={`mailto:${email}`}
+                className="group mt-5 inline-flex items-center gap-2 rounded-full bg-wine px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-wine-soft"
+              >
+                {t("emailCta")}
+                <span className="transition-transform group-hover:translate-x-0.5">→</span>
+              </a>
+            </div>
 
             <p className="kicker mt-10 text-wine">{t("socialLabel")}</p>
             <ul className="mt-4 space-y-3">
-              <li>
-                <a
-                  href={INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 text-ink-soft transition-colors hover:text-wine"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-wine" />
-                  Instagram · @souandreaeboli
-                </a>
-              </li>
+              {CONTACT_NETWORKS.map((id) => SOCIAL_LINKS.find((s) => s.id === id))
+                .filter((s) => s !== undefined)
+                .map((s) => (
+                  <li key={s.id}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 text-ink-soft transition-colors hover:text-wine"
+                    >
+                      <SocialIcon name={s.id} className="h-5 w-5 text-wine" />
+                      {s.handle ? `${s.name} · ${s.handle}` : s.name}
+                    </a>
+                  </li>
+                ))}
             </ul>
           </div>
 

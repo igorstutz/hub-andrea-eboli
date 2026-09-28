@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 type Status = "idle" | "loading" | "ok" | "error";
 
@@ -23,7 +23,10 @@ export default function NewsletterForm({
 }) {
   const tr = useTranslations("home");
   const t = (key: keyof NewsletterLabels) => labels[key] || tr(key);
+  const locale = useLocale();
   const [email, setEmail] = useState("");
+  // Campo-isca: invisível para gente, preenchido por robô (ver src/lib/newsletter.ts).
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const light = tone === "light";
 
@@ -31,14 +34,14 @@ export default function NewsletterForm({
     e.preventDefault();
     setStatus("loading");
     try {
-      // No site estático (GitHub Pages) não há /api — defina
-      // NEXT_PUBLIC_NEWSLETTER_ENDPOINT (webhook do provedor) para ativar.
+      // /api/newsletter = o serviço Node do cPanel no ar (e a rota do Next no
+      // dev), que guarda a inscrição (src/lib/newsletter.ts).
       const endpoint =
         process.env.NEXT_PUBLIC_NEWSLETTER_ENDPOINT || "/api/newsletter";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale, path: window.location.pathname, website }),
       });
       if (res.ok) {
         setStatus("ok");
@@ -57,6 +60,16 @@ export default function NewsletterForm({
     <div className={light ? "mt-2" : "mx-auto mt-8 max-w-md"}>
       <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
         <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          className="absolute -left-[9999px] h-px w-px opacity-0"
+        />
+        <input
           type="email"
           required
           value={email}
@@ -74,8 +87,8 @@ export default function NewsletterForm({
           disabled={locked}
           className={
             light
-              ? "rounded-full bg-wine px-7 py-3 font-semibold text-cream transition-colors hover:bg-wine-soft disabled:opacity-70"
-              : "rounded-full bg-cream px-7 py-3 font-semibold text-wine transition-colors hover:bg-white disabled:opacity-70"
+              ? "whitespace-nowrap rounded-full bg-wine px-7 py-3 font-semibold text-cream transition-colors hover:bg-wine-soft disabled:opacity-70"
+              : "whitespace-nowrap rounded-full bg-cream px-7 py-3 font-semibold text-wine transition-colors hover:bg-white disabled:opacity-70"
           }
         >
           {status === "ok" ? "✓" : t("newsletterCta")}

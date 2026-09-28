@@ -456,6 +456,10 @@ export default function DashboardTool() {
           </div>
         </>
       )}
+
+      <div style={s.grid}>
+        <NewsletterSignups />
+      </div>
     </div>
     </div>
   );
@@ -503,5 +507,94 @@ function RecentSessions({ recent }: { recent: Summary["recent"] }) {
                 </button>
               )}
             </div>
+  );
+}
+
+// Inscritos na newsletter "Notas sobre Poder" (28/09/2026). O formulário do
+// site grava na hospedagem (src/lib/newsletter.ts); aqui se vê a lista e se
+// baixa a planilha para importar no provedor de e-mail quando houver um.
+type Signups = { total: number; recent: Array<{ t: string; email: string; l?: string; p?: string }> };
+
+function NewsletterSignups() {
+  const client = useClient({ apiVersion: API_VERSION });
+  const [data, setData] = useState<Signups | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [all, setAll] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch(api("/newsletter/list"), { headers: apiHeaders(client) })
+      .then(async (res) => {
+        const body = await res.json().catch(() => null);
+        if (!res.ok || !body) throw new Error(`O serviço não respondeu (HTTP ${res.status}).`);
+        if (active) setData(body as Signups);
+      })
+      .catch((e: unknown) => {
+        if (active) setError(e instanceof Error ? e.message : "Falha de rede.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [client]);
+
+  const exportCsv = async () => {
+    const res = await fetch(api("/newsletter/export"), { headers: apiHeaders(client) });
+    if (!res.ok) {
+      setError(`Não consegui gerar a planilha (HTTP ${res.status}).`);
+      return;
+    }
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "newsletter-inscritos.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const shown = data ? (all ? data.recent : data.recent.slice(0, 12)) : [];
+  return (
+    <div style={s.card}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+        <h2 style={{ ...s.h2, margin: 0 }}>
+          Newsletter · {data ? `${fmt.format(data.total)} inscrito(s)` : "…"}
+        </h2>
+        <span style={{ flex: 1 }} />
+        <button type="button" style={s.pill} onClick={exportCsv} disabled={!data}>
+          Baixar inscritos (CSV)
+        </button>
+      </div>
+      {error && <div style={s.empty}>{error}</div>}
+      {data && data.total === 0 && <div style={s.empty}>Ninguém se inscreveu ainda.</div>}
+      {data && data.total > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table style={s.table}>
+            <thead>
+              <tr>
+                {["Quando", "E-mail", "Idioma", "Página"].map((h) => (
+                  <th key={h} style={s.th}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((r) => (
+                <tr key={r.email}>
+                  <td style={{ ...s.td, whiteSpace: "nowrap" }}>
+                    {new Date(r.t).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}
+                  </td>
+                  <td style={s.td}>{r.email}</td>
+                  <td style={s.td}>{r.l ?? "—"}</td>
+                  <td style={{ ...s.td, fontFamily: "ui-monospace, monospace", fontSize: 12 }}>{r.p ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {data && data.recent.length > 12 && (
+        <button type="button" style={{ ...s.pill, marginTop: 10 }} onClick={() => setAll(!all)}>
+          {all ? "Mostrar menos" : `Mostrar as ${data.recent.length} mais recentes`}
+        </button>
+      )}
+    </div>
   );
 }

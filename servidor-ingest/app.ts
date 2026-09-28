@@ -42,6 +42,7 @@ import {
   type Handler,
 } from "@/lib/ingest/handlers";
 import { handleTrack, handleTrackExport, handleTrackSummary } from "@/lib/analytics/track";
+import { handleNewsletter, handleNewsletterExport, handleNewsletterList } from "@/lib/newsletter";
 
 const ROUTES: Record<string, Handler> = {
   "GET /ingest/health": handleHealth,
@@ -54,6 +55,10 @@ const ROUTES: Record<string, Handler> = {
   "POST /track": handleTrack,
   "GET /track/summary": handleTrackSummary,
   "GET /track/export": handleTrackExport,
+  // Newsletter (src/lib/newsletter.ts). O POST é público: o formulário do site.
+  "POST /newsletter": handleNewsletter,
+  "GET /newsletter/list": handleNewsletterList,
+  "GET /newsletter/export": handleNewsletterExport,
 };
 
 // A única rota com parâmetro: o estado de um job de geração.
