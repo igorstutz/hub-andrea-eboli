@@ -19,11 +19,10 @@ export type SocialLink = {
   handle?: string;
 };
 
-// TikTok (28/09/2026): o Igor pediu no Contato, mas o perfil não foi
-// confirmado (o TikTok não mostra perfil para robô). Com a URL aqui, ele entra
-// no Contato, no rodapé e no JSON-LD de uma vez; null = não aparece.
-const TIKTOK_URL: string | null = null;
-const TIKTOK_HANDLE: string | undefined = undefined;
+// TikTok (28/09/2026, link passado pelo Igor). null = não aparece em lugar
+// nenhum (Contato, rodapé e JSON-LD leem daqui).
+const TIKTOK_URL: string | null = "https://www.tiktok.com/@eboliandrea";
+const TIKTOK_HANDLE: string | undefined = "@eboliandrea";
 
 export const SOCIAL_LINKS: readonly SocialLink[] = [
   {
