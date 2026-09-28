@@ -81,6 +81,7 @@ type WebData = {
   source: ContentSource;
   url: string;
   title?: string;
+  siteName?: string;
   author?: string;
   description?: string;
   publishDate?: string;
@@ -278,7 +279,7 @@ export default function IngestTool() {
 
     if (!detected) {
       setInspectError(
-        "Link não suportado. Aceito links do YouTube, da Forbes e do LinkedIn.",
+        "Link inválido. Cole o endereço completo, começando por https://.",
       );
       return;
     }
@@ -401,6 +402,11 @@ export default function IngestTool() {
               : undefined;
             const title = web.title?.trim() || "";
             const excerpt = web.description?.trim();
+            // Forbes/LinkedIn: artigo dela lá. Outro site: em geral a citam.
+            const outlet =
+              web.source === "web"
+                ? web.siteName?.trim() || new URL(web.url).hostname.replace(/^www\./, "")
+                : SOURCE_LABEL[web.source];
             return {
               _id: id,
               _type: "mediaMention",
@@ -409,8 +415,8 @@ export default function IngestTool() {
                 _id: id,
                 _type: "mediaMention",
                 title: { _type: "localeString", pt: title },
-                outlet: SOURCE_LABEL[web.source],
-                kind: "article",
+                outlet,
+                kind: web.source === "web" ? "mention" : "article",
                 url: web.url,
                 ...(date ? { date } : {}),
                 ...(excerpt ? { excerpt: { _type: "localeText", pt: excerpt } } : {}),
@@ -604,7 +610,8 @@ export default function IngestTool() {
         <strong>LinkedIn</strong>. O sistema lê o material e gera rascunhos
         (pt/en/es) para você revisar e publicar. Cada fonte gera os seus tipos —
         vídeo/podcast só sai do YouTube; conceitos você cria à mão no menu
-        “Conceitos”.
+        “Conceitos”. Link de <strong>qualquer outro site</strong> (matéria que
+        cita a Andrea, pesquisa, entrevista) entra como menção em “Na mídia”.
       </p>
 
       {/* Estado do serviço */}
@@ -631,7 +638,7 @@ export default function IngestTool() {
             style={s.input}
             value={url}
             onChange={(e) => setUrl(e.currentTarget.value)}
-            placeholder="YouTube, Forbes ou LinkedIn — cole o link aqui"
+            placeholder="Cole o link aqui (YouTube, Forbes, LinkedIn ou qualquer site)"
             onKeyDown={(e) => {
               if (e.key === "Enter" && url.trim() && serviceOnline) handleInspect();
             }}
@@ -754,7 +761,9 @@ export default function IngestTool() {
       {web && (
         <div style={s.card}>
           <span style={{ ...s.badge, ...s.sourceBadge }}>
-            {SOURCE_LABEL[web.source]}
+            {web.source === "web"
+              ? web.siteName || new URL(web.url).hostname.replace(/^www\./, "")
+              : SOURCE_LABEL[web.source]}
           </span>
           <div style={{ fontSize: 16, fontWeight: 600, margin: "8px 0 6px" }}>
             {web.title || "(sem título detectado)"}
@@ -770,7 +779,16 @@ export default function IngestTool() {
               .join(" · ") || "—"}
           </div>
 
-          {web.status === "ok" ? (
+          {web.source === "web" ? (
+            web.status === "blocked" && !web.title ? (
+              <div style={s.warn}>
+                O site não deixou ler a página
+                {web.httpStatus ? ` (HTTP ${web.httpStatus})` : ""}. Dá para
+                adicionar assim mesmo: o rascunho sai com o link, e você preenche
+                o título nele antes de publicar.
+              </div>
+            ) : null
+          ) : web.status === "ok" ? (
             <span style={{ ...s.badge, ...s.ok }}>
               Texto extraído · {material.length.toLocaleString("pt-BR")} caracteres
             </span>
@@ -785,7 +803,7 @@ export default function IngestTool() {
             </div>
           )}
 
-          <div style={{ marginTop: 14 }}>
+          {web.source !== "web" && <div style={{ marginTop: 14 }}>
             <div style={s.label}>
               Texto do artigo{" "}
               <span style={{ fontWeight: 400, color: "#6b6b72" }}>
@@ -811,16 +829,20 @@ export default function IngestTool() {
                 para gerar com qualidade — hoje há {material.trim().length}.
               </div>
             )}
-          </div>
+          </div>}
         </div>
       )}
 
       {/* Etapa 2 — o que gerar */}
       {source && (yt || web) && (
         <div style={s.card}>
-          <div style={s.label}>2. O que gerar</div>
+          <div style={s.label}>
+            {source === "web" ? "2. Na mídia" : "2. O que gerar"}
+          </div>
           <div style={{ ...s.muted, marginBottom: 6 }}>
-            Opções disponíveis para {SOURCE_LABEL[source]}.
+            {source === "web"
+              ? "Links de outros sites (matéria que a cita, pesquisa, entrevista…) não geram conteúdo com IA: entram como menção na página Na mídia."
+              : `Opções disponíveis para ${SOURCE_LABEL[source]}.`}
           </div>
 
           {allowed.map((key) => (
@@ -857,12 +879,16 @@ export default function IngestTool() {
               <div style={{ fontSize: 14, fontWeight: 600 }}>
                 {articleTarget
                   ? "O artigo também deve aparecer em “Na mídia”?"
-                  : `Colocar este artigo da ${SOURCE_LABEL[source]} em “Na mídia”?`}
+                  : source === "web"
+                    ? "Colocar este link em “Na mídia”?"
+                    : `Colocar este artigo da ${SOURCE_LABEL[source]} em “Na mídia”?`}
               </div>
               <div style={{ ...s.muted, marginTop: 4 }}>
                 {articleTarget
                   ? "Sim = entra na lista da página Na mídia, com link para o original. Dá para mudar depois no próprio artigo (campo “Aparecer em Na mídia”)."
-                  : "Sim = cria um rascunho em “Na mídia (menções)” com link para o original, sem gerar artigo novo. Dá para usar sozinho (desmarque tudo acima) ou junto com as perguntas."}
+                  : source === "web"
+                    ? "Sim = cria um rascunho em “Na mídia (menções)” com título, veículo, data e link para o original. Confira o rascunho (inclusive o campo Tipo) e publique."
+                    : "Sim = cria um rascunho em “Na mídia (menções)” com link para o original, sem gerar artigo novo. Dá para usar sozinho (desmarque tudo acima) ou junto com as perguntas."}
               </div>
               <div style={{ display: "flex", gap: 18, marginTop: 10, fontSize: 14 }}>
                 {[
@@ -883,7 +909,7 @@ export default function IngestTool() {
             </div>
           )}
 
-          <div style={{ marginTop: 18 }}>
+          {anyTarget && <div style={{ marginTop: 18 }}>
             <div style={s.label}>
               Direcionamentos específicos{" "}
               <span style={{ fontWeight: 400, color: "#6b6b72" }}>
@@ -902,7 +928,7 @@ export default function IngestTool() {
               As regras gerais ficam em <strong>⚙️ Agentes de IA</strong> no
               menu. Aqui é só o ajuste pontual desta importação.
             </div>
-          </div>
+          </div>}
 
           <div style={{ marginTop: 16 }}>
             <button

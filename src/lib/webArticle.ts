@@ -17,6 +17,7 @@ export type WebArticleStatus = "ok" | "empty" | "blocked";
 export type WebArticle = {
   url: string;
   title?: string;
+  siteName?: string;
   author?: string;
   description?: string;
   publishDate?: string;
@@ -152,6 +153,7 @@ export async function fetchWebArticle(url: string): Promise<WebArticle> {
   return {
     url: res.url || url,
     title,
+    siteName: meta(html, "og:site_name", "application-name"),
     author: meta(html, "author", "article:author", "og:article:author"),
     description: meta(html, "og:description", "description", "twitter:description"),
     publishDate: firstDate(html),

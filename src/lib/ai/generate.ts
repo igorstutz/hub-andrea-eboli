@@ -268,12 +268,14 @@ const MATERIAL_LABEL: Record<ContentSource, string> = {
   youtube: "TRANSCRIÇÃO DO VÍDEO/PODCAST",
   forbes: "ARTIGO QUE A ANDREA PUBLICOU NA FORBES",
   linkedin: "PUBLICAÇÃO QUE A ANDREA FEZ NO LINKEDIN",
+  web: "MATERIAL PUBLICADO EM OUTRO SITE", // não gera (SOURCE_TARGETS.web = [])
 };
 
 const ORIGIN_LABEL: Record<ContentSource, string> = {
   youtube: "Vídeo/podcast (YouTube)",
   forbes: "Artigo publicado (Forbes)",
   linkedin: "Publicação (LinkedIn)",
+  web: "Outro site",
 };
 
 // Regra extra quando o material JÁ está publicado em outro veículo: o conteúdo
