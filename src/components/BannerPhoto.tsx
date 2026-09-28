@@ -18,21 +18,30 @@ import { urlFor, type ImageSource } from "@/sanity/lib/image";
 // Desde 25/09/2026 o retrato é trocável no painel (Sobre Andrea → Coluna
 // lateral → Retrato). Vazio lá = este arquivo. O recorte 3:4 respeita o ponto
 // de foco que ela marcar na foto.
+// Desde 28/09/2026 a home tem campo próprio (Página inicial → Topo → Foto do
+// topo), porque a Andrea procurava a foto ali e não achava. Vazio = o retrato
+// do Sobre, como antes.
 const PHOTO_SRC: string | null = "/brand/andrea-eboli-retrato-2026.webp";
 
 export default async function BannerPhoto({
   priority = false,
   className = "",
+  home = false,
 }: {
   priority?: boolean;
   className?: string;
+  /** Na home, a "Foto do topo" da Página inicial vence o retrato do Sobre. */
+  home?: boolean;
 }) {
   // O alt vem do i18n (`common.portraitAlt`) para acompanhar o idioma da página.
   const t = await getTranslations("common");
-  const fromPanel = await sanityFetch<{ image: ImageSource; lqip?: string } | null>(
-    pageImageQuery,
-    { id: "aboutPage", field: "photo" },
-  );
+  type PanelImage = { image: ImageSource; lqip?: string } | null;
+  const fromHome = home
+    ? await sanityFetch<PanelImage>(pageImageQuery, { id: "homePage", field: "heroPhoto" })
+    : null;
+  const fromPanel = fromHome?.image
+    ? fromHome
+    : await sanityFetch<PanelImage>(pageImageQuery, { id: "aboutPage", field: "photo" });
   const src = fromPanel?.image
     ? urlFor(fromPanel.image).width(900).height(1200).fit("crop").auto("format").url()
     : PHOTO_SRC && asset(PHOTO_SRC);

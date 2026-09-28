@@ -71,6 +71,7 @@ export const PAGE_DEFS: PageDef[] = [
           ["lead", "Parágrafo de abertura", "t"],
           ["ctaPrimary", "Botão principal"],
           ["ctaSecondary", "Botão secundário"],
+          ["heroPhoto", "Foto do topo", "img", "A foto ao lado do título. Vazio = o mesmo retrato de Sobre Andrea → Coluna lateral → Retrato. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
         ],
       },
       {

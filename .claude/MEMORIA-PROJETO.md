@@ -69,7 +69,18 @@ em **Next.js 16** + **Sanity v5** (CMS headless), **trilíngue** (pt / en / es, 
 
 ## Estado atual / onde paramos
 
-### 🗓️ Sessão 26/09/2026 (MAIS RECENTE) — "Na mídia" deixou de ser automática
+### 🗓️ Sessão 28/09/2026 (MAIS RECENTE) — "Na mídia" aceita link de qualquer site
+O Igor: só dava para pôr em Na mídia marcando "Artigo" (gerava artigo novo), e
+link de site que não fosse Forbes/LinkedIn/YouTube era recusado.
+- Fonte nova **`web`** em `sources.ts` (qualquer http/https, `SOURCE_TARGETS.web = []`):
+  a ferramenta lê título, veículo (`og:site_name`, senão o domínio) e data e,
+  com "Sim", cria um rascunho `mediaMention` (tipo "Menção em matéria"). Sem IA.
+- Forbes/LinkedIn com "Artigo" desmarcado: a pergunta Na mídia continua; "Sim"
+  cria a menção (tipo "Artigo em outro veículo") apontando para o original. Com
+  tudo desmarcado o botão vira "Adicionar em Na mídia".
+- Publicado (`enviar-api` + `enviar-painel`); `web/inspect` conferido no ar.
+
+### 🗓️ Sessão 26/09/2026 — "Na mídia" deixou de ser automática
 O Igor: artigo importado deve ter a opção sim/não de aparecer em Na mídia, e
 tem de dar para pôr lá coisas que não são artigos dela (pesquisa que a cita,
 matéria em que foi mencionada).

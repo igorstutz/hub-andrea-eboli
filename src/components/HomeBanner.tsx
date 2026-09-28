@@ -75,7 +75,7 @@ export default async function HomeBanner() {
 
         {/* Coluna da foto integrada */}
         <Reveal delay={300} className="order-first lg:order-last">
-          <BannerPhoto priority />
+          <BannerPhoto priority home />
         </Reveal>
       </div>
     </section>
