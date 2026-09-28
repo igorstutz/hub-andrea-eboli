@@ -71,7 +71,7 @@ export const PAGE_DEFS: PageDef[] = [
           ["lead", "Parágrafo de abertura", "t"],
           ["ctaPrimary", "Botão principal"],
           ["ctaSecondary", "Botão secundário"],
-          ["heroPhoto", "Foto do topo", "img", "A foto ao lado do título. Vazio = o mesmo retrato de Sobre Andrea → Coluna lateral → Retrato. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
+          ["heroPhoto", "Foto do topo", "img", "A foto ao lado do título, só na página inicial (o retrato do Sobre é outro campo, independente). Vazio = o retrato de 2026 que já está no site. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
         ],
       },
       {
@@ -179,7 +179,7 @@ export const PAGE_DEFS: PageDef[] = [
         name: "lateral",
         title: "Coluna lateral",
         fields: [
-          ["photo", "Retrato", "img", "O retrato da coluna lateral E do topo da página inicial. Vazio = o retrato de 2026 que já está no site. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
+          ["photo", "Retrato", "img", "O retrato da coluna lateral desta página (a foto do topo da página inicial é outro campo, em Página inicial → Topo). Vazio = o retrato de 2026 que já está no site. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
           ["experiencesLabel", "Título da lista de experiências"],
           ["experiences", "Experiências", "ls", LISTA],
           ["methodCta", "Botão principal"],
