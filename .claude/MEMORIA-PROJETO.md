@@ -79,6 +79,18 @@ link de site que não fosse Forbes/LinkedIn/YouTube era recusado.
   cria a menção (tipo "Artigo em outro veículo") apontando para o original. Com
   tudo desmarcado o botão vira "Adicionar em Na mídia".
 - Publicado (`enviar-api` + `enviar-painel`); `web/inspect` conferido no ar.
+- **Newsletter nunca funcionou no ar** (`/api/newsletter` só existia no Next):
+  agora `src/lib/newsletter.ts` no serviço grava em `~/andrea-newsletter/`
+  (campo-isca + limite por IP); lista e CSV no fim da aba Acessos.
+- Home: "Foto do topo" (`homePage.heroPhoto`) e "Retrato" do Sobre são
+  INDEPENDENTES; "Cor do fundo do topo" (`heroColor`, tipo `color` em
+  `pageTextDefs.ts` → `HERO_COLORS`, só tons escuros). Perguntas que giram:
+  caixa de 3 linhas e tempo proporcional ao tamanho.
+- Contato: botão de e-mail (`emailCta`), redes com ícone, TikTok @eboliandrea
+  em `social.ts`.
+- 📌 `enviar-arquivos` leva ~30 min quando o HTML de todas as páginas muda (FTP).
+  Disparar vários modos seguidos: um run pendente novo CANCELA o pendente
+  anterior (concurrency), então esperar a fila esvaziar entre um e outro.
 
 ### 🗓️ Sessão 26/09/2026 — "Na mídia" deixou de ser automática
 O Igor: artigo importado deve ter a opção sim/não de aparecer em Na mídia, e

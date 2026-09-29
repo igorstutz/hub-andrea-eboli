@@ -27,11 +27,14 @@ export default async function BannerPhoto({
   priority = false,
   className = "",
   home = false,
+  backdrop = "bg-wine/45",
 }: {
   priority?: boolean;
   className?: string;
   /** Na home lê a "Foto do topo" da Página inicial; fora dela, o retrato do Sobre. */
   home?: boolean;
+  /** Cor do bloco atrás da foto (acompanha a cor do topo da home). */
+  backdrop?: string;
 }) {
   // O alt vem do i18n (`common.portraitAlt`) para acompanhar o idioma da página.
   const t = await getTranslations("common");
@@ -49,7 +52,7 @@ export default async function BannerPhoto({
       {/* bloco de cor deslocado atrás da foto (colagem editorial) */}
       <div
         aria-hidden
-        className="absolute -left-5 -top-5 h-full w-full rounded-[4px] border border-cream/15 bg-wine/45"
+        className={`absolute -left-5 -top-5 h-full w-full rounded-[4px] border border-cream/15 ${backdrop}`}
       />
 
       <div className="photo-frame photo-duotone relative aspect-[3/4] w-full bg-green-darker">

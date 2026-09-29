@@ -58,7 +58,10 @@ export default function NewsletterForm({
 
   return (
     <div className={light ? "mt-2" : "mx-auto mt-8 max-w-md"}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
+      {/* Nos quadros claros (Contato, Livro) a coluna é estreita: campo e botão
+          empilhados, cada um na largura inteira. Lado a lado, o botão vazava
+          do quadro (28/09/2026). */}
+      <form onSubmit={onSubmit} className={light ? "flex flex-col gap-3" : "flex flex-col gap-3 sm:flex-row"}>
         <input
           type="text"
           name="website"
@@ -78,8 +81,8 @@ export default function NewsletterForm({
           placeholder={t("newsletterPlaceholder")}
           className={
             light
-              ? "flex-1 rounded-full border border-ink/15 bg-cream px-5 py-3 text-ink outline-none transition-shadow placeholder:text-muted focus:border-wine disabled:opacity-70"
-              : "flex-1 rounded-full bg-cream/10 px-5 py-3 text-cream outline-none ring-1 ring-cream/25 transition-shadow placeholder:text-cream/50 focus:ring-cream/60 disabled:opacity-70"
+              ? "w-full min-w-0 rounded-full border border-ink/15 bg-cream px-5 py-3.5 text-ink outline-none transition-shadow placeholder:text-muted focus:border-wine disabled:opacity-70"
+              : "min-w-0 flex-1 rounded-full bg-cream/10 px-5 py-3 text-cream outline-none ring-1 ring-cream/25 transition-shadow placeholder:text-cream/50 focus:ring-cream/60 disabled:opacity-70"
           }
         />
         <button
@@ -87,7 +90,7 @@ export default function NewsletterForm({
           disabled={locked}
           className={
             light
-              ? "whitespace-nowrap rounded-full bg-wine px-7 py-3 font-semibold text-cream transition-colors hover:bg-wine-soft disabled:opacity-70"
+              ? "w-full rounded-full bg-wine px-7 py-3.5 font-semibold text-cream transition-colors hover:bg-wine-soft disabled:opacity-70"
               : "whitespace-nowrap rounded-full bg-cream px-7 py-3 font-semibold text-wine transition-colors hover:bg-white disabled:opacity-70"
           }
         >

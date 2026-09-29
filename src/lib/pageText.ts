@@ -109,5 +109,9 @@ export async function getNewsletterLabels(locale: string) {
     newsletterCta: tx("newsletterCta"),
     newsletterOk: tx("newsletterOk"),
     newsletterError: tx("newsletterError"),
+    // Não são do formulário: a etiqueta e o texto de apoio, para os quadros
+    // de newsletter fora da home (Contato).
+    newsletterBadge: tx("newsletterBadge"),
+    newsletterLead: tx("newsletterLead"),
   };
 }

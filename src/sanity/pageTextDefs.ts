@@ -28,9 +28,24 @@
  *   num  número (os percentuais dos gráficos)
  *   img  uma imagem
  *   imgs galeria de imagens, cada uma com descrição (alt) nos 3 idiomas
+ *   color escolha de cor entre as cores da marca (HERO_COLORS)
  */
 
-export type FieldKind = "s" | "t" | "str" | "ls" | "lt" | "url" | "num" | "img" | "imgs";
+export type FieldKind = "s" | "t" | "str" | "ls" | "lt" | "url" | "num" | "img" | "imgs" | "color";
+
+/**
+ * Cores que o fundo do topo da home pode ter (28/09/2026, pedido do Igor para
+ * "dar uma oxigenada"). Só tons ESCUROS da marca: o texto do topo é creme, e
+ * num fundo claro ele sumiria. O primeiro é o padrão (campo vazio = ele).
+ * As classes de cada cor ficam em `src/components/HomeBanner.tsx`.
+ */
+export const HERO_COLORS = [
+  { value: "wine", title: "Vinho (padrão)" },
+  { value: "wineDeep", title: "Vinho escuro" },
+  { value: "green", title: "Verde profundo" },
+  { value: "greenSoft", title: "Verde-musgo" },
+] as const;
+export type HeroColor = (typeof HERO_COLORS)[number]["value"];
 export type FieldDef = [name: string, title: string, kind?: FieldKind, help?: string];
 export type GroupDef = { name: string; title: string; fields: FieldDef[] };
 export type PageDef = {
@@ -71,6 +86,7 @@ export const PAGE_DEFS: PageDef[] = [
           ["lead", "Parágrafo de abertura", "t"],
           ["ctaPrimary", "Botão principal"],
           ["ctaSecondary", "Botão secundário"],
+          ["heroColor", "Cor do fundo do topo", "color", "Vazio = vinho. Só cores escuras da marca, para o texto claro continuar legível."],
           ["heroPhoto", "Foto do topo", "img", "A foto ao lado do título, só na página inicial (o retrato do Sobre é outro campo, independente). Vazio = o retrato de 2026 que já está no site. Use foto em pé (é recortada em 3:4; clique na foto para marcar o ponto de foco)."],
         ],
       },

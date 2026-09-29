@@ -92,11 +92,13 @@ export default async function Page({
           </div>
 
           {/* Newsletter */}
-          <div className="rounded-2xl border border-ink/10 bg-bone p-8">
-            <h2 className="text-2xl text-green-deep md:text-3xl">
+          <div className="self-start rounded-2xl border border-ink/10 bg-bone p-8 md:p-10">
+            <p className="kicker text-wine">{newsletter.newsletterBadge}</p>
+            <h2 className="mt-3 text-2xl text-green-deep md:text-3xl">
               {t("newsletterTitle")}
             </h2>
-            <div className="mt-6">
+            <p className="mt-4 leading-relaxed text-ink-soft">{newsletter.newsletterLead}</p>
+            <div className="mt-7">
               <NewsletterForm tone="light" labels={newsletter} />
             </div>
           </div>

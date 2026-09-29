@@ -1,6 +1,6 @@
 import { defineType, defineField, defineArrayMember } from "sanity";
 import type { FieldDefinition } from "sanity";
-import { PAGE_DEFS, type FieldDef, type PageDef } from "../../pageTextDefs";
+import { HERO_COLORS, PAGE_DEFS, type FieldDef, type PageDef } from "../../pageTextDefs";
 
 /**
  * As páginas fixas do site, editáveis no painel.
@@ -41,6 +41,12 @@ function field([name, title, kind = "s", description]: FieldDef, group: string):
       });
     case "img":
       return defineField({ ...base, type: "image", options: { hotspot: true } });
+    case "color":
+      return defineField({
+        ...base,
+        type: "string",
+        options: { list: HERO_COLORS.map((c) => ({ title: c.title, value: c.value })), layout: "radio" },
+      });
     case "imgs":
       return defineField({
         ...base,
