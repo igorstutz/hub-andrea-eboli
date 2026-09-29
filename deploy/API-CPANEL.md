@@ -131,8 +131,10 @@ Igor pode criar:
 
 1. GitHub → Settings → Developer settings → **Fine-grained personal access
    tokens** → Generate. Repositório: só `igorstutz/hub-andrea-eboli`.
-   Permissões: **Actions: Read and write** (mais nada). Validade: a maior
-   possível; anotar a data para renovar.
+   Permissões: **Contents: Read and write** (mais nada; o Metadata: Read
+   entra sozinho). ⚠️ Não é "Actions": o endpoint `/dispatches`
+   (repository_dispatch) exige Contents; Actions serve ao workflow_dispatch.
+   Validade: a maior possível; anotar a data para renovar.
 2. Sanity → https://www.sanity.io/manage/project/52ssivbg/api → **Webhooks →
    Create webhook**:
    - URL: `https://api.github.com/repos/igorstutz/hub-andrea-eboli/dispatches`
